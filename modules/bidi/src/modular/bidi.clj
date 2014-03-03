@@ -1,4 +1,5 @@
 (ns modular.bidi)
 
 (defprotocol RoutesContributor
-  (routes [_]))
+  (routes [_])
+  (context [_]))
