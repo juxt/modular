@@ -8,9 +8,9 @@
 
   :sub [
         "modules/http-kit"        ; HTTP server (with client library)
+        "modules/bidi" ; URI routing library
 
         ;;        "extensions/async" ; core.async channels that can be shared by dependants
-        ;;        "extensions/bidi" ; URI routing library
         ;;        "extensions/cljs-builder" ; ClojureScript compilation
         ;;        "extensions/compojure" ; URI routing library
         ;;        "extensions/jetty" ; HTTP server
