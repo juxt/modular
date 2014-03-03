@@ -7,16 +7,19 @@
 (defprotocol RingHandlerProvider
   (handler [_]))
 
+(def default-port 8000)
+
 (defrecord Webserver [port]
   component/Lifecycle
   (start [this]
-    (if-let [handler (some (comp :jig.ring/handler system) (:jig/dependencies config))]
-      (let [server (run-server handler {:port (:port config)})]
-        (assoc-in system [(:jig/id config) :server] server))
-      system))
+    (let [h (handler (:ring-handler-provider this))]
+      (assert handler)
+      (if port
+        (infof "port is %d" port)
+        (warnf "port is nil, using default of %d" default-port))
+      (assoc this :server (run-server h {:port (or port default-port)}))))
+
   (stop [this]
-    (when-let [server (get-in system [(:jig/id config) :server])]
-      ;; Stop the server by calling the function
-      (infof "Stopping http-kit server")
-      (server))
-    (dissoc system (:jig/id config))))
+    (when-let [server (:server this)]
+      (server)
+      (dissoc this :server))))
