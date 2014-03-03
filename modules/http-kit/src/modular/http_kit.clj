@@ -23,3 +23,7 @@
     (when-let [server (:server this)]
       (server)
       (dissoc this :server))))
+
+;; Keep this around for integration with Prismatic Schema
+(defn new-webserver [{:keys [port]}]
+  (->Webserver port))
