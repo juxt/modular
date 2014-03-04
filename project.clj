@@ -1,3 +1,17 @@
+;; Copyright © 2014, JUXT LTD. All Rights Reserved.
+;;
+;; Licensed under the Apache License, Version 2.0 (the "License");
+;; you may not use this file except in compliance with the License.
+;; You may obtain a copy of the License at
+;;
+;;     http://www.apache.org/licenses/LICENSE-2.0
+;;
+;; Unless required by applicable law or agreed to in writing, software
+;; distributed under the License is distributed on an "AS IS" BASIS,
+;; WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+;; See the License for the specific language governing permissions and
+;; limitations under the License.
+
 (defproject juxt/modular "0.1.0-SNAPSHOT"
   :description "FIXME: write description"
   :url "http://github.com/mastodonc/kixi.stentor"
@@ -9,9 +23,9 @@
   :sub [
         "modules/http-kit"        ; HTTP server (with client library)
         "modules/bidi" ; URI routing library
+        "modules/cljs-builder" ; ClojureScript compilation
 
         ;;        "extensions/async" ; core.async channels that can be shared by dependants
-        ;;        "extensions/cljs-builder" ; ClojureScript compilation
         ;;        "extensions/compojure" ; URI routing library
         ;;        "extensions/jetty" ; HTTP server
         ;;        "extensions/netty" ; Generic network server library

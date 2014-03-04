@@ -1,17 +1,20 @@
-;; Copyright © 2013, JUXT LTD. All Rights Reserved.
+;; Copyright © 2014, JUXT LTD. All Rights Reserved.
 ;;
-;; The use and distribution terms for this software are covered by the
-;; Eclipse Public License 1.0 (http://opensource.org/licenses/eclipse-1.0.php)
-;; which can be found in the file epl-v10.html at the root of this distribution.
+;; Licensed under the Apache License, Version 2.0 (the "License");
+;; you may not use this file except in compliance with the License.
+;; You may obtain a copy of the License at
 ;;
-;; By using this software in any fashion, you are agreeing to be bound by the
-;; terms of this license.
+;;     http://www.apache.org/licenses/LICENSE-2.0
 ;;
-;; You must not remove this notice, or any other, from this software.
+;; Unless required by applicable law or agreed to in writing, software
+;; distributed under the License is distributed on an "AS IS" BASIS,
+;; WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+;; See the License for the specific language governing permissions and
+;; limitations under the License.
 
 (defproject juxt/modular.bidi "0.1.0-SNAPSHOT"
-  :description "A modular extension that provides support for http-kit channels"
-  :url "https://github.com/juxt/modular/tree/master/extensions/http-kit"
+  :description "A modular extension that provides support for bidi routing"
+  :url "https://github.com/juxt/modular/tree/master/modules/bidi"
   :license {:name "Apache License, Version 2.0"
             :url "http://www.apache.org/licenses/LICENSE-2.0.html"}
   :dependencies [[juxt/modular "0.1.0-SNAPSHOT"]
