@@ -14,6 +14,7 @@
 
 (ns modular.bidi
   (:require
+   [modular.core :as mod]
    [modular.ring :refer (RingHandlerProvider)]
    [com.stuartsierra.component :as component]
    [bidi.bidi :as bidi]))
@@ -57,4 +58,9 @@
 
 ;; Keep this around for integration with Prismatic Schema
 (defn new-bidi-ring-handler-provider []
-  (new BidiRingHandlerProvider))
+  (component/using
+   (new BidiRingHandlerProvider)
+   [:routes-contributors]))
+
+(defn resolve-routes-contributors [system-map]
+  (mod/resolve-contributors system-map :routes-contributors RoutesContributor))
