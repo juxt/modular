@@ -46,5 +46,5 @@
 
   :repl-options {:prompt (fn [ns] (str "modular " ns "> "))}
 
-  :aliases {"deploy-all" ["do" "sub" "deploy" "clojars," "deploy" "clojars"]
-            "install-all" ["do" "sub" "install," "install"]})
+  :aliases {"deploy-all" ["do" "deploy" "clojars," "sub" "deploy" "clojars"]
+            "install-all" ["do" "install," "sub" "install"]})
