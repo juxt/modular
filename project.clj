@@ -24,8 +24,8 @@
         "modules/http-kit"        ; HTTP server (with client library)
         "modules/bidi" ; URI routing library
         "modules/ring" ; Ring interface
-        "modules/cljs-builder" ; ClojureScript compilation
 
+        ;;"modules/cljs-builder" ; ClojureScript compilation
         ;;        "extensions/async" ; core.async channels that can be shared by dependants
         ;;        "extensions/compojure" ; URI routing library
         ;;        "extensions/jetty" ; HTTP server
