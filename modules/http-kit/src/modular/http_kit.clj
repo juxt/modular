@@ -26,12 +26,14 @@
 (defrecord Webserver [port]
   component/Lifecycle
   (start [this]
-    (let [h (handler (:ring-handler-provider this))]
-      (assert handler)
-      (if port
-        (infof "port is %d" port)
-        (warnf "port is nil, using default of %d" default-port))
-      (assoc this :server (run-server h {:port (or port default-port)}))))
+    (if-let [ring-handler-provider (:ring-handler-provider this)]
+      (let [h (handler ring-handler-provider)]
+        (assert handler)
+        (if port
+          (infof "port is %d" port)
+          (warnf "port is nil, using default of %d" default-port))
+        (assoc this :server (run-server h {:port (or port default-port)})))
+      (throw (ex-info "http-kit module requires that :ring-handler-provider be added to the system map by a component" {}))))
 
   (stop [this]
     (when-let [server (:server this)]
