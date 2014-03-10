@@ -23,6 +23,7 @@
   :sub [
         "modules/http-kit"        ; HTTP server (with client library)
         "modules/bidi" ; URI routing library
+        "modules/ring" ; Ring interface
         "modules/cljs-builder" ; ClojureScript compilation
 
         ;;        "extensions/async" ; core.async channels that can be shared by dependants
@@ -30,7 +31,6 @@
         ;;        "extensions/jetty" ; HTTP server
         ;;        "extensions/netty" ; Generic network server library
         ;;        "extensions/netty-mqtt" ; MQTT support for Netty
-        ;;        "extensions/ring" ; Ring utilities
         ;;        "extensions/stencil" ; Templating library
         ]
 

@@ -1,5 +1,6 @@
 (ns modular.bidi
   (:require
+   [modular.ring :refer (RingHandlerProvider)]
    [com.stuartsierra.component :as component]
    [bidi.bidi :as bidi]))
 
@@ -16,6 +17,8 @@
   (context [this] context))
 
 ;; Keep this around for integration with Prismatic Schema
+;; TODO Make context an optional map entry :-
+;;   (new-bidi-routes routes :context ctx)
 (defn new-bidi-routes [routes context]
   (new BidiRoutes routes context))
 
@@ -29,7 +32,7 @@
   component/Lifecycle
   (start [this] this)
   (stop [this] this)
-  modular.http-kit/RingHandlerProvider
+  RingHandlerProvider
   (handler [this]
     (assert (:routes-contributors this) "No :routes-contributors found")
     (let [routes ["" (mapv #(vector (or (modular.bidi/context %) "") [(modular.bidi/routes %)])

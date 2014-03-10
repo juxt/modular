@@ -14,26 +14,25 @@
 
 (ns modular.http-kit
   (:require
+   modular.ring
    [com.stuartsierra.component :as component]
    [clojure.tools.logging :refer :all]
+   [modular.ring :refer (handler)]
    [org.httpkit.server :refer (run-server)]))
-
-(defprotocol RingHandlerProvider
-  (handler [_]))
 
 (def default-port 8000)
 
 (defrecord Webserver [port]
   component/Lifecycle
   (start [this]
-    (if-let [ring-handler-provider (:ring-handler-provider this)]
+    (if-let [ring-handler-provider (modular.ring/k this)]
       (let [h (handler ring-handler-provider)]
-        (assert handler)
+        (assert h)
         (if port
           (infof "port is %d" port)
           (warnf "port is nil, using default of %d" default-port))
         (assoc this :server (run-server h {:port (or port default-port)})))
-      (throw (ex-info "http-kit module requires that :ring-handler-provider be added to the system map by a component" {}))))
+      (throw (ex-info (format "http-kit module requires that entry %s be added to the system map by a component" key) {}))))
 
   (stop [this]
     (when-let [server (:server this)]
@@ -42,4 +41,6 @@
 
 ;; Keep this around for integration with Prismatic Schema
 (defn new-webserver [{:keys [port]}]
-  (->Webserver port))
+  (component/using
+   (->Webserver port)
+   [modular.ring/k]))

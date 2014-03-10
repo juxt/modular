@@ -1,4 +1,3 @@
-/target
 /classes
 /checkouts
 pom.xml
@@ -6,5 +5,6 @@ pom.xml.asc
 *.jar
 *.class
 /.lein-*
-/.nrepl-port
+.nrepl-port
+target
 extract-native.dependencies

@@ -12,11 +12,14 @@
 ;; See the License for the specific language governing permissions and
 ;; limitations under the License.
 
-(defproject juxt/modular.bidi "0.1.0-SNAPSHOT"
-  :description "A modular extension that provides support for bidi routing"
-  :url "https://github.com/juxt/modular/tree/master/modules/bidi"
-  :license {:name "Apache License, Version 2.0"
-            :url "http://www.apache.org/licenses/LICENSE-2.0.html"}
-  :dependencies [[juxt/modular "0.1.0-SNAPSHOT"]
-                 [bidi "1.10.2"]
-                 [juxt/modular.ring "0.1.0-SNAPSHOT"]])
+(ns modular.ring
+  (:require
+   [modular.core :as mod]))
+
+(def k :ring-handler-provider)
+
+(defprotocol RingHandlerProvider
+  (handler [_]))
+
+(defn resolve-handler-provider [system-map]
+  (mod/resolve-contributors system-map k RingHandlerProvider :cardinality 1))
