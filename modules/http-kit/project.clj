@@ -12,7 +12,7 @@
 ;; See the License for the specific language governing permissions and
 ;; limitations under the License.
 
-(defproject juxt/modular.http-kit "0.1.0-SNAPSHOT"
+(defproject juxt.modular/http-kit "0.1.0-SNAPSHOT"
   :description "A modular extension that provides support for http-kit channels"
   :url "https://github.com/juxt/modular/tree/master/modules/http-kit"
   :license {:name "Apache License, Version 2.0"
