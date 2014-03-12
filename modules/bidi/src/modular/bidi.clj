@@ -15,6 +15,7 @@
 (ns modular.bidi
   (:require
    [modular.core :as mod]
+   [schema.core :as s]
    [modular.ring :refer (RingHandlerProvider)]
    [com.stuartsierra.component :as component]
    [bidi.bidi :as bidi]))
@@ -31,11 +32,10 @@
   (routes [this] routes)
   (context [this] context))
 
-;; Keep this around for integration with Prismatic Schema
-;; TODO Make context an optional map entry :-
-;;   (new-bidi-routes routes :context ctx)
-(defn new-bidi-routes [routes context]
-  (new BidiRoutes routes context))
+(defn new-bidi-routes [routes & {:as opts}]
+  (let [{:keys [context]} (->> (merge {:context ""} opts)
+                               (s/validate {:context s/Str}))]
+    (new BidiRoutes routes context)))
 
 (defn wrap-routes
   "Add the final set of routes from which the Ring handler is built."

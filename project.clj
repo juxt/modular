@@ -42,6 +42,7 @@
    [org.slf4j/jul-to-slf4j "1.7.2"]
    [org.slf4j/jcl-over-slf4j "1.7.2"]
    [org.slf4j/log4j-over-slf4j "1.7.2"]
+   [prismatic/schema "0.2.1"]
    ]
 
   :repl-options {:prompt (fn [ns] (str "modular " ns "> "))}
