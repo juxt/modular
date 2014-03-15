@@ -41,7 +41,6 @@
 (defrecord Session [opts]
   component/Lifecycle
   (start [this]
-    (println "On session, this is " this)
     (assoc this :session (client/connect (get-in this [:cluster :cluster]) (:keyspace opts))))
   (stop [this]
     (when-let [session (:session this)]

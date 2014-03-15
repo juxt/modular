@@ -20,6 +20,14 @@
    [com.stuartsierra.component :as component]
    [bidi.bidi :as bidi]))
 
+(defn deref-if-possible [x]
+  (if (instance? clojure.lang.IDeref x)
+    (deref x)
+    x))
+
+;; If necessary, routes and context can return deref'ables if necessary,
+;; for example, if their values are not known until the component is
+;; started.
 (defprotocol RoutesContributor
   (routes [_])
   (context [_]))
@@ -28,20 +36,20 @@
   component/Lifecycle
   (start [this] this)
   (stop [this] this)
-  modular.bidi/RoutesContributor
+  RoutesContributor
   (routes [this] routes)
   (context [this] context))
 
 (defn new-bidi-routes [routes & {:as opts}]
   (let [{:keys [context]} (->> (merge {:context ""} opts)
                                (s/validate {:context s/Str}))]
-    (new BidiRoutes routes context)))
+    (new BidiRoutes (delay routes) context)))
 
 (defn wrap-routes
   "Add the final set of routes from which the Ring handler is built."
   [h routes]
   (fn [req]
-    (h (assoc req :routes routes))))
+    (h (assoc req ::routes routes))))
 
 (defrecord BidiRingHandlerProvider []
   component/Lifecycle
@@ -49,8 +57,8 @@
   (stop [this] this)
   RingHandlerProvider
   (handler [this]
-    (assert (:routes-contributors this) "No :routes-contributors found")
-    (let [routes ["" (mapv #(vector (or (modular.bidi/context %) "") [(modular.bidi/routes %)])
+    (let [routes ["" (mapv #(vector (or (deref-if-possible (modular.bidi/context %)) "")
+                                    [(deref-if-possible (routes %))])
                            (:routes-contributors this))]]
       (-> routes
           bidi/make-handler
