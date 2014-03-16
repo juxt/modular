@@ -56,7 +56,10 @@
 
 (defrecord BidiRingHandlerProvider []
   component/Lifecycle
-  (start [this] this)
+  (start [this]
+    (assoc this :routes ["" (vec (for [v (vals this)
+                                       :when (satisfies? BidiRoutesContributor v)]
+                                   [(or (context v) "") [(routes v)]]))]))
   (stop [this] this)
 
   Index
@@ -64,12 +67,9 @@
 
   RingHandlerProvider
   (handler [this]
-    (let [routes ["" (vec (for [v (vals this)
-                                :when (satisfies? BidiRoutesContributor v)]
-                            [(or (context v) "") [(routes v)]]))]]
-      (-> routes
-          bidi/make-handler
-          (wrap-routes routes)))))
+    (let [routes (:routes this)]
+      (-> routes bidi/make-handler
+       (wrap-routes routes)))))
 
 ;; Keep this around for future integration with Prismatic Schema
 (defn new-bidi-ring-handler-provider []
