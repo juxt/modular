@@ -14,7 +14,8 @@
 
 (ns modular.http-kit
   (:require
-   modular.ring
+   [modular.protocols :refer (Index)]
+   [modular.core :as modular]
    [schema.core :as s]
    [com.stuartsierra.component :as component]
    [clojure.tools.logging :refer :all]
@@ -26,18 +27,23 @@
 (defrecord Webserver [port]
   component/Lifecycle
   (start [this]
-    (if-let [ring-handler-provider (modular.ring/k this)]
-      (let [h (handler ring-handler-provider)]
+    (if-let [provider (first (filter #(satisfies? modular.ring/RingHandlerProvider %) (vals this)))]
+      (let [h (handler provider)]
         (assert h)
-        (assoc this :server (run-server h {:port port})))
-      (throw (ex-info (format "http-kit module requires that entry %s be added to the system map by a component" key) {}))))
+        (let [server (run-server h {:port port})]
+          (assoc this :server server)))
+      (throw (ex-info (format "http-kit module requires the existance of a component that satisfies %s" modular.ring/RingHandlerProvider) {:this this}))))
 
   (stop [this]
     (when-let [server (:server this)]
       (server)
-      (dissoc this :server))))
+      (dissoc this :server)))
+
+  Index
+  (types [this] #{modular.ring/RingHandlerProvider}))
 
 (defn new-webserver [opts]
   (let [{:keys [port]} (->> (merge {:port default-port} opts)
                             (s/validate {:port s/Int}))]
-    (component/using (->Webserver port) [modular.ring/k])))
+    (->Webserver port)
+    ))

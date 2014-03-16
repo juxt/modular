@@ -12,9 +12,9 @@
 ;; See the License for the specific language governing permissions and
 ;; limitations under the License.
 
-(ns modular.ring
-  (:require
-   [modular.core :as mod]))
+(ns ^{:clojure.tools.namespace.repl/unload false
+      :clojure.tools.namespace.repl/load false}
+  modular.protocols)
 
-(defprotocol RingHandlerProvider
-  (handler [_]))
+(defprotocol Index
+  (types [this]))

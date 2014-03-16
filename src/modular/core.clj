@@ -12,14 +12,31 @@
 ;; See the License for the specific language governing permissions and
 ;; limitations under the License.
 
-(ns modular.core)
+(ns ^{:clojure.tools.namespace.repl/unload false
+      :clojure.tools.namespace.repl/load false}
+  modular.core
+  (:require
+   [modular.protocols :refer (types)]
+   [clojure.pprint :refer (pprint)]
+   [com.stuartsierra.component :as component]))
 
-(defn resolve-contributors [m k p & {:keys [cardinality] :or {cardinality :many}}]
-  (let [contributions (keep (fn [[_ v]] (when (satisfies? p v) v)) m)]
-    (assoc m k (case cardinality
-                 :many contributions
-                 (if (= (count contributions) cardinality)
-                   (if (= 1 cardinality) (first contributions) contributions)
-                   (throw (ex-info "Contributions didn't match expected cardinality"
-                                   {:contributions contributions
-                                    :cardinality cardinality})))))))
+(defn add-index-dependencies [dependency-map system]
+  (reduce
+   (fn [acc [p q]] (update-in acc [p] assoc q q))
+   dependency-map
+   (for [[k v] system :when (satisfies? modular.protocols/Index v)
+         prot (types v)
+         [q impl] system :when (satisfies? prot impl)]
+     [k q])))
+
+(defn normalize [m]
+  (reduce-kv
+   (fn [s k v]
+     (assoc s k
+            (if (vector? v)
+              (apply zipmap (repeat 2 v))
+              v)))
+   {} m))
+
+(defn system-using [system dependency-map]
+  (component/system-using system (-> dependency-map normalize (add-index-dependencies system))))

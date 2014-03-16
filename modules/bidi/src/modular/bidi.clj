@@ -14,6 +14,7 @@
 
 (ns modular.bidi
   (:require
+   [modular.protocols :refer (Index)]
    [modular.core :as mod]
    [schema.core :as s]
    [modular.ring :refer (RingHandlerProvider)]
@@ -22,13 +23,15 @@
 
 (defn deref-if-possible [x]
   (if (instance? clojure.lang.IDeref x)
-    (deref x)
+    (if-not (realized? x)
+      (throw (ex-info (format "Cannot deref %s as it is not yet realized." x) {:object x}))
+      (deref x))
     x))
 
 ;; If necessary, routes and context can return deref'ables if necessary,
 ;; for example, if their values are not known until the component is
 ;; started.
-(defprotocol RoutesContributor
+(defprotocol BidiRoutesContributor
   (routes [_])
   (context [_]))
 
@@ -36,14 +39,14 @@
   component/Lifecycle
   (start [this] this)
   (stop [this] this)
-  RoutesContributor
+  BidiRoutesContributor
   (routes [this] routes)
   (context [this] context))
 
 (defn new-bidi-routes [routes & {:as opts}]
   (let [{:keys [context]} (->> (merge {:context ""} opts)
                                (s/validate {:context s/Str}))]
-    (new BidiRoutes (delay routes) context)))
+    (new BidiRoutes routes context)))
 
 (defn wrap-routes
   "Add the final set of routes from which the Ring handler is built."
@@ -55,20 +58,19 @@
   component/Lifecycle
   (start [this] this)
   (stop [this] this)
+
+  Index
+  (types [this] #{BidiRoutesContributor})
+
   RingHandlerProvider
   (handler [this]
-    (let [routes ["" (mapv #(vector (or (deref-if-possible (modular.bidi/context %)) "")
-                                    [(deref-if-possible (routes %))])
-                           (:routes-contributors this))]]
+    (let [routes ["" (vec (for [v (vals this)
+                                :when (satisfies? BidiRoutesContributor v)]
+                            [(or (context v) "") [(routes v)]]))]]
       (-> routes
           bidi/make-handler
           (wrap-routes routes)))))
 
-;; Keep this around for integration with Prismatic Schema
+;; Keep this around for future integration with Prismatic Schema
 (defn new-bidi-ring-handler-provider []
-  (component/using
-   (new BidiRingHandlerProvider)
-   [:routes-contributors]))
-
-(defn resolve-routes-contributors [system-map]
-  (mod/resolve-contributors system-map :routes-contributors RoutesContributor))
+  (new BidiRingHandlerProvider))
