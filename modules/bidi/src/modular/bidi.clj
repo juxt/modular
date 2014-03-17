@@ -43,9 +43,12 @@
   (routes [this] routes)
   (context [this] context))
 
+(def bidi-routes-options-schema {:context s/Str})
+
 (defn new-bidi-routes [routes & {:as opts}]
+  (s/validate bidi-routes-options-schema opts)
   (let [{:keys [context]} (->> (merge {:context ""} opts)
-                               (s/validate {:context s/Str}))]
+                               (s/validate bidi-routes-options-schema))]
     (new BidiRoutes routes context)))
 
 (defn wrap-routes

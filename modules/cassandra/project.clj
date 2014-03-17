@@ -22,4 +22,5 @@
                   :exclusions [[com.datastax.cassandra/cassandra-driver-core]]]
                  [com.datastax.cassandra/cassandra-driver-core "1.0.5"
                   :exclusions [[org.slf4j/slf4j-log4j12]
-                               [log4j/log4j]]]])
+                               [log4j/log4j]]]
+                 [prismatic/schema "0.2.1"]])
