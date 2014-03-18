@@ -17,4 +17,4 @@
   :url "https://github.com/juxt/modular/tree/master/modules/ring"
   :license {:name "Apache License, Version 2.0"
             :url "http://www.apache.org/licenses/LICENSE-2.0.html"}
-  :dependencies [[juxt/modular "0.1.0-SNAPSHOT"]])
+  :dependencies [])

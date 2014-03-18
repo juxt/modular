@@ -17,7 +17,6 @@
   :url "https://github.com/juxt/modular/tree/master/modules/bidi"
   :license {:name "Apache License, Version 2.0"
             :url "http://www.apache.org/licenses/LICENSE-2.0.html"}
-  :dependencies [[juxt/modular "0.1.0-SNAPSHOT"]
-                 [bidi "1.10.2"]
+  :dependencies [[bidi "1.10.2"]
                  [juxt.modular/ring "0.1.0-SNAPSHOT"]
                  [prismatic/schema "0.2.1"]])

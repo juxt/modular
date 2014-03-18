@@ -17,6 +17,5 @@
   :url "https://github.com/juxt/modular/tree/master/modules/http-kit"
   :license {:name "Apache License, Version 2.0"
             :url "http://www.apache.org/licenses/LICENSE-2.0.html"}
-  :dependencies [[juxt/modular "0.1.0-SNAPSHOT"]
-                 [http-kit "2.1.13"]
+  :dependencies [[http-kit "2.1.13"]
                  [prismatic/schema "0.2.1"]])
