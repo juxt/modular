@@ -12,13 +12,13 @@
 ;; See the License for the specific language governing permissions and
 ;; limitations under the License.
 
-(defproject juxt.modular/http-kit "0.1.0-SNAPSHOT"
+(defproject juxt.modular/http-kit "0.2.0"
   :description "A modular extension that provides support for http-kit channels"
   :url "https://github.com/juxt/modular/tree/master/modules/http-kit"
   :license {:name "Apache License, Version 2.0"
             :url "http://www.apache.org/licenses/LICENSE-2.0.html"}
   :dependencies [[http-kit "2.1.13"]
                  [prismatic/schema "0.2.1"]
-                 [juxt/modular "0.2.0-SNAPSHOT"]
-                 [juxt.modular/ring "0.1.0-SNAPSHOT"]
+                 [juxt/modular "0.2.0"]
+                 [juxt.modular/ring "0.2.0"]
                  ])

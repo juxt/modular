@@ -12,7 +12,7 @@
 ;; See the License for the specific language governing permissions and
 ;; limitations under the License.
 
-(defproject juxt.modular/ring "0.1.0-SNAPSHOT"
+(defproject juxt.modular/ring "0.2.0"
   :description "A modular extension that represents the Ring interface"
   :url "https://github.com/juxt/modular/tree/master/modules/ring"
   :license {:name "Apache License, Version 2.0"
