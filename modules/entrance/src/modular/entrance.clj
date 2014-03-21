@@ -137,7 +137,7 @@ that authorization fails."
                                        (re-matches #"(.*):(.*)")
                                        rest)]
           (when (authorized-user? authorizer username password)
-            request))))))
+            (assoc request :username username)))))))
 
 (defn new-http-based-request-authorizer [& {:as opts}]
   (let [{dlg :user-password-authorizer}
@@ -150,7 +150,9 @@ that authorization fails."
   HttpRequestAuthorizer
   (authorized-request? [_ request]
     (when-let [session (get-session sessions (:cookies request))]
-      (assoc request :session session))))
+      (assoc request
+        :session session
+        :username (:username session)))))
 
 (defn new-session-based-request-authorizer [& {:as opts}]
   (let [{dlg :http-session-store}

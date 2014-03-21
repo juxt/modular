@@ -12,7 +12,7 @@
 ;; See the License for the specific language governing permissions and
 ;; limitations under the License.
 
-(defproject juxt.modular/entrance "0.2.0"
+(defproject juxt.modular/entrance "0.2.2"
   :description "A modular extension that provides secure login through cookie-based and HTTP basic auth with pluggable credential management."
   :url "https://github.com/juxt/modular/tree/master/modules/entrance"
   :license {:name "Apache License, Version 2.0"
