@@ -27,7 +27,8 @@
 
 (extend-protocol HttpRequestAuthorizer
   Boolean
-  (authorized-request? [this request] this))
+  (authorized-request? [this request]
+    (when this request)))
 
 (defprotocol UserPasswordAuthorizer
   (authorized-user? [_ user password]))
