@@ -116,7 +116,6 @@ that authorization fails."
              assoc uuid
              {:username username
               :expiry (+ (.getTime (java.util.Date.)) (* expiry-seconds 1000))})
-      (println "added sessoin, sessions is" (:sessions this))
       {"session" {:value uuid
                   :max-age (* expiry-seconds 1000)}}))
   (get-session [this cookies]
