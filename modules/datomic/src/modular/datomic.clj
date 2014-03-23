@@ -30,6 +30,13 @@
     (d/shutdown false)
     this))
 
+(defrecord DurableDatabase [uri]
+  component/Lifecycle
+  (start [this] this)
+  (stop [this]
+    (d/shutdown false)
+    this))
+
 (def new-datomic-database-schema
   {:uri s/Str
    :ephemeral? s/Bool})
@@ -40,7 +47,7 @@
                            (s/validate new-datomic-database-schema))]
     (if ephemeral?
       (->EphemeralDatabase uri)
-      (throw (ex-info "Persistent databases not yet implemented" {})))))
+      (->DurableDatabase uri))))
 
 (defrecord DatomicConnection []
   component/Lifecycle
@@ -48,7 +55,9 @@
   (stop [this] this))
 
 (defn new-datomic-connection []
-  (->DatomicConnection))
+  (component/using
+   (->DatomicConnection)
+   [:database]))
 
 (defrecord DatomicSchema [res]
   component/Lifecycle
@@ -65,4 +74,6 @@
   (stop [this] this))
 
 (defn new-datomic-schema [res]
-  (->DatomicSchema res))
+  (component/using
+   (->DatomicSchema res)
+   [:connection]))
