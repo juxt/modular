@@ -15,7 +15,7 @@
 (ns modular.entrance
   (:require
    [bidi.bidi :as bidi :refer (path-for resolve-handler unresolve-handler ->WrapMiddleware)]
-   [modular.bidi :refer (BidiRoutesContributor routes context)]
+   [modular.bidi :as modbidi :refer (BidiRoutesContributor routes context)]
    [schema.core :as s]
    [ring.middleware.cookies :refer (wrap-cookies)]
    [ring.middleware.params :refer (wrap-params)]
@@ -43,9 +43,13 @@
 (defprotocol FailedAuthorizationHandler
   (failed-authorization [_ request]))
 
-;; Only users with valid credentials are allowed through a checkpoint.
-(defprotocol BidiRouteProtector
+;; Certain objects can provide protection for routes
+(defprotocol BidiRoutesProtector
   (protect-routes [_ routes]))
+
+;; Tag that a BidiRoutesContributor is protected
+;; TODO Rename BidiRoutesContributor to BidiRoutesProvider
+;;(defprotocol BidiRoutesProtected)
 
 (defn wrap-authorization
   "Ring middleware to pre-authorize a request through an authorizer. If
@@ -245,7 +249,7 @@ that authorization fails."
   (routes [this] (:routes this))
   (context [this] context)
 
-  BidiRouteProtector
+  BidiRoutesProtector
   (protect-routes [this routes]
     (println "protecting routes:" routes)
     (protect routes
