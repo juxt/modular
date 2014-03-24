@@ -284,13 +284,38 @@ that authorization fails."
   (routes [this] (routes (:login this)))
   (context [this] (context (:login this))))
 
-(def new-protection-domain-schema {(s/optional-key :session-timeout-in-seconds) s/Int})
+(def new-default-protection-domain-schema {(s/optional-key :session-timeout-in-seconds) s/Int})
 
-(defn new-protection-domain [cfg]
-  (s/validate new-protection-domain-schema cfg)
+(defn new-default-protection-domain [cfg]
+  (s/validate new-default-protection-domain-schema cfg)
   (map->ProtectionDomain
    {:login (new-login-form)
     :authorizer (new-map-backed-user-registry {"malcolm" "password"})
     :http-session-store (new-atom-backed-session-store
                          (or (:session-timeout-in-seconds cfg)
                              10))}))
+
+;; Now that we have a protection domain, we want the ability to create
+;; routes components that can be protected.
+
+(defrecord ProtectedRoutes [routes context]
+  component/Lifecycle
+  (start [this]
+    (let [pd (get-in this [:protection-domain :login])
+          routes (cond-> routes
+                         (fn? routes) (apply [this])
+                         pd ((partial protect-routes pd)))]
+
+      (println "Routes is" routes)
+      (assoc this :routes routes)))
+  (stop [this] this)
+
+  BidiRoutesContributor
+  (routes [this] (:routes this))
+  (context [this] context))
+
+(defn new-protected-routes
+  "Routes can a bidi route structure, or a function that takes the
+  component and returns a bidi route structure."
+  [routes context]
+  (component/using (->ProtectedRoutes routes context) [:protection-domain]))
