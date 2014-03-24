@@ -298,15 +298,13 @@ that authorization fails."
 ;; Now that we have a protection domain, we want the ability to create
 ;; routes components that can be protected.
 
-(defrecord ProtectedRoutes [routes context]
+(defrecord ProtectedBidiRoutes [routes context]
   component/Lifecycle
   (start [this]
     (let [pd (get-in this [:protection-domain :login])
           routes (cond-> routes
                          (fn? routes) (apply [this])
                          pd ((partial protect-routes pd)))]
-
-      (println "Routes is" routes)
       (assoc this :routes routes)))
   (stop [this] this)
 
@@ -314,8 +312,18 @@ that authorization fails."
   (routes [this] (:routes this))
   (context [this] context))
 
-(defn new-protected-routes
-  "Routes can a bidi route structure, or a function that takes the
-  component and returns a bidi route structure."
+(defn new-mandatory-protected-bidi-routes
+  "Create a set of protected routes. The absence of a :protection-domain
+  dependency will cause an error. Routes can a bidi route structure, or
+  a function that takes the component and returns a bidi route
+  structure."
   [routes context]
-  (component/using (->ProtectedRoutes routes context) [:protection-domain]))
+  (component/using (->ProtectedBidiRoutes routes context) [:protection-domain]))
+
+(defn new-protected-bidi-routes
+  "Create a set of protected routes. The absence of a :protection-domain
+  dependency will remove the protection. If protection is mandatory, use
+  new-mandatory-protected-bidi-routes instead. Routes can a bidi route
+  structure, or a function that takes the component and returns a bidi
+  route structure."  [routes context]
+  (->ProtectedBidiRoutes routes context))
