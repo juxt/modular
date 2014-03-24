@@ -12,11 +12,12 @@
 ;; See the License for the specific language governing permissions and
 ;; limitations under the License.
 
-(defproject juxt.modular/entrance "0.2.2"
+(defproject juxt.modular/entrance "0.2.3-SNAPSHOT"
   :description "A modular extension that provides secure login through cookie-based and HTTP basic auth with pluggable credential management."
   :url "https://github.com/juxt/modular/tree/master/modules/entrance"
   :license {:name "Apache License, Version 2.0"
             :url "http://www.apache.org/licenses/LICENSE-2.0.html"}
-  :dependencies [[bidi "1.10.2"]
+  :dependencies [[juxt.modular/bidi "0.2.1-SNAPSHOT"]
                  [prismatic/schema "0.2.1"]
-                 [ring/ring-core "1.2.2"]])
+                 [ring/ring-core "1.2.2"]
+                 [hiccup "1.0.5"]])

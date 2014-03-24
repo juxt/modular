@@ -14,9 +14,12 @@
 
 (ns modular.entrance
   (:require
-   [bidi.bidi :as bidi :refer (path-for resolve-handler unresolve-handler)]
+   [bidi.bidi :as bidi :refer (path-for resolve-handler unresolve-handler ->WrapMiddleware)]
+   [modular.bidi :refer (BidiRoutesContributor routes context)]
    [schema.core :as s]
    [ring.middleware.cookies :refer (wrap-cookies)]
+   [ring.middleware.params :refer (wrap-params)]
+   [hiccup.core :refer (html)]
    [com.stuartsierra.component :as component])
   (:import
    (javax.xml.bind DatatypeConverter)))
@@ -39,6 +42,10 @@
 
 (defprotocol FailedAuthorizationHandler
   (failed-authorization [_ request]))
+
+;; Only users with valid credentials are allowed through a checkpoint.
+(defprotocol BidiRouteProtector
+  (protect-routes [_ routes]))
 
 (defn wrap-authorization
   "Ring middleware to pre-authorize a request through an authorizer. If
@@ -64,7 +71,7 @@ that authorization fails."
   (fn [h]
     (wrap-authorization h authorizer failure-handler)))
 
-(defrecord Protect [routes opts]
+(defrecord ProtectMatched [routes opts]
   bidi/Matched
   (resolve-handler [this m]
     (let [r (resolve-handler routes m)]
@@ -77,15 +84,18 @@ that authorization fails."
     (unresolve-handler routes m)))
 
 (defn protect [routes & {:as opts}]
-  (->> opts
-       (s/validate
-        {:authorizer (s/protocol HttpRequestAuthorizer)
-         (s/optional-key :fail-handler) (s/protocol FailedAuthorizationHandler)})
-       (->Protect routes)))
+  ["" (->ProtectMatched [routes]
+                        (s/validate
+                         {:authorizer (s/protocol HttpRequestAuthorizer)
+                          (s/optional-key :fail-handler) (s/protocol FailedAuthorizationHandler)}
+                         opts))])
 
 (defrecord BidiFailedAuthorizationRedirect [h]
   FailedAuthorizationHandler
   (failed-authorization [_ req]
+    (println "FAILED AUTH" (path-for (:modular.bidi/routes req) h))
+    (println "FAILED AUTH2" (:modular.bidi/routes req))
+    (println "FAILED AUH h" h)
     {:status 302
      :headers {"Location" (path-for (:modular.bidi/routes req) h)}
      :body "Not authorized\n"
@@ -98,7 +108,6 @@ that authorization fails."
 
 (defn new-map-backed-user-registry [m]
   (->MapBackedUserRegistry m))
-
 
 ;; Sessions
 
@@ -117,6 +126,7 @@ that authorization fails."
              assoc uuid
              {:username username
               :expiry (+ (.getTime (java.util.Date.)) (* expiry-seconds 1000))})
+      ;; TODO: Make this cookie name configurable
       {"session" {:value uuid
                   :max-age (* expiry-seconds 1000)}}))
   (get-session [this cookies]
@@ -170,3 +180,113 @@ that authorization fails."
 
 (defn new-composite-disjunctive-request-authorizer [& delegates]
   (->CompositeDisjunctiveRequestAuthorizer (s/validate [(s/protocol HttpRequestAuthorizer)] delegates)))
+
+;; Since this module is dependent on bidi, let's provide some sample
+;; bidi routes that can be used as-is or to demonstrate.
+
+(defn new-login-get-handler [handlers-p post-handler-key]
+  (fn [{{{requested-uri :value} "requested-uri"} :cookies
+        routes :modular.bidi/routes}]
+    {:status 200
+     :body
+     (html
+      [:body
+       [:form {:method "POST" :style "border: 1px dotted #555"
+               :action (bidi/path-for routes (get @handlers-p post-handler-key))}
+        (when requested-uri
+          [:input {:type "hidden" :name :requested-uri :value requested-uri}])
+        [:div
+         [:label {:for "username"} "Username"]
+         [:input {:id "username" :name "username" :type "input"}]]
+        [:div
+         [:label {:for "password"} "Password"]
+         [:input {:id "password" :name "password" :type "password"}]]
+        [:input {:type "submit" :value "Login"}]
+        ]])}))
+
+(defn new-login-post-handler [handlers-p get-handler-key {:keys [authorizer http-session-store] :as opts}]
+  (s/validate {:authorizer (s/protocol UserPasswordAuthorizer)
+               :http-session-store (s/protocol HttpSessionStore)} opts)
+  (fn [{{username "username" password "password" requested-uri "requested-uri"} :form-params
+        routes :modular.bidi/routes}]
+
+    (if (and username
+             (not-empty username)
+             (authorized-user? authorizer (.trim username) password))
+
+      {:status 302
+       :headers {"Location" requested-uri}
+       :cookies (start-session! http-session-store username)}
+
+      ;; Return back to login form
+      {:status 302
+       :headers {"Location" (path-for routes (get @handlers-p get-handler-key))}})))
+
+(defn- make-login-handlers [opts]
+  (let [p (promise)]
+    @(deliver p {:get-handler (new-login-get-handler p :post-handler)
+                 :post-handler (wrap-params (new-login-post-handler p :get-handler opts))})))
+
+;; TODO If a LoginForm component is injected with a login form renderer component, that could be used
+
+(defrecord LoginForm [path context]
+  component/Lifecycle
+  (start [this]
+    (let [handlers (make-login-handlers (select-keys this [:authorizer :http-session-store]))]
+      (assoc this
+        :handlers handlers
+        :routes [path (->WrapMiddleware
+                       {:get (:get-handler handlers)
+                        :post (:post-handler handlers)}
+                       wrap-cookies)])))
+  (stop [this] this)
+
+  BidiRoutesContributor
+  (routes [this] (:routes this))
+  (context [this] context)
+
+  BidiRouteProtector
+  (protect-routes [this routes]
+    (println "protecting routes:" routes)
+    (protect routes
+             :authorizer (new-session-based-request-authorizer :http-session-store (:http-session-store this))
+             :fail-handler (->BidiFailedAuthorizationRedirect (get-in this [:handlers :get-handler])))))
+
+(def new-login-form-schema
+  {(s/optional-key :path) s/Str
+   (s/optional-key :context) s/Str})
+
+(defn new-login-form [& {:as opts}]
+  (let [{:keys [path context]}
+        (->> opts
+             (merge {:context ""
+                     :path "/login"})
+             (s/validate new-login-form-schema))]
+    (component/using (->LoginForm path context) [:authorizer :http-session-store])))
+
+;; Now we can build a protection domain, composed of a login form, user
+;; authorizer and session store. Different constructors can build this
+;; component in different ways.
+
+(defrecord ProtectionDomain [login authorizer http-session-store]
+  component/Lifecycle
+  (start [this] (component/start-system this (keys this)))
+  (stop [this] (component/stop-system this (keys this)))
+  ;; We must export the routes provided by the login sub-component TODO:
+  ;; It's possible that the authorizer and http-session-store components
+  ;; provided may also contribute routes - we should return an
+  ;; aggregation of all the sub-components, not just the login.
+  BidiRoutesContributor
+  (routes [this] (routes (:login this)))
+  (context [this] (context (:login this))))
+
+(def new-protection-domain-schema {(s/optional-key :session-timeout-in-seconds) s/Int})
+
+(defn new-protection-domain [cfg]
+  (s/validate new-protection-domain-schema cfg)
+  (map->ProtectionDomain
+   {:login (new-login-form)
+    :authorizer (new-map-backed-user-registry {"malcolm" "password"})
+    :http-session-store (new-atom-backed-session-store
+                         (or (:session-timeout-in-seconds cfg)
+                             10))}))
