@@ -188,29 +188,29 @@ that authorization fails."
 ;; Since this module is dependent on bidi, let's provide some sample
 ;; bidi routes that can be used as-is or to demonstrate.
 
-(defn new-login-get-handler [handlers-p post-handler-key]
+(defn new-login-get-handler [handlers-p post-handler-key {:keys [boilerplate] :as opts}]
   (fn [{{{requested-uri :value} "requested-uri"} :cookies
         routes :modular.bidi/routes}]
-    {:status 200
-     :body
-     (html
-      [:body
-       [:form {:method "POST" :style "border: 1px dotted #555"
-               :action (bidi/path-for routes (get @handlers-p post-handler-key))}
-        (when requested-uri
-          [:input {:type "hidden" :name :requested-uri :value requested-uri}])
-        [:div
-         [:label {:for "username"} "Username"]
-         [:input {:id "username" :name "username" :type "input"}]]
-        [:div
-         [:label {:for "password"} "Password"]
-         [:input {:id "password" :name "password" :type "password"}]]
-        [:input {:type "submit" :value "Login"}]
-        ]])}))
+    (let [form
+          [:form {:method "POST" :style "border: 1px dotted #555"
+                  :action (bidi/path-for routes (get @handlers-p post-handler-key))}
+           (when requested-uri
+             [:input {:type "hidden" :name :requested-uri :value requested-uri}])
+           [:div
+            [:label {:for "username"} "Username"]
+            [:input {:id "username" :name "username" :type "input"}]]
+           [:div
+            [:label {:for "password"} "Password"]
+            [:input {:id "password" :name "password" :type "password"}]]
+           [:input {:type "submit" :value "Login"}]
+           ]]
+      {:status 200
+       :body (if boilerplate (boilerplate (html form)) (html [:body form]))})))
 
 (defn new-login-post-handler [handlers-p get-handler-key {:keys [authorizer http-session-store] :as opts}]
   (s/validate {:authorizer (s/protocol UserPasswordAuthorizer)
-               :http-session-store (s/protocol HttpSessionStore)} opts)
+               :http-session-store (s/protocol HttpSessionStore)}
+              opts)
   (fn [{{username "username" password "password" requested-uri "requested-uri"} :form-params
         routes :modular.bidi/routes}]
 
@@ -228,15 +228,13 @@ that authorization fails."
 
 (defn- make-login-handlers [opts]
   (let [p (promise)]
-    @(deliver p {:get-handler (new-login-get-handler p :post-handler)
-                 :post-handler (wrap-params (new-login-post-handler p :get-handler opts))})))
+    @(deliver p {:get-handler (new-login-get-handler p :post-handler (select-keys opts [:boilerplate]))
+                 :post-handler (wrap-params (new-login-post-handler p :get-handler (select-keys opts [:authorizer :http-session-store])))})))
 
-;; TODO If a LoginForm component is injected with a login form renderer component, that could be used
-
-(defrecord LoginForm [path context]
+(defrecord LoginForm [path context boilerplate]
   component/Lifecycle
   (start [this]
-    (let [handlers (make-login-handlers (select-keys this [:authorizer :http-session-store]))]
+    (let [handlers (make-login-handlers (select-keys this [:authorizer :http-session-store :boilerplate]))]
       (assoc this
         :handlers handlers
         :routes [path (->WrapMiddleware
@@ -258,15 +256,17 @@ that authorization fails."
 
 (def new-login-form-schema
   {(s/optional-key :path) s/Str
-   (s/optional-key :context) s/Str})
+   (s/optional-key :context) s/Str
+   (s/optional-key :boilerplate) (s/=> 1)})
 
 (defn new-login-form [& {:as opts}]
-  (let [{:keys [path context]}
+  (let [{:keys [path context boilerplate]}
         (->> opts
              (merge {:context ""
-                     :path "/login"})
+                     :path "/login"
+                     :boilerplate #(html [:body %])})
              (s/validate new-login-form-schema))]
-    (component/using (->LoginForm path context) [:authorizer :http-session-store])))
+    (component/using (->LoginForm path context boilerplate) [:authorizer :http-session-store])))
 
 ;; Now we can build a protection domain, composed of a login form, user
 ;; authorizer and session store. Different constructors can build this
@@ -284,15 +284,18 @@ that authorization fails."
   (routes [this] (routes (:login this)))
   (context [this] (context (:login this))))
 
-(def new-default-protection-domain-schema {(s/optional-key :session-timeout-in-seconds) s/Int})
+(def new-default-protection-domain-schema {(s/optional-key :session-timeout-in-seconds) s/Int
+                                           (s/optional-key :boilerplate) (s/=> 1)})
 
-(defn new-default-protection-domain [cfg]
-  (s/validate new-default-protection-domain-schema cfg)
+(defn new-default-protection-domain [opts]
+  (s/validate new-default-protection-domain-schema opts)
   (map->ProtectionDomain
-   {:login (new-login-form)
+   {:login (if-let [boilerplate (:boilerplate opts)]
+             (new-login-form :boilerplate boilerplate)
+             (new-login-form))
     :authorizer (new-map-backed-user-registry {"malcolm" "password"})
     :http-session-store (new-atom-backed-session-store
-                         (or (:session-timeout-in-seconds cfg)
+                         (or (:session-timeout-in-seconds opts)
                              10))}))
 
 ;; Now that we have a protection domain, we want the ability to create
@@ -313,13 +316,13 @@ that authorization fails."
   (context [this] context))
 
 (defn new-mandatory-protected-bidi-routes
+
   "Create a set of protected routes. The absence of a :protection-domain
   dependency will cause an error. Routes can a bidi route structure, or
   a function that takes the component and returns a bidi route
   structure."
   [routes context]
   (component/using (->ProtectedBidiRoutes routes context) [:protection-domain]))
-
 (defn new-protected-bidi-routes
   "Create a set of protected routes. The absence of a :protection-domain
   dependency will remove the protection. If protection is mandatory, use
@@ -327,3 +330,4 @@ that authorization fails."
   structure, or a function that takes the component and returns a bidi
   route structure."  [routes context]
   (->ProtectedBidiRoutes routes context))
+
