@@ -62,7 +62,7 @@ that authorization fails."
          (if failure-handler
            (failed-authorization failure-handler req)
            (throw (ex-info {:request (select-keys req :headers :cookies)
-                            :authorizer authorizer}))))))
+                            :http-request-authorizer authorizer}))))))
   ([h authorizer]
      (wrap-authorization h authorizer nil)))
 
@@ -82,7 +82,9 @@ that authorization fails."
       (if (:handler r)
         (update-in r [:handler]
                    (comp wrap-cookies
-                         (make-authorization-wrapper (:authorizer opts) (:fail-handler opts))))
+                         (make-authorization-wrapper
+                          (:http-request-authorizer opts)
+                          (:failed-authorization-handler opts))))
         r)))
   (unresolve-handler [this m]
     (unresolve-handler routes m)))
@@ -91,8 +93,8 @@ that authorization fails."
   ["" (->ProtectMatched
        [routes]
        (s/validate
-        {:authorizer (s/protocol HttpRequestAuthorizer)
-         (s/optional-key :fail-handler) (s/protocol FailedAuthorizationHandler)}
+        {:http-request-authorizer (s/protocol HttpRequestAuthorizer)
+         (s/optional-key :failed-authorization-handler) (s/protocol FailedAuthorizationHandler)}
         opts))])
 
 (defrecord BidiFailedAuthorizationRedirect [h]
@@ -152,7 +154,7 @@ that authorization fails."
           (when (authorized-user? authorizer username password)
             (assoc request :username username)))))))
 
-(defn new-http-based-request-authorizer [& {:as opts}]
+(defn new-http-basic-request-authorizer [& {:as opts}]
   (let [{dlg :user-password-authorizer}
         (s/validate {:user-password-authorizer (s/protocol UserPasswordAuthorizer)} opts)]
     (->HttpBasicRequestAuthorizer dlg)))
@@ -183,24 +185,6 @@ that authorization fails."
 (defn new-composite-disjunctive-request-authorizer [& delegates]
   (->CompositeDisjunctiveRequestAuthorizer (s/validate [(s/protocol HttpRequestAuthorizer)] delegates)))
 
-;; For a REST API, it is useful to support both HTTP Basic
-;; Authentication (for machines) but to honor cookies passed from a
-;; browser in an AJAX call, when the user has logged in via a login
-;; form.
-
-#_(defrecord ApiAuthorizer []
-  component/Lifecycle
-  (start [this]
-    (let [sessions (get this :http-session-store)
-          users (get this :user-registry)]
-      (assoc this :authorizer (new-composite-disjunctive-request-authorizer
-                               (new-session-based-request-authorizer :http-session-store sessions)
-                               (new-http-based-request-authorizer :user-password-authorizer users)))))
-  (stop [this] this))
-
-#_(defn new-api-authorizer []
-  (component/using (->ApiAuthorizer) [:authorizer :http-session-store]))
-
 ;; Since this module is dependent on bidi, let's provide some sample
 ;; bidi routes that can be used as-is or to demonstrate.
 
@@ -223,8 +207,8 @@ that authorization fails."
       {:status 200
        :body (if boilerplate (boilerplate (html form)) (html [:body form]))})))
 
-(defn new-login-post-handler [handlers-p get-handler-key {:keys [authorizer http-session-store] :as opts}]
-  (s/validate {:authorizer (s/protocol UserPasswordAuthorizer)
+(defn new-login-post-handler [handlers-p get-handler-key {:keys [user-password-authorizer http-session-store] :as opts}]
+  (s/validate {:user-password-authorizer (s/protocol UserPasswordAuthorizer)
                :http-session-store (s/protocol HttpSessionStore)}
               opts)
   (fn [{{username "username" password "password" requested-uri "requested-uri"} :form-params
@@ -232,7 +216,7 @@ that authorization fails."
 
     (if (and username
              (not-empty username)
-             (authorized-user? authorizer (.trim username) password))
+             (authorized-user? user-password-authorizer (.trim username) password))
 
       {:status 302
        :headers {"Location" requested-uri}
@@ -245,12 +229,12 @@ that authorization fails."
 (defn- make-login-handlers [opts]
   (let [p (promise)]
     @(deliver p {:get-handler (new-login-get-handler p :post-handler (select-keys opts [:boilerplate]))
-                 :post-handler (wrap-params (new-login-post-handler p :get-handler (select-keys opts [:authorizer :http-session-store])))})))
+                 :post-handler (wrap-params (new-login-post-handler p :get-handler (select-keys opts [:user-password-authorizer :http-session-store])))})))
 
 (defrecord LoginForm [path context boilerplate]
   component/Lifecycle
   (start [this]
-    (let [handlers (make-login-handlers (select-keys this [:authorizer :http-session-store :boilerplate]))]
+    (let [handlers (make-login-handlers (select-keys this [:user-password-authorizer :http-session-store :boilerplate]))]
       (assoc this
         :handlers handlers
         :routes [path (->WrapMiddleware
@@ -267,8 +251,8 @@ that authorization fails."
   (protect-bidi-routes [this routes]
     (add-bidi-protection-wrapper
      routes
-     :authorizer (new-session-based-request-authorizer :http-session-store (:http-session-store this))
-     :fail-handler (->BidiFailedAuthorizationRedirect (get-in this [:handlers :get-handler])))))
+     :http-request-authorizer (new-session-based-request-authorizer :http-session-store (:http-session-store this))
+     :failed-authorization-handler (->BidiFailedAuthorizationRedirect (get-in this [:handlers :get-handler])))))
 
 (def new-login-form-schema
   {(s/optional-key :path) s/Str
@@ -282,22 +266,25 @@ that authorization fails."
                      :path "/login"
                      :boilerplate #(html [:body %])})
              (s/validate new-login-form-schema))]
-    (component/using (->LoginForm path context boilerplate) [:authorizer :http-session-store])))
+    (component/using (->LoginForm path context boilerplate) [:user-password-authorizer :http-session-store])))
 
 ;; Now we can build a protection domain, composed of a login form, user
 ;; authorizer and session store. Different constructors can build this
 ;; component in different ways.
 
-(defrecord ProtectionDomain [protector authorizer http-session-store]
+(defrecord ProtectionDomain [protector user-password-authorizer http-session-store]
   component/Lifecycle
   (start [this] (component/start-system this (keys this)))
   (stop [this] (component/stop-system this (keys this)))
-  ;; In this implementation, we export any routes provided by sub-components
+  ;; In this implementation, we export any routes provided by
+  ;; sub-components. These are the routes that provide login forms and
+  ;; so on, nothing to do with the routes that are protected by this
+  ;; protection domain.
   BidiRoutesContributor
   (routes [this] ["" (vec (keep #(when (satisfies? BidiRoutesContributor %) (routes %)) (vals this)))])
   (context [this] (or
                    (first (keep #(when (satisfies? BidiRoutesContributor %) (context %))
-                                ((juxt :protector :authorizer :http-session-store) this)))
+                                ((juxt :protector :user-password-authorizer :http-session-store) this)))
                    "")))
 
 (def new-default-protection-domain-schema
@@ -310,14 +297,13 @@ that authorization fails."
    {:protector (if-let [boilerplate (:boilerplate opts)]
                  (new-login-form :boilerplate boilerplate)
                  (new-login-form))
-    :authorizer (new-map-backed-user-registry {"malcolm" "password"})
+    :user-password-authorizer (new-map-backed-user-registry {"malcolm" "password"})
     :http-session-store (new-atom-backed-session-store
                          (or (:session-timeout-in-seconds opts)
                              10))}))
 
-
 ;; Now that we have a protection domain, we want the ability to create
-;; routes components that can be protected.
+;; bidi routes components that can be protected by simply declaring a dependency upon the protection domain component.
 
 (defrecord ProtectedBidiRoutes [routes context]
   component/Lifecycle
