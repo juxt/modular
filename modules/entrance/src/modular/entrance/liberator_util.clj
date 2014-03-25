@@ -40,11 +40,12 @@
 
   (let [{:keys [http-session-store user-password-authorizer]}
         (s/validate {:http-session-store (s/protocol HttpSessionStore)
-                     :user-password-authorizer (s/protocol UserPasswordAuthorizer)}
-                    protection-domain)]
-    (fn [req]
+                     :user-password-authorizer (s/protocol UserPasswordAuthorizer)
+                     }
+                    (select-keys protection-domain [:http-session-store :user-password-authorizer]))]
+    (fn [context]
       (let [authorizer
             (new-composite-disjunctive-request-authorizer
              (new-session-based-request-authorizer :http-session-store http-session-store)
              (new-http-basic-request-authorizer :user-password-authorizer user-password-authorizer))]
-        (authorized-request? authorizer req)))))
+        (authorized-request? authorizer (:request context))))))
