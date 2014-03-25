@@ -45,7 +45,7 @@
 
 ;; Certain objects can provide protection for routes
 (defprotocol BidiRoutesProtector
-  (protect-routes [_ routes]))
+  (protect-bidi-routes [_ routes]))
 
 ;; Tag that a BidiRoutesContributor is protected
 ;; TODO Rename BidiRoutesContributor to BidiRoutesProvider
@@ -87,19 +87,17 @@ that authorization fails."
   (unresolve-handler [this m]
     (unresolve-handler routes m)))
 
-(defn protect [routes & {:as opts}]
-  ["" (->ProtectMatched [routes]
-                        (s/validate
-                         {:authorizer (s/protocol HttpRequestAuthorizer)
-                          (s/optional-key :fail-handler) (s/protocol FailedAuthorizationHandler)}
-                         opts))])
+(defn add-bidi-protection-wrapper [routes & {:as opts}]
+  ["" (->ProtectMatched
+       [routes]
+       (s/validate
+        {:authorizer (s/protocol HttpRequestAuthorizer)
+         (s/optional-key :fail-handler) (s/protocol FailedAuthorizationHandler)}
+        opts))])
 
 (defrecord BidiFailedAuthorizationRedirect [h]
   FailedAuthorizationHandler
   (failed-authorization [_ req]
-    (println "FAILED AUTH" (path-for (:modular.bidi/routes req) h))
-    (println "FAILED AUTH2" (:modular.bidi/routes req))
-    (println "FAILED AUH h" h)
     {:status 302
      :headers {"Location" (path-for (:modular.bidi/routes req) h)}
      :body "Not authorized\n"
@@ -185,6 +183,24 @@ that authorization fails."
 (defn new-composite-disjunctive-request-authorizer [& delegates]
   (->CompositeDisjunctiveRequestAuthorizer (s/validate [(s/protocol HttpRequestAuthorizer)] delegates)))
 
+;; For a REST API, it is useful to support both HTTP Basic
+;; Authentication (for machines) but to honor cookies passed from a
+;; browser in an AJAX call, when the user has logged in via a login
+;; form.
+
+#_(defrecord ApiAuthorizer []
+  component/Lifecycle
+  (start [this]
+    (let [sessions (get this :http-session-store)
+          users (get this :user-registry)]
+      (assoc this :authorizer (new-composite-disjunctive-request-authorizer
+                               (new-session-based-request-authorizer :http-session-store sessions)
+                               (new-http-based-request-authorizer :user-password-authorizer users)))))
+  (stop [this] this))
+
+#_(defn new-api-authorizer []
+  (component/using (->ApiAuthorizer) [:authorizer :http-session-store]))
+
 ;; Since this module is dependent on bidi, let's provide some sample
 ;; bidi routes that can be used as-is or to demonstrate.
 
@@ -248,11 +264,11 @@ that authorization fails."
   (context [this] context)
 
   BidiRoutesProtector
-  (protect-routes [this routes]
-    (println "protecting routes:" routes)
-    (protect routes
-             :authorizer (new-session-based-request-authorizer :http-session-store (:http-session-store this))
-             :fail-handler (->BidiFailedAuthorizationRedirect (get-in this [:handlers :get-handler])))))
+  (protect-bidi-routes [this routes]
+    (add-bidi-protection-wrapper
+     routes
+     :authorizer (new-session-based-request-authorizer :http-session-store (:http-session-store this))
+     :fail-handler (->BidiFailedAuthorizationRedirect (get-in this [:handlers :get-handler])))))
 
 (def new-login-form-schema
   {(s/optional-key :path) s/Str
@@ -284,8 +300,9 @@ that authorization fails."
   (routes [this] (routes (:login this)))
   (context [this] (context (:login this))))
 
-(def new-default-protection-domain-schema {(s/optional-key :session-timeout-in-seconds) s/Int
-                                           (s/optional-key :boilerplate) (s/=> 1)})
+(def new-default-protection-domain-schema
+  {(s/optional-key :session-timeout-in-seconds) s/Int
+   (s/optional-key :boilerplate) (s/=> 1)})
 
 (defn new-default-protection-domain [opts]
   (s/validate new-default-protection-domain-schema opts)
@@ -298,6 +315,7 @@ that authorization fails."
                          (or (:session-timeout-in-seconds opts)
                              10))}))
 
+
 ;; Now that we have a protection domain, we want the ability to create
 ;; routes components that can be protected.
 
@@ -307,7 +325,7 @@ that authorization fails."
     (let [pd (get-in this [:protection-domain :login])
           routes (cond-> routes
                          (fn? routes) (apply [this])
-                         pd ((partial protect-routes pd)))]
+                         pd ((partial protect-bidi-routes pd)))]
       (assoc this :routes routes)))
   (stop [this] this)
 
@@ -316,13 +334,13 @@ that authorization fails."
   (context [this] context))
 
 (defn new-mandatory-protected-bidi-routes
-
   "Create a set of protected routes. The absence of a :protection-domain
   dependency will cause an error. Routes can a bidi route structure, or
   a function that takes the component and returns a bidi route
   structure."
   [routes context]
   (component/using (->ProtectedBidiRoutes routes context) [:protection-domain]))
+
 (defn new-protected-bidi-routes
   "Create a set of protected routes. The absence of a :protection-domain
   dependency will remove the protection. If protection is mandatory, use
@@ -330,4 +348,3 @@ that authorization fails."
   structure, or a function that takes the component and returns a bidi
   route structure."  [routes context]
   (->ProtectedBidiRoutes routes context))
-
