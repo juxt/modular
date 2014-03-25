@@ -288,17 +288,17 @@ that authorization fails."
 ;; authorizer and session store. Different constructors can build this
 ;; component in different ways.
 
-(defrecord ProtectionDomain [login authorizer http-session-store]
+(defrecord ProtectionDomain [protector authorizer http-session-store]
   component/Lifecycle
   (start [this] (component/start-system this (keys this)))
   (stop [this] (component/stop-system this (keys this)))
-  ;; We must export the routes provided by the login sub-component TODO:
-  ;; It's possible that the authorizer and http-session-store components
-  ;; provided may also contribute routes - we should return an
-  ;; aggregation of all the sub-components, not just the login.
+  ;; In this implementation, we export any routes provided by sub-components
   BidiRoutesContributor
-  (routes [this] (routes (:login this)))
-  (context [this] (context (:login this))))
+  (routes [this] ["" (vec (keep #(when (satisfies? BidiRoutesContributor %) (routes %)) (vals this)))])
+  (context [this] (or
+                   (first (keep #(when (satisfies? BidiRoutesContributor %) (context %))
+                                ((juxt :protector :authorizer :http-session-store) this)))
+                   "")))
 
 (def new-default-protection-domain-schema
   {(s/optional-key :session-timeout-in-seconds) s/Int
@@ -307,9 +307,9 @@ that authorization fails."
 (defn new-default-protection-domain [opts]
   (s/validate new-default-protection-domain-schema opts)
   (map->ProtectionDomain
-   {:login (if-let [boilerplate (:boilerplate opts)]
-             (new-login-form :boilerplate boilerplate)
-             (new-login-form))
+   {:protector (if-let [boilerplate (:boilerplate opts)]
+                 (new-login-form :boilerplate boilerplate)
+                 (new-login-form))
     :authorizer (new-map-backed-user-registry {"malcolm" "password"})
     :http-session-store (new-atom-backed-session-store
                          (or (:session-timeout-in-seconds opts)
@@ -322,10 +322,10 @@ that authorization fails."
 (defrecord ProtectedBidiRoutes [routes context]
   component/Lifecycle
   (start [this]
-    (let [pd (get-in this [:protection-domain :login])
+    (let [protector (get-in this [:protection-domain :protector])
           routes (cond-> routes
                          (fn? routes) (apply [this])
-                         pd ((partial protect-bidi-routes pd)))]
+                         protector ((partial protect-bidi-routes protector)))]
       (assoc this :routes routes)))
   (stop [this] this)
 
