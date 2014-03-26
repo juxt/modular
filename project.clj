@@ -25,7 +25,7 @@
         "modules/http-kit"        ; HTTP server (with client library)
         "modules/bidi" ; URI routing library
         "modules/cassandra" ; C* support based on cassaforte
-        "modules/entrance" ; Authentication
+        "modules/cylon" ; Authentication
 
         ;;"modules/cljs-builder" ; ClojureScript compilation
         ;;        "extensions/async" ; core.async channels that can be shared by dependants

@@ -12,14 +12,14 @@
 ;; See the License for the specific language governing permissions and
 ;; limitations under the License.
 
-(ns modular.entrance.liberator-util
+(ns modular.cylon.liberator-util
   (:require
-   [modular.entrance :refer (new-composite-disjunctive-request-authorizer
-                             new-session-based-request-authorizer
-                             new-http-basic-request-authorizer
-                             HttpSessionStore
-                             UserPasswordAuthorizer
-                             authorized-request?)]
+   [modular.cylon :refer (new-composite-disjunctive-request-authorizer
+                         new-session-based-request-authorizer
+                         new-http-basic-request-authorizer
+                         HttpSessionStore
+                         UserPasswordAuthorizer
+                         authorized-request?)]
    [schema.core :as s]))
 
 ;; REST

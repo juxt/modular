@@ -12,7 +12,7 @@
 ;; See the License for the specific language governing permissions and
 ;; limitations under the License.
 
-(ns modular.entrance
+(ns modular.cylon
   (:require
    [clojure.java.io :as io]
    [clojure.pprint :refer (pprint)]
