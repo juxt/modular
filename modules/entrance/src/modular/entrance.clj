@@ -14,6 +14,8 @@
 
 (ns modular.entrance
   (:require
+   [clojure.java.io :as io]
+   [clojure.pprint :refer (pprint)]
    [bidi.bidi :as bidi :refer (path-for resolve-handler unresolve-handler ->WrapMiddleware)]
    [modular.bidi :as modbidi :refer (BidiRoutesContributor routes context)]
    [schema.core :as s]
@@ -22,6 +24,9 @@
    [hiccup.core :refer (html)]
    [com.stuartsierra.component :as component])
   (:import
+   java.security.SecureRandom
+   javax.crypto.SecretKeyFactory
+   javax.crypto.spec.PBEKeySpec
    (javax.xml.bind DatatypeConverter)))
 
 (defprotocol HttpRequestAuthorizer
@@ -39,6 +44,98 @@
 (extend-protocol UserPasswordAuthorizer
   Boolean
   (authorized-user? [this user password] this))
+
+(def PASSWORD_HASH_ALGO "PBKDF2WithHmacSHA1")
+
+(defn pbkdf2
+  "Get a hash for the given string and optional salt. From
+http://adambard.com/blog/3-wrong-ways-to-store-a-password/"
+  ([password salt]
+     (assert password "No password!")
+     (assert salt "No salt!")
+     (let [k (PBEKeySpec. (.toCharArray password) (.getBytes salt) 1000 192)
+           f (SecretKeyFactory/getInstance PASSWORD_HASH_ALGO)]
+       (format "%x"
+               (java.math.BigInteger. (.getEncoded (.generateSecret f k)))))))
+
+(defn make-salt
+  "Make a base64 string representing a salt. Pass in a SecureRandom."
+  [rng]
+  (let [ba (byte-array 32)]
+    (.nextBytes rng ba)
+    (javax.xml.bind.DatatypeConverter/printBase64Binary ba)))
+
+(defn create-hash [rng password]
+  (let [salt (make-salt rng)
+        hash (pbkdf2 password salt)]
+    {:salt salt
+     :hash hash}))
+
+(defn verify-password [password {:keys [hash salt]}]
+  (= (pbkdf2 password salt) hash))
+
+;; ----------------
+
+(defprotocol PasswordStore
+  ;; Returns a map of :hash and :salt
+  (get-hash-for-uid [_ uid])
+  (store-user-hash! [_ uid hash]))
+
+(defrecord PasswordFile [f]
+  component/Lifecycle
+  (start [this]
+    (assoc this
+      :ref (ref (if (.exists f) (read-string (slurp f)) {}))
+      :agent (agent f)))
+  (stop [this] this)
+  PasswordStore
+  (get-hash-for-uid [this uid] (get @(:ref this) uid))
+  (store-user-hash! [this uid hash]
+    (dosync
+     (alter (:ref this) assoc uid hash)
+     (send-off (:agent this) (fn [f]
+                               ;;(println "Writing passwords:" @(:ref this) "to" f)
+                               (spit f (with-out-str (pprint @(:ref this))))
+                               f))
+     (get @(:ref this) uid))))
+
+(defn new-password-file [f]
+  (assert (.exists (.getParentFile f))
+          (format "Please create the directory structure which should contain the password file: %s" f))
+  (->PasswordFile f))
+
+(defprotocol NewUserCreator
+  (add-user! [_ uid pw]))
+
+;; This implementation of a user domain provides a password storage
+;; facility based on PASSWORD_HASH_ALGO and a pluggable store for
+;; persistence
+
+(defrecord UserDomain []
+  component/Lifecycle
+  (start [this] (assoc this :rng (SecureRandom.)))
+  (stop [this] this)
+
+  UserPasswordAuthorizer
+  (authorized-user? [this uid pw]
+    (when-let [hash (get-hash-for-uid (:password-store this) uid)]
+      (verify-password pw hash)
+      ;; TODO There is a slight security concern here. If no uid is
+      ;; found, then the system will return slightly faster and this can
+      ;; be measured by an attacker to discover usernames. I don't know
+      ;; what the current advice is regarding this problem. I have
+      ;; consdiered priming the user store with a 'nobody' password to
+      ;; use.
+      ))
+
+  NewUserCreator
+  (add-user! [this uid pw]
+    (store-user-hash! (:password-store this) uid (create-hash (:rng this) pw))))
+
+(defn new-user-domain []
+  (component/using (->UserDomain) [:password-store]))
+
+;; -------
 
 (defprotocol FailedAuthorizationHandler
   (failed-authorization [_ request]))
@@ -285,11 +382,18 @@ that authorization fails."
   (context [this] (or
                    (first (keep #(when (satisfies? BidiRoutesContributor %) (context %))
                                 ((juxt :protector :user-password-authorizer :http-session-store) this)))
-                   "")))
+                   ""))
+  NewUserCreator
+  (add-user! [_ uid pw]
+    (if (satisfies? NewUserCreator user-password-authorizer)
+      (add-user! user-password-authorizer uid pw)
+      (throw (ex-info "This protection domain implementation does not support the creation of new users" {})))))
 
 (def new-default-protection-domain-schema
-  {(s/optional-key :session-timeout-in-seconds) s/Int
-   (s/optional-key :boilerplate) (s/=> 1)})
+  {:password-file s/Any
+   (s/optional-key :session-timeout-in-seconds) s/Int
+   (s/optional-key :boilerplate) (s/=> 1)
+   })
 
 (defn new-default-protection-domain [& {:as opts}]
   (s/validate new-default-protection-domain-schema opts)
@@ -297,7 +401,8 @@ that authorization fails."
    {:protector (if-let [boilerplate (:boilerplate opts)]
                  (new-login-form :boilerplate boilerplate)
                  (new-login-form))
-    :user-password-authorizer (new-map-backed-user-registry {"malcolm" "password"})
+    :user-password-authorizer (component/using (new-user-domain) [:password-store])
+    :password-store (new-password-file (:password-file opts))
     :http-session-store (new-atom-backed-session-store
                          (or (:session-timeout-in-seconds opts)
                              10))}))
