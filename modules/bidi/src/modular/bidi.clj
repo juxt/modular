@@ -37,17 +37,28 @@
 
 (defrecord BidiRoutes [routes context]
   component/Lifecycle
-  (start [this] this)
+  (start [this]
+    (let [routes (cond-> routes
+                         (fn? routes) (apply [this]))]
+      (assoc this :routes routes)))
   (stop [this] this)
+
   BidiRoutesContributor
-  (routes [this] routes)
+  (routes [this] (:routes this))
   (context [this] context))
 
 (def bidi-routes-options-schema {:context s/Str})
 
-(defn new-bidi-routes [routes & {:as opts}]
-  (let [{:keys [context]} (->> (merge {:context ""} opts)
-                               (s/validate bidi-routes-options-schema))]
+(defn new-bidi-routes
+  "Create a component with a given set of bidi routes. An optional web
+  context can be given as a keyword argument using the :context key. The
+  routes can be a bidi route structure, or a function that returns
+  one. When using a function, the component is passed as a single
+  argument."
+  [routes & {:as opts}]
+  (let [{:keys [context]}
+        (->> (merge {:context ""} opts)
+             (s/validate bidi-routes-options-schema))]
     (new BidiRoutes routes context)))
 
 (defn wrap-routes
