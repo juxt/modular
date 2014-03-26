@@ -13,7 +13,7 @@
 ;; limitations under the License.
 
 (defproject juxt.modular/cylon "0.2.3-SNAPSHOT"
-  :description "A modular extension that provides secure login through cookie-based and HTTP basic auth with pluggable credential management."
+  :description "A one-stop security solution for applications built on modular"
   :url "https://github.com/juxt/modular/tree/master/modules/cylon"
   :license {:name "Apache License, Version 2.0"
             :url "http://www.apache.org/licenses/LICENSE-2.0.html"}
