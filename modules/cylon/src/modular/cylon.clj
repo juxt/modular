@@ -365,18 +365,18 @@ that authorization fails."
              (s/validate new-login-form-schema))]
     (component/using (->LoginForm path context boilerplate) [:user-password-authorizer :http-session-store])))
 
-;; Now we can build a protection domain, composed of a login form, user
+;; Now we can build a protection system, composed of a login form, user
 ;; authorizer and session store. Different constructors can build this
 ;; component in different ways.
 
-(defrecord ProtectionDomain [protector user-password-authorizer http-session-store]
+(defrecord ProtectionSystem [protector user-password-authorizer http-session-store]
   component/Lifecycle
   (start [this] (component/start-system this (keys this)))
   (stop [this] (component/stop-system this (keys this)))
   ;; In this implementation, we export any routes provided by
   ;; sub-components. These are the routes that provide login forms and
   ;; so on, nothing to do with the routes that are protected by this
-  ;; protection domain.
+  ;; protection system.
   BidiRoutesContributor
   (routes [this] ["" (vec (keep #(when (satisfies? BidiRoutesContributor %) (routes %)) (vals this)))])
   (context [this] (or
@@ -387,17 +387,17 @@ that authorization fails."
   (add-user! [_ uid pw]
     (if (satisfies? NewUserCreator user-password-authorizer)
       (add-user! user-password-authorizer uid pw)
-      (throw (ex-info "This protection domain implementation does not support the creation of new users" {})))))
+      (throw (ex-info "This protection system implementation does not support the creation of new users" {})))))
 
-(def new-default-protection-domain-schema
+(def new-default-protection-system-schema
   {:password-file s/Any
    (s/optional-key :session-timeout-in-seconds) s/Int
    (s/optional-key :boilerplate) (s/=> 1)
    })
 
-(defn new-default-protection-domain [& {:as opts}]
-  (s/validate new-default-protection-domain-schema opts)
-  (map->ProtectionDomain
+(defn new-default-protection-system [& {:as opts}]
+  (s/validate new-default-protection-system-schema opts)
+  (map->ProtectionSystem
    {:protector (if-let [boilerplate (:boilerplate opts)]
                  (new-login-form :boilerplate boilerplate)
                  (new-login-form))
@@ -407,13 +407,13 @@ that authorization fails."
                          (or (:session-timeout-in-seconds opts)
                              10))}))
 
-;; Now that we have a protection domain, we want the ability to create
-;; bidi routes components that can be protected by simply declaring a dependency upon the protection domain component.
+;; Now that we have a protection system, we want the ability to create
+;; bidi routes components that can be protected by simply declaring a dependency upon the protection system component.
 
 (defrecord ProtectedBidiRoutes [routes context]
   component/Lifecycle
   (start [this]
-    (let [protector (get-in this [:protection-domain :protector])
+    (let [protector (get-in this [:protection-system :protector])
           routes (cond-> routes
                          (fn? routes) (apply [this])
                          protector ((partial protect-bidi-routes protector)))]
@@ -436,8 +436,8 @@ that authorization fails."
 
 (defn new-mandatory-protected-bidi-routes
   "Like new-protected-bidi-routes above, but the absence of
-  a :protection-domain dependency will cause an error."
+  a :protection-system dependency will cause an error."
   [routes & {:as opts}]
   (component/using
    (apply new-protected-bidi-routes routes (apply concat (seq opts)))
-   [:protection-domain]))
+   [:protection-system]))
