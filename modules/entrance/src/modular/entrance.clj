@@ -291,7 +291,7 @@ that authorization fails."
   {(s/optional-key :session-timeout-in-seconds) s/Int
    (s/optional-key :boilerplate) (s/=> 1)})
 
-(defn new-default-protection-domain [opts]
+(defn new-default-protection-domain [& {:as opts}]
   (s/validate new-default-protection-domain-schema opts)
   (map->ProtectionDomain
    {:protector (if-let [boilerplate (:boilerplate opts)]
@@ -319,18 +319,20 @@ that authorization fails."
   (routes [this] (:routes this))
   (context [this] context))
 
-(defn new-mandatory-protected-bidi-routes
-  "Create a set of protected routes. The absence of a :protection-domain
-  dependency will cause an error. Routes can a bidi route structure, or
+(defn new-protected-bidi-routes
+  "Create a set of protected routes. Routes can a bidi route structure, or
   a function that takes the component and returns a bidi route
   structure."
-  [routes context]
-  (component/using (->ProtectedBidiRoutes routes context) [:protection-domain]))
+  [routes & {:as opts}]
+  (let [{:keys [context]}
+        (->> (merge {:context ""} opts)
+             (s/validate {:context s/Str}))]
+    (->ProtectedBidiRoutes routes context)))
 
-(defn new-protected-bidi-routes
-  "Create a set of protected routes. The absence of a :protection-domain
-  dependency will remove the protection. If protection is mandatory, use
-  new-mandatory-protected-bidi-routes instead. Routes can a bidi route
-  structure, or a function that takes the component and returns a bidi
-  route structure."  [routes context]
-  (->ProtectedBidiRoutes routes context))
+(defn new-mandatory-protected-bidi-routes
+  "Like new-protected-bidi-routes above, but the absence of
+  a :protection-domain dependency will cause an error."
+  [routes & {:as opts}]
+  (component/using
+   (apply new-protected-bidi-routes routes (apply concat (seq opts)))
+   [:protection-domain]))
