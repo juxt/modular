@@ -20,16 +20,12 @@
    [clojure.pprint :refer (pprint)]
    [com.stuartsierra.component :as component]))
 
-(defn add-index-dependencies [dependency-map system]
-  (reduce
-   (fn [acc [p q]] (update-in acc [p] assoc q q))
-   dependency-map
-   (for [[k v] system :when (satisfies? modular.protocols/Index v)
-         prot (types v)
-         [q impl] system :when (satisfies? prot impl)]
-     [k q])))
-
-(defn normalize [m]
+(defn normalize
+  "component/using and system/using accept vectors as well as maps. This
+  makes it difficult to process (merge, extract, etc.) dependency
+  trees. Use this function to normalise so that only the map form is
+  used."
+  [m]
   (reduce-kv
    (fn [s k v]
      (assoc s k
@@ -38,5 +34,25 @@
               v)))
    {} m))
 
-(defn system-using [system dependency-map]
-  (component/system-using system (-> dependency-map normalize (add-index-dependencies system))))
+(defn add-index-dependencies
+  [dependency-map system]
+  (reduce
+   (fn [acc [p q]] (update-in acc [p] assoc q q))
+   dependency-map
+   (for [[k v] system :when (satisfies? modular.protocols/Index v)
+         prot (types v)
+         [q impl] system :when (satisfies? prot impl)]
+     [k q])))
+
+(defn autowire-dependencies-satisfying
+  "Return a dependency map between the given key (of the dependant) and
+  any components in the given system map that satisfy the given
+  protocol."
+  [system-map dependant-key proto]
+  (normalize {dependant-key (vec (keep (fn [[k v]] (when (satisfies? proto v) k)) (seq system-map)))}))
+
+(defn system-using
+  "A pure convenience function for projects using add-index-dependencies
+  only. Most projects will call component/system-using directly."
+  [system-map dependency-map]
+  (component/system-using system-map (-> dependency-map normalize (add-index-dependencies system-map))))
