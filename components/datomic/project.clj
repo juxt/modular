@@ -2,7 +2,7 @@
 
 (defproject juxt.modular/datomic "0.1.0-SNAPSHOT"
   :description "A modular extension that provides support for Datomic"
-  :url "https://github.com/juxt/modular/tree/master/modules/bidi"
+  :url "https://github.com/juxt/modular/tree/master/components/bidi"
   :license {:name "The MIT License"
             :url "http://opensource.org/licenses/MIT"}
   :dependencies [[juxt/modular "0.2.0-SNAPSHOT"]
