@@ -19,7 +19,7 @@
 ;; If necessary, routes and context can return deref'ables if necessary,
 ;; for example, if their values are not known until the component is
 ;; started.
-(defprotocol BidiRoutesContributor
+(defprotocol BidiRoutesProvider
   (routes [_])
   (context [_]))
 
@@ -31,7 +31,7 @@
       (assoc this :routes routes)))
   (stop [this] this)
 
-  BidiRoutesContributor
+  BidiRoutesProvider
   (routes [this] (:routes this))
   (context [this] context))
 
@@ -59,12 +59,12 @@
   component/Lifecycle
   (start [this]
     (assoc this :routes ["" (vec (for [v (vals this)
-                                       :when (satisfies? BidiRoutesContributor v)]
+                                       :when (satisfies? BidiRoutesProvider v)]
                                    [(or (context v) "") [(routes v)]]))]))
   (stop [this] this)
 
   Index
-  (types [this] #{BidiRoutesContributor})
+  (types [this] #{BidiRoutesProvider})
 
   RingHandlerProvider
   (handler [this]
@@ -72,6 +72,8 @@
       (-> routes bidi/make-handler
        (wrap-routes routes)))))
 
-;; Keep this around for future integration with Prismatic Schema
-(defn new-bidi-ring-handler-provider []
-  (new BidiRingHandlerProvider))
+(defn new-bidi-ring-handler-provider
+  "Constructor for a ring handler provider that amalgamates all bidi
+  routes provided by components in the system."
+  []
+  (->BidiRingHandlerProvider))

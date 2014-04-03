@@ -21,10 +21,10 @@
   :plugins [[lein-sub "0.2.3"]]
 
   :sub [
-        "modules/ring" ; Ring interface
-        "modules/http-kit"        ; HTTP server (with client library)
-        "modules/bidi" ; URI routing library
-        "modules/cassandra" ; C* support based on cassaforte
+        "components/ring"
+        "components/http-kit"
+        "components/bidi"
+        "components/cassandra"
 
         ;;"modules/cljs-builder" ; ClojureScript compilation
         ;;        "extensions/async" ; core.async channels that can be shared by dependants
@@ -32,7 +32,6 @@
         ;;        "extensions/jetty" ; HTTP server
         ;;        "extensions/netty" ; Generic network server library
         ;;        "extensions/netty-mqtt" ; MQTT support for Netty
-        ;;        "extensions/stencil" ; Templating library
         ]
 
   :dependencies
