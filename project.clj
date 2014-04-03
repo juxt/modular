@@ -12,11 +12,11 @@
 ;; See the License for the specific language governing permissions and
 ;; limitations under the License.
 
-(defproject juxt/modular "0.2.2-SNAPSHOT"
+(defproject juxt/modular "0.3.0-SNAPSHOT"
   :description "FIXME: write description"
   :url "http://github.com/mastodonc/kixi.stentor"
-  :license {:name "Apache License, Version 2.0"
-            :url "http://www.apache.org/licenses/LICENSE-2.0.html"}
+  :license {:name "The MIT License"
+            :url "http://opensource.org/licenses/MIT"}
 
   :plugins [[lein-sub "0.2.3"]]
 

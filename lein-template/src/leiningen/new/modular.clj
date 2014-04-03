@@ -1,3 +1,5 @@
+;; Copyright © 2014 JUXT LTD.
+
 (ns leiningen.new.modular
   (:require [leiningen.new.templates :refer [renderer name-to-path ->files]]
             [leiningen.core.main :as main]))
