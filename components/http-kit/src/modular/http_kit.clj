@@ -2,15 +2,14 @@
 
 (ns modular.http-kit
   (:require
-   [modular.protocols :refer (Index)]
-   [modular.core :as modular]
+   [modular.index :refer (Index)]
    [schema.core :as s]
    [com.stuartsierra.component :as component]
    [clojure.tools.logging :refer :all]
    [modular.ring :refer (handler)]
    [org.httpkit.server :refer (run-server)]))
 
-(def default-port 8000)
+(def default-port 3000)
 
 (defrecord Webserver [port]
   component/Lifecycle
@@ -28,7 +27,7 @@
       (dissoc this :server)))
 
   Index
-  (types [this] #{modular.ring/RingHandlerProvider}))
+  (satisfying-protocols [this] #{modular.ring/RingHandlerProvider}))
 
 (defn new-webserver [& {:as opts}]
   (let [{:keys [port]} (->> (merge {:port default-port} opts)

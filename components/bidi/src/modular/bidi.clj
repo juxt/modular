@@ -2,7 +2,7 @@
 
 (ns modular.bidi
   (:require
-   [modular.protocols :refer (Index)]
+   [modular.index :refer (Index)]
    [modular.core :as mod]
    [schema.core :as s]
    [modular.ring :refer (RingHandlerProvider)]
@@ -64,7 +64,7 @@
   (stop [this] this)
 
   Index
-  (types [this] #{BidiRoutesProvider})
+  (satisfying-protocols [this] #{BidiRoutesProvider})
 
   RingHandlerProvider
   (handler [this]
