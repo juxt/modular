@@ -2,7 +2,7 @@
 
 (defproject juxt.modular/bidi "0.3.0-SNAPSHOT"
   :description "A modular extension that provides support for bidi routing"
-  :url "https://github.com/juxt/modular/tree/master/components/bidi"
+  :url "https://github.com/juxt/modular/tree/master/modules/bidi"
   :license {:name "The MIT License"
             :url "http://opensource.org/licenses/MIT"}
   :dependencies [[bidi "1.10.2"]

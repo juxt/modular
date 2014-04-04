@@ -2,7 +2,7 @@
 
 (defproject juxt.modular/cassandra "0.3.0-SNAPSHOT"
   :description "A modular extension that provides support for Cassandra (via cassaforte)"
-  :url "https://github.com/juxt/modular/tree/master/components/cassandra"
+  :url "https://github.com/juxt/modular/tree/master/modules/cassandra"
   :license {:name "The MIT License"
             :url "http://opensource.org/licenses/MIT"}
   :dependencies [[clojurewerkz/cassaforte "1.3.0-beta9"
