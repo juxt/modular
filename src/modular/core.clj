@@ -1,16 +1,4 @@
-;; Copyright © 2014, JUXT LTD. All Rights Reserved.
-;;
-;; Licensed under the Apache License, Version 2.0 (the "License");
-;; you may not use this file except in compliance with the License.
-;; You may obtain a copy of the License at
-;;
-;;     http://www.apache.org/licenses/LICENSE-2.0
-;;
-;; Unless required by applicable law or agreed to in writing, software
-;; distributed under the License is distributed on an "AS IS" BASIS,
-;; WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-;; See the License for the specific language governing permissions and
-;; limitations under the License.
+;; Copyright © 2014 JUXT LTD.
 
 (ns ^{:clojure.tools.namespace.repl/unload false
       :clojure.tools.namespace.repl/load false}
@@ -20,7 +8,32 @@
    [clojure.pprint :refer (pprint)]
    [com.stuartsierra.component :as component]))
 
-(defn normalize
+(defn make-args
+  "In modular, constructors use the variadic keyword arguments
+  call-convention. This function allows us to formulate these arguments
+  from a config map and a list of specified keys. Each key can take a
+  default value, or nil if no value should be passed. The value will
+  then be determined by the constructor itself, not the calling code."
+  [cfg & {:as args}]
+  (as-> args %
+        (merge % cfg)
+        (select-keys % (keys args))
+        (seq %)
+        (remove (comp nil? second) %)
+        (apply concat %)))
+
+(defn make
+  "Call the constructor with default keyword arguments, each of which is
+   overridden if the entry exists in the given config map."
+  ([ctr config & kvs]
+     (assert fn? ctr)
+     (assert (not (keyword? config)) "Please specify a config map as the second argument to make")
+     (apply ctr (apply make-args config kvs)))
+  ;; If only the constructor is specified, do the sensible thing.
+  ([ctr]
+     (make ctr {})))
+
+(defn normalize-dependency-map
   "component/using and system/using accept vectors as well as maps. This
   makes it difficult to process (merge, extract, etc.) dependency
   trees. Use this function to normalise so that only the map form is
@@ -35,8 +48,21 @@
    {} m))
 
 (defn autowire-dependencies-satisfying
-  "Return a dependency map between the given key (of the dependant) and
-  any components in the given system map that satisfy the given
-  protocol."
-  [system-map dependant-key proto]
-  (normalize {dependant-key (vec (keep (fn [[k v]] (when (satisfies? proto v) k)) (seq system-map)))}))
+  "Return a system definition, adding dependencies between the given
+  key (of the dependant) and any components in the given system map that
+  satisfy the given protocol."
+  [dependency-map system-map dependant-key proto]
+  (normalize-dependency-map {dependant-key (vec (keep (fn [[k v]] (when (satisfies? proto v) k)) (seq system-map)))}))
+
+(defn interpose-component
+  "Splice in a component between a dependant component and its
+  dependencies. The dependant component will depend on the interposed
+  component and the interposed component will depend on the dependant's
+  former dependencies. For example, (A -> B, A Z) becomes A -> Z -> B"
+  [dependency-map dependant-key component-key]
+  (-> dependency-map
+      (update-in [component-key] merge (into {} (remove #(= (second %) component-key) (seq (or (dependant-key dependency-map) {})))))
+      (assoc dependant-key {component-key component-key})))
+
+(defn merge-dependencies [dependency-map & new-deps]
+  (apply merge-with merge dependency-map (map normalize-dependency-map new-deps)))

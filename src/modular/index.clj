@@ -23,11 +23,13 @@
   (satisfying-protocols [this]))
 
 (defn add-index-dependencies
-  [dependency-map system]
-  (reduce
-   (fn [acc [p q]] (update-in acc [p] assoc q q))
-   dependency-map
-   (for [[k v] system :when (satisfies? Index v)
-         prot (satisfying-protocols v)
-         [q impl] system :when (satisfies? prot impl)]
-     [k q])))
+  [dependency-map system-map]
+  (merge-with merge
+              (reduce
+               (fn [acc [p q]]
+                 (update-in acc [p] assoc q q))
+               {}
+               (for [[k v] system-map :when (satisfies? Index v)
+                     prot (satisfying-protocols v)
+                     [q impl] system-map :when (satisfies? prot impl)]
+                 [k q]))))

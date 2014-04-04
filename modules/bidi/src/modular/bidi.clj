@@ -3,7 +3,6 @@
 (ns modular.bidi
   (:require
    [modular.index :refer (Index)]
-   [modular.core :as mod]
    [schema.core :as s]
    [modular.ring :refer (RingHandlerProvider)]
    [com.stuartsierra.component :as component]

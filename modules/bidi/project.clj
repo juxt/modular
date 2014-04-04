@@ -5,6 +5,7 @@
   :url "https://github.com/juxt/modular/tree/master/modules/bidi"
   :license {:name "The MIT License"
             :url "http://opensource.org/licenses/MIT"}
-  :dependencies [[bidi "1.10.2"]
-                 [juxt.modular/ring "0.2.0"]
+  :dependencies [[juxt/modular "0.3.0-SNAPSHOT"]
+                 [bidi "1.10.2"]
+                 [juxt.modular/ring "0.3.0-SNAPSHOT"]
                  [prismatic/schema "0.2.1"]])
