@@ -30,7 +30,7 @@
   Index
   (types [this] #{modular.ring/RingHandlerProvider}))
 
-(defn new-webserver [opts]
+(defn new-webserver [& {:as opts}]
   (let [{:keys [port]} (->> (merge {:port default-port} opts)
                             (s/validate {:port s/Int}))]
     (->Webserver port)
