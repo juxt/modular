@@ -1,6 +1,6 @@
 ;; Copyright © 2014 JUXT LTD.
 
-(defproject juxt.modular/cassandra "0.3.0-SNAPSHOT"
+(defproject juxt.modular/cassandra "0.3.0"
   :description "A modular extension that provides support for Cassandra (via cassaforte)"
   :url "https://github.com/juxt/modular/tree/master/modules/cassandra"
   :license {:name "The MIT License"

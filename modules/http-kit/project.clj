@@ -1,6 +1,6 @@
 ;; Copyright © 2014 JUXT LTD.
 
-(defproject juxt.modular/http-kit "0.3.0-SNAPSHOT"
+(defproject juxt.modular/http-kit "0.3.0"
   :description "A modular extension that provides support for http-kit channels"
   :url "https://github.com/juxt/modular/tree/master/modules/http-kit"
   :license {:name "The MIT License"
