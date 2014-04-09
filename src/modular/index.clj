@@ -25,6 +25,7 @@
 (defn add-index-dependencies
   [dependency-map system-map]
   (merge-with merge
+              dependency-map
               (reduce
                (fn [acc [p q]]
                  (update-in acc [p] assoc q q))
