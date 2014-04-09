@@ -1,6 +1,6 @@
 ;; Copyright © 2014 JUXT LTD.
 
-(defproject juxt/modular "0.3.0"
+(defproject juxt/modular "0.3.1-SNAPSHOT"
   :description "FIXME: write description"
   :url "http://github.com/mastodonc/kixi.stentor"
   :license {:name "The MIT License"
