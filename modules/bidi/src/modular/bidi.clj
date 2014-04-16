@@ -54,6 +54,7 @@
   (fn [req]
     (h (assoc req ::routes routes))))
 
+;; TODO Rename to Router
 (defrecord BidiRingHandlerProvider []
   component/Lifecycle
   (start [this]
