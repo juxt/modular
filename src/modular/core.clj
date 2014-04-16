@@ -48,11 +48,11 @@
    {} m))
 
 (defn autowire-dependencies-satisfying
-  "Return a system definition, adding dependencies between the given
+  "Return a dependency map, adding dependencies between the given
   key (of the dependant) and any components in the given system map that
   satisfy the given protocol."
   [dependency-map system-map dependant-key proto]
-  (normalize-dependency-map {dependant-key (vec (keep (fn [[k v]] (when (satisfies? proto v) k)) (seq system-map)))}))
+  (merge-with merge dependency-map (normalize-dependency-map {dependant-key (vec (keep (fn [[k v]] (when (satisfies? proto v) k)) (seq system-map)))})))
 
 (defn interpose-component
   "Splice in a component between a dependant component and its
