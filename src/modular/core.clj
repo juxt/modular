@@ -4,7 +4,6 @@
       :clojure.tools.namespace.repl/load false}
   modular.core
   (:require
-   [modular.index :refer (Index satisfying-protocols)]
    [clojure.pprint :refer (pprint)]
    [com.stuartsierra.component :as component]))
 

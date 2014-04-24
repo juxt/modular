@@ -2,7 +2,6 @@
 
 (ns modular.bidi
   (:require
-   [modular.index :refer (Index)]
    [schema.core :as s]
    [modular.ring :refer (RingHandlerProvider)]
    [com.stuartsierra.component :as component]
@@ -63,14 +62,12 @@
                                    [(or (context v) "") [(routes v)]]))]))
   (stop [this] this)
 
-  Index
-  (satisfying-protocols [this] #{BidiRoutesProvider})
-
   RingHandlerProvider
   (handler [this]
     (let [routes (:routes this)]
       (-> routes bidi/make-handler
-       (wrap-routes routes)))))
+          ;; TODO: Compile the routes here - see bidi's README for how
+          (wrap-routes routes)))))
 
 (defn new-bidi-ring-handler-provider
   "Constructor for a ring handler provider that amalgamates all bidi
