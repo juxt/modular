@@ -1,9 +1,10 @@
-(ns ^{:clojure.tools.namespace.repl/load false
-      :clojure.tools.namespace.repl/unload false} ; only need this metadata while we are developing this module
-  modular.cljs
+;; Copyright © 2014 JUXT LTD.
+
+(ns modular.cljs
   (:require
    [com.stuartsierra.component :as component]
-   [modular.bidi :refer (BidiRoutesProvider)]
+   [modular.bidi :refer (WebService)]
+   [modular.template :refer (TemplateModel)]
    [bidi.bidi :refer (->Files)]
    [shadow.cljs.build :as cljs]
    [clojure.java.io :as io]
@@ -34,8 +35,8 @@
                       (cljs/enable-source-maps)
                       (assoc :optimizations optimizations
                              :pretty-print pretty-print
-                             :work-dir work-dir ;; temporary output path, not really needed
-                             :public-dir target-dir ;; where should the output go
+                             :work-dir (io/file work-dir) ;; temporary output path, not really needed
+                             :public-dir (io/file target-dir) ;; where should the output go
                              :public-path context) ;; whats the path the html has to use to get the js?
                       (cljs/step-find-resources-in-jars) ;; finds cljs,js in jars from the classpath
                       (cljs/step-find-resources "lib/js-closure" {:reloadable false})
@@ -78,8 +79,8 @@
 (def new-cljs-builder-schema
   {:context s/Str
    :source-path s/Str
-   :target-dir s/Any  ;; TODO How to restrict to files?
-   :work-dir s/Any
+   :target-dir s/Str
+   :work-dir s/Str
    :optimizations (s/enum :none :whitespace :simple :advanced)
    :pretty-print s/Bool
    })
@@ -112,22 +113,25 @@
        :otherwise this)))
   (stop [this] this)
 
-  BidiRoutesProvider
-  (routes [this] ["" (->Files {:dir "target/cljs"
+  WebService
+  (ring-handler-map [this] {})
+  (routes [this] ["" (->Files {:dir (:target-dir this)
                                :mime-types {"map" "application/javascript"}})])
-  (context [this] (:context this))
+  (uri-context [this] (:context this))
 
   JavaScripts
-  (get-javascript-paths [this] (:javascripts this)))
+  (get-javascript-paths [this] (:javascripts this))
+
+  TemplateModel
+  (template-model [this _] {:javascripts (get-javascript-paths this)}))
 
 (defn new-cljs-builder [& {:as opts}]
-  (as-> opts %
+  (->> opts
         (merge {:context "/cljs/"
                 :source-path "src-cljs"
-                :target-dir (io/file "target/cljs")
-                :work-dir (io/file "target/cljs-work")
+                :target-dir "target/cljs"
+                :work-dir "target/cljs-work"
                 :optimizations :none
-                :pretty-print true}) %
-        (s/validate new-cljs-builder-schema
-                    %)
-        (map->ClojureScriptBuilder %)))
+                :pretty-print true})
+        (s/validate new-cljs-builder-schema)
+        map->ClojureScriptBuilder))

@@ -1,36 +1,6 @@
 ;; Copyright © 2014 JUXT LTD.
 
-(ns ^{:clojure.tools.namespace.repl/unload false
-      :clojure.tools.namespace.repl/load false}
-  modular.core
-  (:require
-   [clojure.pprint :refer (pprint)]
-   [com.stuartsierra.component :as component]))
-
-(defn make-args
-  "In modular, constructors use the variadic keyword arguments
-  call-convention. This function allows us to formulate these arguments
-  from a config map and a list of specified keys. Each key can take a
-  default value, or nil if no value should be passed. The value will
-  then be determined by the constructor itself, not the calling code."
-  [cfg & {:as args}]
-  (as-> args %
-        (merge % cfg)
-        (select-keys % (keys args))
-        (seq %)
-        (remove (comp nil? second) %)
-        (apply concat %)))
-
-(defn make
-  "Call the constructor with default keyword arguments, each of which is
-   overridden if the entry exists in the given config map."
-  ([ctr config & kvs]
-     (assert fn? ctr)
-     (assert (not (keyword? config)) "Please specify a config map as the second argument to make")
-     (apply ctr (apply make-args config kvs)))
-  ;; If only the constructor is specified, do the sensible thing.
-  ([ctr]
-     (make ctr {})))
+(ns modular.wire-up)
 
 (defn normalize-dependency-map
   "component/using and system/using accept vectors as well as maps. This

@@ -1,6 +1,6 @@
 ;; Copyright © 2014 JUXT LTD.
 
-(defproject juxt/modular "0.3.3-SNAPSHOT"
+(defproject juxt/modular "0.4.0-SNAPSHOT"
   :description "FIXME: write description"
   :url "http://github.com/mastodonc/kixi.stentor"
   :license {:name "The MIT License"
@@ -13,6 +13,16 @@
         "modules/http-kit"
         "modules/bidi"
         "modules/cassandra"
+        "modules/datomic"
+        "modules/netty"
+        "modules/mqtt"
+        "modules/template"
+        "modules/clostache"
+        "modules/cljs"
+        "modules/menu"
+
+        "modules/maker"
+        "modules/wire-up"
 
         ;;"modules/cljs-builder" ; ClojureScript compilation
         ;;        "modules/async" ; core.async channels that can be shared by dependants
@@ -22,17 +32,9 @@
         ;;        "modules/netty-mqtt" ; MQTT support for Netty
         ]
 
-  :dependencies
-  [[org.clojure/clojure "1.5.1"]
-   [com.stuartsierra/component "0.2.1"]
-   [org.clojure/tools.logging "0.2.6"]
-   [ch.qos.logback/logback-classic "1.0.7" :exclusions [org.slf4j/slf4j-api]]
-   [org.slf4j/jul-to-slf4j "1.7.2"]
-   [org.slf4j/jcl-over-slf4j "1.7.2"]
-   [org.slf4j/log4j-over-slf4j "1.7.2"]
-   ]
+  :dependencies [[org.clojure/tools.logging "0.2.6"]]
 
   :repl-options {:prompt (fn [ns] (str "modular " ns "> "))}
 
-  :aliases {"deploy-all" ["do" "deploy" "clojars," "sub" "deploy" "clojars"]
-            "install-all" ["do" "install," "sub" "install"]})
+  :aliases {"deploy-all" ["sub" "deploy" "clojars"]
+            "install-all" ["sub" "install"]})
