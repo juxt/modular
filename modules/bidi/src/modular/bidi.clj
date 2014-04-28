@@ -7,6 +7,7 @@
    [com.stuartsierra.component :as component]
    [bidi.bidi :as bidi :refer (match-route path-for)]
    [clojure.tools.logging :refer :all]
+   [plumbing.core :refer (?>)]
 ))
 
 ;; I've thought hard about a less enterprisy name for this protocol, but
@@ -123,7 +124,7 @@
      (logf ~level ~msg (pr-str res#))
      res#))
 
-(defrecord Router []
+(defrecord Router [compile-routes?]
   component/Lifecycle
   (start [this]
     (let [handlers
@@ -153,11 +154,17 @@
   RingHandler
   (ring-handler [this]
     (-> (:routes this)
-        bidi/compile-route
+        (?> compile-routes? bidi/compile-route)
         bidi/make-handler)))
+
+(def new-router-schema
+  {:compile-routes? s/Bool})
 
 (defn new-router
   "Constructor for a ring handler that collates all bidi routes
   provided by its dependencies."
-  []
-  (->Router))
+  [& {:as opts}]
+  (->> opts
+       (merge {:compile-routes? true})
+       (s/validate new-router-schema)
+       map->Router))
