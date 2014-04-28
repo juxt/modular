@@ -21,7 +21,9 @@
   key (of the dependant) and any components in the given system map that
   satisfy the given protocol."
   [dependency-map system-map dependant-key proto]
-  (merge-with merge dependency-map (normalize-dependency-map {dependant-key (vec (keep (fn [[k v]] (when (satisfies? proto v) k)) (seq system-map)))})))
+  (->> {dependant-key (vec (keep (fn [[k v]] (when (and (satisfies? proto v) (not= dependant-key k)) k)) (seq system-map)))}
+       normalize-dependency-map
+       (merge-with merge dependency-map)))
 
 (defn interpose-component
   "Splice in a component between a dependant component and its
