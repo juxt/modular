@@ -21,7 +21,7 @@
     (let [dlg (ring-handler (:ring-handler this))]
       (fn [req]
         (let [bindings
-              (apply merge (map #(ring-binding % req) (::bindings this)))]
+              (apply merge-with merge (map #(ring-binding % req) (::bindings this)))]
           (infof "Request bindings are %s" (keys bindings))
           (dlg (merge req bindings)))))))
 
