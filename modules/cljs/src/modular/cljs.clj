@@ -11,21 +11,19 @@
    [schema.core :as s]
    [com.stuartsierra.dependency :as dep]))
 
-(def cljs-compiler-state nil)
+(def cljs-compiler-state (ref {}))
 
-(def cljs-compiler-compile-count 0)
+(def cljs-compiler-compile-count (ref {}))
 
 (defn add-modules [state modules]
   (reduce (fn [state {:keys [name mains dependencies]}]
             (cljs/step-configure-module state name mains dependencies))
           state modules))
 
-(defn compile-cljs [modules {:keys [context source-path target-dir work-dir
-                                    optimizations pretty-print]}]
+(defn compile-cljs [builder modules {:keys [context source-path target-dir work-dir
+                                            optimizations pretty-print]}]
 
-  ;; TODO This use of cljs-compiler-state only allows one cljs builder
-  ;; per system - need to allow multiple cljs builders
-  (let [state (if-let [s cljs-compiler-state]
+  (let [state (if-let [s (get @cljs-compiler-state builder)]
                 (do
                   (println "cljs: Using existing state")
                   s)
@@ -46,16 +44,15 @@
                       (add-modules modules)
                       )))]
 
-    (alter-var-root #'cljs-compiler-state
-                    (fn [_]
-                      (-> state
-                          (cljs/step-reload-modified)
-                          (cljs/step-compile-modules)
-                          (cljs/flush-unoptimized))))
+    (let [new-state (-> state
+                        (cljs/step-reload-modified)
+                        (cljs/step-compile-modules)
+                        (cljs/flush-unoptimized))]
+      (dosync
+       (alter cljs-compiler-state (fn [m] (assoc-in m [builder] new-state)))
+       (alter cljs-compiler-compile-count (fn [m] (update-in m [builder] (fnil inc 0))))))
 
-    (alter-var-root #'cljs-compiler-compile-count inc)
-
-    (println (format "Compiled %d times since last full compile" cljs-compiler-compile-count)))
+    (println (format "Compiled %d times since last full compile" (get @cljs-compiler-compile-count builder))))
 
   :done)
 
@@ -77,7 +74,8 @@
   (get-javascript-paths [_]))
 
 (def new-cljs-builder-schema
-  {:context s/Str
+  {:id s/Keyword
+   :context s/Str
    :source-path s/Str
    :target-dir s/Str
    :work-dir s/Str
@@ -90,27 +88,26 @@
   (start [this]
     (let [modules (map get-definition (filter (partial satisfies? ClojureScriptModule) (vals this)))]
       (try
-        (compile-cljs modules (select-keys this (keys new-cljs-builder-schema)))
-        this
+        (compile-cljs (:id this)
+                      modules (select-keys this (keys new-cljs-builder-schema)))
+        (cond
+         (and (= (:optimizations this) :none)
+              (= (:pretty-print this) true))
+         ;; Only do this on optimizations: none and pretty-print: true - do
+         ;; something different for each optimization mode (TODO)
+         (assoc this
+           :javascripts
+           (for [n (dep/topo-sort
+                    ;; Build a dependency graph between all the modules so
+                    ;; they load in the correct order.
+                    (reduce (fn [g {:keys [name dependencies]}]
+                              (reduce (fn [g d] (dep/depend g name d)) g dependencies))
+                            (dep/graph) modules))]
+             (str (:context this) (name n) ".js")))
+         :otherwise this)
         (catch Exception e
           (println "ClojureScript build failed:" e)
-          (assoc this :error e)))
-
-      (cond
-       (and (= (:optimizations this) :none)
-            (= (:pretty-print this) true))
-       ;; Only do this on optimizations: none and pretty-print: true - do
-       ;; something different for each optimization mode (TODO)
-       (assoc this
-         :javascripts
-         (for [n (dep/topo-sort
-                  ;; Build a dependency graph between all the modules so
-                  ;; they load in the correct order.
-                  (reduce (fn [g {:keys [name dependencies]}]
-                            (reduce (fn [g d] (dep/depend g name d)) g dependencies))
-                          (dep/graph) modules))]
-           (str (:context this) (name n) ".js")))
-       :otherwise this)))
+          (assoc this :error e)))))
   (stop [this] this)
 
   WebService
@@ -127,7 +124,8 @@
 
 (defn new-cljs-builder [& {:as opts}]
   (->> opts
-        (merge {:context "/cljs/"
+        (merge {:id ::default
+                :context "/cljs/"
                 :source-path "src-cljs"
                 :target-dir "target/cljs"
                 :work-dir "target/cljs-work"
