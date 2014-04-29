@@ -105,12 +105,27 @@
 ;; (usually a router is shared between multiple components) and :bar
 ;; is a handler in the ring-handler-map of :foo.
 
+(defn wrap-capture-component-on-error
+  "Wrap handler in a try/catch that will capture the component and
+  handler of the error."
+  [h & {:keys [component handler]}]
+  (when h
+    (fn [req]
+      (try
+        (h req)
+        (catch Exception cause
+          (throw (ex-info "Failure during request handling"
+                          {:component component :handler handler}
+                          cause)))))))
+
 (defrecord ComponentAddressable [matched ckey handlers]
   bidi/Matched
   (resolve-handler [this m]
     (when-let [{:keys [handler] :as res} (bidi/resolve-handler matched m)]
       (if (keyword? handler)
-        (assoc res :handler (wrap-component-preference (get-in handlers [ckey handler]) ckey))
+        (assoc res :handler (-> (get-in handlers [ckey handler])
+                                (wrap-component-preference ckey)
+                                (wrap-capture-component-on-error :component ckey :handler handler)))
         res)))
 
   (unresolve-handler [this m]
