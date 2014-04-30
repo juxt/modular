@@ -43,7 +43,7 @@
                    (if parent
                      (list
                       [:li.dropdown
-                       [:a.dropdown-toggle {:href "#" :data-toggle "dropdown"} parent [:b.caret]]
+                       [:a.dropdown-toggle {:data-toggle "dropdown"} parent [:b.caret]]
                        [:ul.dropdown-menu listitems]])
                      listitems)))))})))
 
