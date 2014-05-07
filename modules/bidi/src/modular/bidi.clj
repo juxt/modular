@@ -7,8 +7,7 @@
    [com.stuartsierra.component :as component]
    [bidi.bidi :as bidi :refer (match-route path-for)]
    [clojure.tools.logging :refer :all]
-   [plumbing.core :refer (?>)]
-))
+   [plumbing.core :refer (?>)]))
 
 ;; I've thought hard about a less enterprisy name for this protocol, but
 ;; components that satisfy it fit most definitions of web
@@ -18,23 +17,6 @@
   (ring-handler-map [_])
   (routes [_])
   (uri-context [_]))
-
-#_(defn make-handler
-  "Create a Ring handler from the route definition data
-  structure. Matches a handler from the uri in the request, and invokes
-  it with the request as a parameter."
-  [route handlers]
-  (fn [{:keys [uri] :as request}]
-    (let [{:keys [handler params]} (apply match-route route uri (apply concat (seq request)))]
-      (when handler ; in this case, handler is a keyword
-        (if-let [handler (get handlers handler)]
-          (handler (-> request (update-in [:route-params] merge params)))
-          (throw
-           (ex-info
-            (format "Route for (%s) resolved to a key (%s) which was not represented in the handler-map" uri handler)
-            {:route route :handler-key handler :handler-keys (keys handlers) :uri uri}))
-          )
-        ))))
 
 (defrecord WebServiceFromArguments [ring-handler-map routes uri-context]
   WebService
