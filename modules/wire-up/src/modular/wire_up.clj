@@ -2,6 +2,13 @@
 
 (ns modular.wire-up)
 
+(defn ensure-map
+  "Turn vector style into map style, if necessary. For example: [:a :b :c] -> {:a :a, :b :b, :c :c}"
+  [x]
+  (if (sequential? x)
+    (apply zipmap (repeat 2 x))
+    x))
+
 (defn normalize-dependency-map
   "component/using and system/using accept vectors as well as maps. This
   makes it difficult to process (merge, extract, etc.) dependency
@@ -10,10 +17,7 @@
   [m]
   (reduce-kv
    (fn [s k v]
-     (assoc s k
-            (if (vector? v)
-              (apply zipmap (repeat 2 v))
-              v)))
+     (assoc s k (ensure-map v)))
    {} m))
 
 (defn autowire-dependencies-satisfying
