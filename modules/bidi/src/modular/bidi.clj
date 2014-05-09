@@ -132,7 +132,9 @@
            (apply merge
                   (for [[k v] this
                         :when (satisfies? WebService v)]
-                    {k (ring-handler-map v)})))]
+                    (try
+                      {k (ring-handler-map v)}
+                      (catch Throwable e (throw (ex-info "Failed to call ring-handler-map" {:k k :v v} e)))))))]
 
       (assoc this
         :handlers handlers
