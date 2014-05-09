@@ -23,7 +23,7 @@
                                             :when (satisfies? TemplateModel v)]
                                         {k (template-model v {:request req})}))]
                      (debugf "Template model, prior to merge with content, is %s" (pr-str model))
-                     (debugf "After will be: %s" (merge model content))
+                     (debugf "After will be: %s" (merge-with merge model content))
                      (render-template
                       (:templater this)
                       template
