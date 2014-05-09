@@ -17,7 +17,7 @@
       (let [h (ring-handler provider)]
         (assert h)
         (let [server (run-server h {:port port})]
-          (assoc this :server server)))
+          (assoc this :server server :port port)))
       (throw (ex-info (format "http-kit module requires the existence of a component that satisfies %s" modular.ring/RingHandler) {:this this}))))
 
   (stop [this]
