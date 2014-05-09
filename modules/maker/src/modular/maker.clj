@@ -31,7 +31,7 @@ See modular.maker-tests/make-args-test for examples."
                                          (vector? path) path))))]
              (cond
               (and (= dv :modular.maker/required) (nil? v))
-              (throw (ex-info "Required" {}))
+              (throw (ex-info "Configuration value required but couldn't be found" {:key-or-mapping k}))
               (keyword? k) [k (or v dv)]
               (associative? k) [(ffirst (seq k)) (or v dv)])))))
 
