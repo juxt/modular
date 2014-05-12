@@ -14,8 +14,13 @@
 ;; services. There's an interface (URIs), coupled to an implementation
 ;; (via handlers)
 (defprotocol WebService
+  ;; Return a map, keys (usually namespaced) to Ring handler functions
   (ring-handler-map [_])
+  ;; Return a bidi route structure, from patterns to keys in the above
+  ;; ring-handler-map. Do NOT use any wrappers such as ->WrapMiddleware
+  ;; that assume the matches are functions (because they won't be)
   (routes [_])
+  ;; The 'moount' point in the URI tree.
   (uri-context [_]))
 
 (defrecord WebServiceFromArguments [ring-handler-map routes uri-context]
@@ -116,7 +121,7 @@
             (bidi/unresolve-handler matched (update-in m [:handler] second)))
           :otherwise (bidi/unresolve-handler matched m))))
 
-(defmacro infof-result [level msg form]
+(defmacro logf-result [level msg form]
   `(let [res# ~form]
      (logf ~level ~msg (pr-str res#))
      res#))
@@ -127,7 +132,7 @@
     (let [handlers
           ;; Handlers is a two-level map from dependency key to the
           ;; dependency's handler map.
-          (infof-result
+          (logf-result
            :info "Bidi router determines handlers as %s"
            (apply merge
                   (for [[k v] this

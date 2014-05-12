@@ -6,10 +6,10 @@
    [modular.template :refer (TemplateModel)]
    [bidi.bidi :refer (path-for)]
    [hiccup.core :refer (html)]
-   [cylon.core :refer (allowed-handler?)]
+   ;;[cylon.core :refer (allowed-handler?)]
    [schema.core :as s]))
 
-(defn show-menu-item?
+#_(defn show-menu-item?
   "This is an example of how useful it is to wrap handlers in records
   that implement the AuthorizedHandler protocol. In this case, we can
   call authorized-handler? on any given handler to see whether it would

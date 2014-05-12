@@ -3,7 +3,7 @@
 (ns modular.ring
   (:require
    [com.stuartsierra.component :as component]
-   [clojure.tools.logging :refer (infof)]))
+   [clojure.tools.logging :refer (debugf)]))
 
 (defprotocol RingHandler
   (ring-handler [_]))
@@ -22,7 +22,7 @@
       (fn [req]
         (let [bindings
               (apply merge-with merge (map #(ring-binding % req) (::bindings this)))]
-          (infof "Request bindings are %s" (keys bindings))
+          (debugf "Request bindings are %s" (keys bindings))
           (dlg (merge req bindings)))))))
 
 (defn new-ring-binder []
