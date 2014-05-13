@@ -8,5 +8,4 @@
   :dependencies [[com.stuartsierra/component "0.2.1"]
                  [juxt.modular/bidi "0.4.0-SNAPSHOT"]
                  [juxt.modular/template "0.1.0-SNAPSHOT"]
-                 [prismatic/schema "0.2.1"]
-                 [cylon "0.2.0-SNAPSHOT"]])
+                 [prismatic/schema "0.2.1"]])
