@@ -60,17 +60,17 @@
   use it to process the response of the delegate handler. The initial
   response is considered to be a template model, and merged with other
   template models from other components."
-  ([h & [k]]
-     (fn [req]
-       (if-let [merge-with-template (get-in req [::template k])]
-         (let [resp (h req)]
-           (merge resp {:body (merge-with-template req resp)}))
-         (throw
-          (if (::template req)
-            (if k
-              (ex-info (format "No template with key %s" k) {:key k})
-              (ex-info (format "No default template") {}))
-            (ex-info "wrap-template expects that a template is included in the system" {:key k})))))))
+  [h & [k]]
+  (fn [req]
+    (if-let [merge-with-template (get-in req [::template k])]
+      (let [resp (h req)]
+        (merge resp {:body (merge-with-template req resp)}))
+      (throw
+       (if (::template req)
+         (if k
+           (ex-info (format "No template with key %s" k) {:key k})
+           (ex-info (format "No default template") {}))
+         (ex-info "wrap-template expects that a template is included in the system" {:key k}))))))
 
 (defrecord TemplateModelMap []
   TemplateModel
