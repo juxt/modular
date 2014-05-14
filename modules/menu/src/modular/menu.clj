@@ -9,24 +9,8 @@
    ;;[cylon.core :refer (allowed-handler?)]
    [schema.core :as s]))
 
-#_(defn show-menu-item?
-  "This is an example of how useful it is to wrap handlers in records
-  that implement the AuthorizedHandler protocol. In this case, we can
-  call authorized-handler? on any given handler to see whether it would
-  be authorized with this request. We use this result to avoid
-  displaying menu-items that are not available. We could alternatively
-  use this information to disable or grey-out the menu-item."
-  [req {:keys [handler label]}]
-  (allowed-handler? handler req))
-
 (defprotocol MenuItems
   (menu-items [_]))
-
-;; If there is a protection system... see accounting2 eae2f02 src/juxt/accounting/menu.clj
-#_(when-let [{:keys [handlers]} (-> this :protection-system :login-form)]
-                  [(if-not (:cylon.core/session req)
-                     {:label "Login" :order "Z" :handler (:login handlers)}
-                     {:label "Logout" :order "Z" :handler (:logout handlers)})])
 
 (defrecord MenuIndex []
   MenuItems
