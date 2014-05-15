@@ -6,7 +6,6 @@
    [modular.template :refer (TemplateModel)]
    [bidi.bidi :refer (path-for)]
    [hiccup.core :refer (html)]
-   ;;[cylon.core :refer (allowed-handler?)]
    [schema.core :as s]))
 
 (defprotocol MenuItems
@@ -20,7 +19,6 @@
          (filter (partial satisfies? MenuItems))
          (mapcat menu-items)
          (remove nil?)
-;;         (filter (partial show-menu-item? (:request context)))
          (sort-by :order)
          (group-by :parent)
          seq
