@@ -52,7 +52,7 @@
        (alter cljs-compiler-state (fn [m] (assoc-in m [builder] new-state)))
        (alter cljs-compiler-compile-count (fn [m] (update-in m [builder] (fnil inc 0))))))
 
-    (println (format "Compiled %d times since last full compile" (get @cljs-compiler-compile-count builder))))
+    (println (format "Compiled %d times since last full compile (%s)" (get @cljs-compiler-compile-count builder) builder)))
 
   :done)
 
@@ -124,12 +124,16 @@
 
 (defn new-cljs-builder [& {:as opts}]
   (->> opts
-        (merge {:id ::default
-                :context "/cljs/"
-                :source-path "src-cljs"
-                :target-dir "target/cljs"
-                :work-dir "target/cljs-work"
-                :optimizations :none
-                :pretty-print true})
-        (s/validate new-cljs-builder-schema)
-        map->ClojureScriptBuilder))
+       (merge {:id ::default
+               :context (if-let [id (:id opts)]
+                              (format "/cljs-%s/" (name id))
+                              "/cljs/")
+               :source-path "src-cljs"
+               :target-dir (if-let [id (:id opts)]
+                             (str "target/cljs/" (name id))
+                             "target/cljs")
+               :work-dir "target/cljs-work"
+               :optimizations :none
+               :pretty-print true})
+       (s/validate new-cljs-builder-schema)
+       map->ClojureScriptBuilder))
