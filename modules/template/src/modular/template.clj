@@ -13,6 +13,12 @@
 (defprotocol Templater
   (render-template [_ template model]))
 
+;; An issue with Template is that it is static, it is given
+;; the template as an argument. It is envisaged that other records,
+;; other than SingleTemplate, which will switch the template based on
+;; the request, can be developed. For now, if you have multiple
+;; templates, create a SingleTemplate record for each one.
+
 (defrecord Template [template]
   RingBinding
   (ring-binding [this req]
@@ -48,12 +54,6 @@
         (s/validate {:key s/Keyword :template s/Any})
         map->Template)
    [:templater]))
-
-;; TODO: The issue with SingleTemplate is that it is static, it is given
-;; the template as an argument. It is envisaged that other records,
-;; other than SingleTemplate, which will switch the template based on
-;; the request, can be developed. For now, if you have multiple
-;; templates, create a SingleTemplate record for each one.
 
 (defn wrap-template
   "Ring middleware to take the ::template function from the request and
