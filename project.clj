@@ -1,6 +1,6 @@
 ;; Copyright © 2014 JUXT LTD.
 
-(defproject juxt/modular "0.4.0"
+(defproject juxt/modular "0.5.0-SNAPSHOT"
   :description "FIXME: write description"
   :url "http://github.com/mastodonc/kixi.stentor"
   :license {:name "The MIT License"
@@ -9,27 +9,25 @@
   :plugins [[lein-sub "0.2.3"]]
 
   :sub [
-        "modules/ring"
-        "modules/http-kit"
-        "modules/bidi"
-        "modules/cassandra"
-        "modules/datomic"
-        "modules/netty"
-        "modules/mqtt"
-        "modules/template"
-        "modules/clostache"
-        "modules/cljs"
-        "modules/menu"
+        ;; Uncomment these when they need a new release
+        ;; "modules/ring"
+        ;; "modules/http-kit"
+        ;; "modules/bidi"
+        ;; "modules/cassandra"
+        ;; "modules/datomic"
+        ;; "modules/netty"
+        ;; "modules/mqtt"
+        ;; "modules/template"
+        ;; "modules/clostache"
+        ;; "modules/cljs"
+        ;; "modules/menu"
+        ;; "modules/maker"
+        ;; "modules/wire-up"
 
-        "modules/maker"
-        "modules/wire-up"
-
-        ;;"modules/cljs-builder" ; ClojureScript compilation
+        ;; Modules that still need to be ported over from Jig 1.x
         ;;        "modules/async" ; core.async channels that can be shared by dependants
         ;;        "modules/compojure" ; URI routing library
         ;;        "modules/jetty" ; HTTP server
-        ;;        "modules/netty" ; Generic network server library
-        ;;        "modules/netty-mqtt" ; MQTT support for Netty
         ]
 
   :dependencies [[org.clojure/tools.logging "0.2.6"]]
