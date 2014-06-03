@@ -16,11 +16,11 @@
     this))
 
 (def ClusterSchema
-  {:contact-points [s/Str]
+  {:hosts [s/Str]
    :port s/Int})
 
 (def ClusterDefaults
-  {:contact-points ["127.0.0.1"]
+  {:hosts ["127.0.0.1"]
    :port 9042})
 
 (defn new-cluster [opts]
