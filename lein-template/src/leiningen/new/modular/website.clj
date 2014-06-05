@@ -36,6 +36,15 @@
 ;;              - these keywords correspond to the keys in ring-handler-map
 ;;   uri-context: Usually an empty string, but acts as a prefix to the route structure
 
+;; The use of keywords is to allow looser coupling between generated
+;; hyperlinks and the Ring handlers they route to. Every handler can be
+;; targeted by using a keyword in bidi's path-for function. This
+;; eliminates string-munging code that would otherwise be written to
+;; form URIs, with the implicit coupling between this logic and the
+;; route structure that would result. Note it is idiomatic to use
+;; namespaced keywords so that there is less chance of conflict with
+;; other keywords used by other components.
+
 ;; By also satisfying the RingHandler protocol, this component can be
 ;; made a direct dependency of a Ring-compatible web server like
 ;; http-kit or Jetty. Whether this is the only web-serving component in
