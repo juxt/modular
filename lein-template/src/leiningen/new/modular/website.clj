@@ -57,9 +57,9 @@
 (defrecord Website []
   WebService
   (ring-handler-map [_]
-    {::main (-> (index) resource)})
+    {::index (-> (index) resource)})
 
-  (routes [_] ["/" ::main])
+  (routes [_] ["/" ::index])
 
   (uri-context [_] "")
 
