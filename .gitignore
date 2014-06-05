@@ -8,3 +8,4 @@ pom.xml.asc
 .nrepl-port
 target
 extract-native.dependencies
+/lein-template/.lein-failures

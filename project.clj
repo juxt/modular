@@ -10,8 +10,8 @@
 
   :sub [
         ;; Uncomment these when they need a new release
-        ;; "modules/ring"
-        ;; "modules/http-kit"
+        "modules/ring"
+        "modules/http-kit"
         ;; "modules/bidi"
         ;; "modules/cassandra"
         ;; "modules/datomic"

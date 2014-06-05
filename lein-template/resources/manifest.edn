@@ -1,0 +1,38 @@
+{
+ :components
+ [
+  ;; lein new modular app +httpkit
+  ;; lein new modular app +httpkit:80 ; because there's only one possible option in this case
+  ;; lein new modular app +httpkit:port:80
+  {:component :http-kit
+   :dependencies [[juxt.modular/http-kit "0.5.0-SNAPSHOT"]]
+   :constructor modular.http-kit/new-webserver
+   :options [:port]
+   }
+  {:component :website
+   :dependencies [
+                  [hiccup "1.0.5"]
+                  [liberator "0.11.0" :exclusions [hiccup]]
+
+                  #_[juxt.modular/bidi "0.4.0"]
+                  ;; temporary while working on modular bidi
+                  [bidi "1.10.3"]
+                  [prismatic/schema "0.2.1"]
+                  [prismatic/plumbing "0.2.2"]
+                  ]
+   :constructor {{name}}.website/new-website
+   }]
+
+ :assemblies
+ [
+  ;; lein new modular app +website
+  {:assembly :website
+   :components #{:http-kit :website}
+   :dependency-map {:http-kit {:ring-handler :website}}
+   :default? true}
+
+  {:assembly :cylon
+   :components #{:user-domain}
+   :dependency-map {:a :b :c :d}
+   :default? false
+   }]}

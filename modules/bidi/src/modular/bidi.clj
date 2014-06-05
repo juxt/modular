@@ -172,3 +172,30 @@
        (merge {:compile-routes? true})
        (s/validate new-router-schema)
        map->Router))
+
+;; ------
+
+(defrecord KeywordToHandler [matched handlers]
+  bidi/Matched
+  (resolve-handler [this m]
+    (when-let [{:keys [handler] :as res} (bidi/resolve-handler matched m)]
+      (if (keyword? handler)
+        (assoc res :handler (get handlers handler))
+        res)))
+
+  (unresolve-handler [this m]
+    (bidi/unresolve-handler matched m)))
+
+(defn wrap-info [h m]
+  (fn [req] (h (merge m req))))
+
+(defn as-ring-handler [service]
+  (assert (satisfies? WebService service))
+  (let [routes (routes service)
+        handlers (ring-handler-map service)
+        all-routes [(or (uri-context service) "")
+                    (->KeywordToHandler [routes] handlers)]]
+    (wrap-info
+     (bidi/make-handler all-routes)
+     {::routes all-routes
+      ::handlers handlers})))
