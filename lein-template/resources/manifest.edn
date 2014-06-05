@@ -8,8 +8,30 @@
    :dependencies [[juxt.modular/http-kit "0.5.0-SNAPSHOT"]]
    :constructor modular.http-kit/new-webserver
    :options [:port]
+   :key :webserver
    }
-  {:component :website
+
+  {:component :cljs-builder
+   :dependencies [[juxt.modular/cljs "0.4.0"]]
+   :constructor modular.cljs/new-cljs-builder
+   }
+
+  {:component :cljs-core
+   :dependencies [#_[juxt.modular/cljs "0.5.0"]
+                  ;; temporary while working on modular bidi
+                  [thheller/shadow-build "0.5.0" :exclusions [org.clojure/clojurescript]]
+                  [org.clojure/clojurescript "0.0-2202"]
+                  [com.google.javascript/closure-compiler "v20131014"]
+                  [org.clojure/google-closure-library "0.0-20140226-71326067"]
+                  [org.clojure/google-closure-library-third-party "0.0-20140226-71326067"]
+
+]
+   :constructor modular.cljs/new-cljs-module
+   :args [:name :cljs-core :mains ['cljs.core] :dependencies #{}]
+   }
+
+  ;; Project-local components
+  {:component :{{name}}-website
    :dependencies [
                   [hiccup "1.0.5"]
                   [liberator "0.11.0" :exclusions [hiccup]]
@@ -21,14 +43,33 @@
                   [prismatic/plumbing "0.2.2"]
                   ]
    :constructor {{name}}.website/new-website
-   }]
+   }
+  {:component :{{name}}-template-model
+   :dependencies [#_[juxt.modular/template "0.5.0"]]
+   :constructor modular.template/new-template-model
+   }
+  {:component :{{name}}-cljs
+   :dependencies [#_[juxt.modular/cljs "0.5.0"]]
+   :constructor modular.cljs/new-cljs-module
+   :args [:name :{{name}} :mains ['{{name}}.main] :dependencies #{:cljs-core}]
+   }
+  ]
 
  :assemblies
  [
-  ;; lein new modular app +website
-  {:assembly :website
-   :components #{:http-kit :website}
-   :dependency-map {:http-kit {:ring-handler :website}}
+  ;; lein new modular app full-featured-website
+  {:assembly :full-featured-website
+   :components #{:http-kit
+                 :cljs-builder
+                 :cljs-core
+                 :{{name}}-cljs
+                 :{{name}}-website
+                 :{{name}}-template-model}
+   :dependency-map {:webserver {:ring-handler :{{name}}-website}
+                    :{{name}}-website {:template-model :{{name}}-template-model}
+                    :cljs-builder [:cljs-core :{{name}}-cljs]
+                    :{{name}}-template-model [:cljs-builder]
+                    }
    :default? true}
 
   {:assembly :cylon

@@ -11,11 +11,13 @@
 
 (def render (renderer "modular"))
 
+
+
 (defn modular
   "Create a new modular project"
   [name]
   (let [manifest (edn/read-string
-                     (stencil/render-file "manifest.edn" {:name name}))
+                  (stencil/render-string (slurp (io/resource "manifest.edn"))  {:name name}))
 
         component-names (->> manifest :assemblies
                              (filter :default?)
@@ -50,11 +52,12 @@
               :components
               (for [c components
                     :let [ctr (:constructor c)]]
-                {:component (:component c)
-                 :constructor (symbol (clojure.core/name ctr))})
+                {:component (or (:key c) (:component c))
+                 :constructor (symbol (clojure.core/name ctr))
+                 :args (apply str (interpose " " (:args c)))})
 
               :modular-dir
-              (format "%s/src/modular" (System/getProperty "user.home"))
+              (str (System/getProperty "user.home") "/src/modular")
 
               :dependency-map
               (->> manifest :assemblies
@@ -70,6 +73,7 @@
              ["project.clj" (render "project.clj" data)]
              ["dev/dev.clj" (render "dev.clj" data)]
              ["dev/user.clj" (render "user.clj" data)]
+             ["src/{{sanitized}}/main.clj" (render "main.clj" data)]
 
              ["src/{{sanitized}}/system.clj" (render "system.clj" data)]
 

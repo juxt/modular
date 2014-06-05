@@ -1,5 +1,6 @@
 (ns {{name}}.website
   (:require
+   [com.stuartsierra.component :as component]
    [modular.ring :refer (RingHandler)]
    [modular.bidi :refer (WebService as-ring-handler)]
    [hiccup.core :refer (html)]
@@ -11,7 +12,7 @@
 
 (defn index
   "Define a Liberator resource map for the index (home) page of the website"
-  []
+  [template-model]
   {:available-media-types #{"text/html"}
    :handle-ok
    (fn [{{routes :modular.bidi/routes} ; it is common to destructure the
@@ -25,6 +26,11 @@
        [:h1 "Hello World! from <% name %>"]
        [:h2 "Links"]
        [:p [:a {:href (path-for routes ::main)} "Home"]]
+       [:h2 "Template Model"]
+       [:pre
+        (pr-str template-model)
+        ]
+
        ]))})
 
 ;; Consider the component below. It is defined by defrecord.
@@ -56,8 +62,8 @@
 
 (defrecord Website []
   WebService
-  (ring-handler-map [_]
-    {::index (-> (index) resource)})
+  (ring-handler-map [this]
+    {::index (resource (index (:template-model this)))})
 
   (routes [_] ["/" ::index])
 
@@ -67,4 +73,6 @@
   (ring-handler [this] (as-ring-handler this)))
 
 (defn new-website []
-  (->Website))
+  (component/using
+   (->Website)
+   [:template-model]))
