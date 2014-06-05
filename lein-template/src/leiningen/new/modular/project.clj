@@ -25,4 +25,4 @@
 
   :profiles {:dev {:dependencies [[org.clojure/tools.namespace "0.2.4"]]
                    :source-paths ["dev"
-                                  "../../modules/bidi/src"]}})
+                                  "{{modular-dir}}/modules/bidi/src"]}})

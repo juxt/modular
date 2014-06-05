@@ -51,15 +51,16 @@
               (for [c components
                     :let [ctr (:constructor c)]]
                 {:component (:component c)
-                 :constructor (symbol (clojure.core/name ctr))}
-                )
+                 :constructor (symbol (clojure.core/name ctr))})
+
+              :modular-dir
+              (format "%s/src/modular" (System/getProperty "user.home"))
 
               :dependency-map
               (->> manifest :assemblies
                    (filter :default?)
                    (mapcat :dependency-map)
-                   (into {}))
-              }]
+                   (into {}))}]
 
     (main/info "Generating a new modular project named" (str name "..."))
 
