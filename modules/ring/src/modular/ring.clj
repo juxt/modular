@@ -21,12 +21,13 @@
 (defprotocol RingBinding
   "Component satisfying RingBinding can bind values into the request
    object"
-  (ring-binding [_ req]
-    "Return a map that will be merged into the request object"))
+  (ring-binding [_]
+    "Return a map that will be merged (with merge) into the request
+    object"))
 
 (defprotocol RingMiddleware
-  "An ordinary function will suffice as a RingMiddleware satisfying
-   component"
+  "An ordinary single-arity function will suffice as a RingMiddleware
+   satisfying component"
   (ring-middleware [_]
     "Return a function that takes a Ring handler and returns a Ring
      handler, usually a wrapper that delegates to the given Ring
@@ -40,15 +41,20 @@
   RingHandler
   (ring-handler [this]
     (let [dlg (ring-handler (:ring-handler this))
-          middleware (apply comp (filter (partial satisfies? RingMiddleware) (vals this)))]
+          middleware (->> (vals this)
+                          (filter (partial satisfies? RingMiddleware))
+                          (apply comp))]
       (middleware
        (fn [req]
          (let [bindings
                (apply merge-with merge
-                      (map #(ring-binding % req)
+                      (map #(ring-binding %)
                            (filter (partial satisfies? RingBinding) (vals this))))]
            (debugf "Request bindings are %s" (keys bindings))
            (dlg (merge req bindings))))))))
 
-(defn new-ring-head []
+(defn new-ring-head
+  "A ring head component adapts a ring-handler with the various
+  middleware and request bindings it depends on."
+  []
   (component/using (->RingHead) [:ring-handler]))

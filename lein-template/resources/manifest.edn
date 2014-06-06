@@ -11,6 +11,11 @@
    :key :webserver
    }
 
+  {:component :ring-head
+   :dependencies [#_[juxt.modular/ring "0.5.0-SNAPSHOT"]]
+   :constructor modular.ring/new-ring-head
+   }
+
   {:component :router
    :dependencies [#_[juxt.modular/bidi "0.5.0-SNAPSHOT"]]
    :constructor modular.bidi/new-router
@@ -29,12 +34,25 @@
                   [org.clojure/clojurescript "0.0-2202"]
                   [com.google.javascript/closure-compiler "v20131014"]
                   [org.clojure/google-closure-library "0.0-20140226-71326067"]
-                  [org.clojure/google-closure-library-third-party "0.0-20140226-71326067"]
-
-]
+                  [org.clojure/google-closure-library-third-party "0.0-20140226-71326067"]]
    :constructor modular.cljs/new-cljs-module
    :args [:name :cljs-core :mains ['cljs.core] :dependencies #{}]
    }
+
+  ;; Security components
+  {:component :cylon/default-login-form
+   :dependencies [[cylon "0.2.0"]]
+   :constructor cylon.impl.login-form/new-login-form
+   :key :cylon/login-form
+   }
+
+  {:component :cylon/atom-backed-session-store
+   :dependencies [[cylon "0.2.0"]]
+   :constructor cylon.impl.session/new-atom-backed-session-store
+   :key :cylon/session-store
+   }
+
+  ;; TODO Need a RingHead for new-auth-request-binding and for CSRF
 
   ;; Project-local components
   {:component :{{name}}-website
@@ -50,10 +68,12 @@
                   ]
    :constructor {{name}}.website/new-website
    }
+
   {:component :{{name}}-template-model
    :dependencies [#_[juxt.modular/template "0.5.0"]]
    :constructor modular.template/new-template-model
    }
+
   {:component :{{name}}-cljs
    :dependencies [#_[juxt.modular/cljs "0.5.0"]]
    :constructor modular.cljs/new-cljs-module
@@ -66,13 +86,15 @@
   ;; lein new modular app full-featured-website
   {:assembly :full-featured-website
    :components #{:http-kit
+                 :ring-head
                  :router
                  :cljs-builder
                  :cljs-core
                  :{{name}}-cljs
                  :{{name}}-website
                  :{{name}}-template-model}
-   :dependency-map {:webserver {:ring-handler :router}
+   :dependency-map {:webserver {:ring-handler :ring-head}
+                    :ring-head {:ring-handler :router}
                     :router [:{{name}}-website :cljs-builder]
                     :{{name}}-website {:template-model :{{name}}-template-model}
                     :cljs-builder [:cljs-core :{{name}}-cljs]
