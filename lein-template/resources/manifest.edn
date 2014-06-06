@@ -11,9 +11,15 @@
    :key :webserver
    }
 
+  {:component :router
+   :dependencies [#_[juxt.modular/bidi "0.5.0-SNAPSHOT"]]
+   :constructor modular.bidi/new-router
+   }
+
   {:component :cljs-builder
    :dependencies [[juxt.modular/cljs "0.4.0"]]
    :constructor modular.cljs/new-cljs-builder
+   :args [:id :default :source-path "src-cljs"]
    }
 
   {:component :cljs-core
@@ -60,12 +66,14 @@
   ;; lein new modular app full-featured-website
   {:assembly :full-featured-website
    :components #{:http-kit
+                 :router
                  :cljs-builder
                  :cljs-core
                  :{{name}}-cljs
                  :{{name}}-website
                  :{{name}}-template-model}
-   :dependency-map {:webserver {:ring-handler :{{name}}-website}
+   :dependency-map {:webserver {:ring-handler :router}
+                    :router [:{{name}}-website :cljs-builder]
                     :{{name}}-website {:template-model :{{name}}-template-model}
                     :cljs-builder [:cljs-core :{{name}}-cljs]
                     :{{name}}-template-model [:cljs-builder]

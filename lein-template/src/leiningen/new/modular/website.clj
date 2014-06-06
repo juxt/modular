@@ -3,6 +3,7 @@
    [com.stuartsierra.component :as component]
    [modular.ring :refer (RingHandler)]
    [modular.bidi :refer (WebService as-ring-handler)]
+   [modular.cljs :refer (get-javascript-paths)]
    [hiccup.core :refer (html)]
    [liberator.core :refer (resource)]
    [bidi.bidi :refer (path-for)]))
@@ -12,7 +13,7 @@
 
 (defn index
   "Define a Liberator resource map for the index (home) page of the website"
-  [template-model]
+  [template-model script-paths]
   {:available-media-types #{"text/html"}
    :handle-ok
    (fn [{{routes :modular.bidi/routes} ; it is common to destructure the
@@ -25,11 +26,13 @@
       [:body
        [:h1 "Hello World! from <% name %>"]
        [:h2 "Links"]
-       [:p [:a {:href (path-for routes ::main)} "Home"]]
+       [:p [:a {:href (path-for routes ::index)} "Home"]]
        [:h2 "Template Model"]
        [:pre
         (pr-str template-model)
         ]
+       (for [path script-paths]
+         [:script {:src path :type "text/javascript"}])
 
        ]))})
 
@@ -63,7 +66,9 @@
 (defrecord Website []
   WebService
   (ring-handler-map [this]
-    {::index (resource (index (:template-model this)))})
+    {::index (resource (index (:template-model this)
+                              (get-javascript-paths (:cljs-builder this))
+                              ))})
 
   (routes [_] ["/" ::index])
 
@@ -75,4 +80,4 @@
 (defn new-website []
   (component/using
    (->Website)
-   [:template-model]))
+   [:template-model :cljs-builder]))

@@ -46,6 +46,40 @@
        (s/validate new-web-service-schema)
        map->WebServiceFromArguments))
 
+;; Production of a Ring handler from a single WebService component
+
+(defrecord KeywordToHandler [matched handlers]
+  bidi/Matched
+  (resolve-handler [this m]
+    (when-let [{:keys [handler] :as res} (bidi/resolve-handler matched m)]
+      (if (keyword? handler)
+        (assoc res :handler (get handlers handler))
+        res)))
+
+  (unresolve-handler [this m]
+    (bidi/unresolve-handler matched m)))
+
+(defn- wrap-info [h m]
+  (fn [req] (h (merge m req))))
+
+;; TODO Support route compilation
+(defn as-ring-handler
+  "Take a WebService component and return a Ring handler."
+  [service]
+  (assert (satisfies? WebService service))
+  (let [routes (routes service)
+        handlers (ring-handler-map service)
+        ;; Create a route structure which can dispatch to handlers but
+        ;; still allow URI formation via keywords.
+        joined-routes [(or (uri-context service) "")
+                       (->KeywordToHandler [routes] handlers)]]
+    (wrap-info
+     (bidi/make-handler joined-routes)
+     {::routes joined-routes
+      ::handlers handlers})))
+
+;; Production of a Ring handler from multiple WebService components
+
 ;; The ComponentPreference record modifies a bidi route structure to
 ;; preference a given component when forming a URI from a
 ;; keyword. Without ComponentPreference, components using identical
@@ -126,7 +160,7 @@
      (logf ~level ~msg (pr-str res#))
      res#))
 
-(defrecord Router [compile-routes?]
+(defrecord Router []
   component/Lifecycle
   (start [this]
     (let [handlers
@@ -152,50 +186,24 @@
                             (->ComponentAddressable [(routes v)] ckey handlers)]))])))
   (stop [this] this)
 
-  RingBinding
-  (ring-binding [this req] {::routes (:routes this) ::handlers (:handlers this)})
+  WebService
+  (ring-handler-map [this] (:handlers this))
+  (routes [this] (:routes this))
+  (uri-context [this] (:uri-context this))
 
   RingHandler
-  (ring-handler [this]
-    (-> (:routes this)
-        (?> compile-routes? bidi/compile-route)
-        bidi/make-handler)))
+  (ring-handler [this] (as-ring-handler this)))
 
 (def new-router-schema
-  {:compile-routes? s/Bool})
+  {:uri-context s/Str})
 
 (defn new-router
   "Constructor for a ring handler that collates all bidi routes
   provided by its dependencies."
   [& {:as opts}]
   (->> opts
-       (merge {:compile-routes? true})
+       (merge {:uri-context ""})
        (s/validate new-router-schema)
        map->Router))
 
 ;; ------
-
-(defrecord KeywordToHandler [matched handlers]
-  bidi/Matched
-  (resolve-handler [this m]
-    (when-let [{:keys [handler] :as res} (bidi/resolve-handler matched m)]
-      (if (keyword? handler)
-        (assoc res :handler (get handlers handler))
-        res)))
-
-  (unresolve-handler [this m]
-    (bidi/unresolve-handler matched m)))
-
-(defn wrap-info [h m]
-  (fn [req] (h (merge m req))))
-
-(defn as-ring-handler [service]
-  (assert (satisfies? WebService service))
-  (let [routes (routes service)
-        handlers (ring-handler-map service)
-        all-routes [(or (uri-context service) "")
-                    (->KeywordToHandler [routes] handlers)]]
-    (wrap-info
-     (bidi/make-handler all-routes)
-     {::routes all-routes
-      ::handlers handlers})))

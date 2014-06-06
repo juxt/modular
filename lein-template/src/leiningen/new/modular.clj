@@ -54,7 +54,7 @@
                     :let [ctr (:constructor c)]]
                 {:component (or (:key c) (:component c))
                  :constructor (symbol (clojure.core/name ctr))
-                 :args (apply str (interpose " " (:args c)))})
+                 :args (apply pr-str (:args c))})
 
               :modular-dir
               (str (System/getProperty "user.home") "/src/modular")
@@ -63,7 +63,9 @@
               (->> manifest :assemblies
                    (filter :default?)
                    (mapcat :dependency-map)
-                   (into {}))}]
+                   (into {})
+                   pprint
+                   with-out-str)}]
 
     (main/info "Generating a new modular project named" (str name "..."))
 
@@ -79,4 +81,6 @@
 
              ["src/{{sanitized}}/website.clj" (render "website.clj" data)]
              ["test/{{sanitized}}/website_tests.clj" (render "website_tests.clj" data)]
+
+             ["src-cljs/{{sanitized}}/main.cljs" (render "main.cljs" data)]
              )))
