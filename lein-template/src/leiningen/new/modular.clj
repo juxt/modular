@@ -11,7 +11,12 @@
 
 (def render (renderer "modular"))
 
-
+(defn ensure-map
+  "Turn vector style into map style, if necessary. For example: [:a :b :c] -> {:a :a, :b :b, :c :c}"
+  [x]
+  (if (sequential? x)
+    (apply zipmap (repeat 2 x))
+    x))
 
 (defn modular
   "Create a new modular project"
@@ -54,22 +59,30 @@
                     :let [ctr (:constructor c)]]
                 {:component (or (:key c) (:component c))
                  :constructor (symbol (clojure.core/name ctr))
-                 :args (apply pr-str (:args c))})
+                 :args (if (empty? (:args c)) ""
+                           (str " " (apply pr-str (:args c))))})
 
               :modular-dir
               (str (System/getProperty "user.home") "/src/modular")
+
+              :cylon-dir
+              (str (System/getProperty "user.home") "/src/cylon")
 
               :dependency-map
               (->> manifest :assemblies
                    (filter :default?)
                    (mapcat :dependency-map)
-                   (into {})
+                   (group-by first)
+                   (reduce-kv (fn [acc k v]
+                                (assoc acc k (into {} (mapcat (comp ensure-map second) v)))
+                                ) {})
                    pprint
-                   with-out-str)}]
+                   with-out-str
+                   )
+
+              }]
 
     (main/info "Generating a new modular project named" (str name "..."))
-
-;;    (pprint data)
 
     (->files data
              ["project.clj" (render "project.clj" data)]

@@ -52,7 +52,7 @@
   [config]
   (system-map
    {{#components}}
-   {{component}} (make {{constructor}} config {{{args}}})
+   {{component}} (make {{constructor}} config{{{args}}})
    {{/components}}
    ))
 

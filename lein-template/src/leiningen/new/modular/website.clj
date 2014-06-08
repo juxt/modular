@@ -1,10 +1,11 @@
 (ns {{name}}.website
   (:require
+   [clojure.pprint :refer (pprint)]
    [com.stuartsierra.component :as component]
    [modular.ring :refer (RingHandler)]
    [modular.bidi :refer (WebService as-ring-handler)]
    [modular.cljs :refer (get-javascript-paths)]
-   [hiccup.core :refer (html)]
+   [hiccup.core :refer (html h)]
    [liberator.core :refer (resource)]
    [bidi.bidi :refer (path-for)]))
 
@@ -29,7 +30,7 @@
        [:p [:a {:href (path-for routes ::index)} "Home"]]
        [:h2 "Template Model"]
        [:pre
-        (pr-str template-model)
+        (h (with-out-str (pprint template-model)))
         ]
        (for [path script-paths]
          [:script {:src path :type "text/javascript"}])

@@ -206,4 +206,9 @@
        (s/validate new-router-schema)
        map->Router))
 
-;; ------
+;; ------  TODO Router needs to display all possible routes available,
+;; ------  as debug data, so that people can see easily which routes are
+;; ------  available. This addresses one of the more difficult and
+;; ------  potentially frustrating cases of "computer says no" when the
+;; ------  URI doesn't seem to dispatch to anything and no clues as to
+;; ------  why! These routes can be determined by a tree walk.

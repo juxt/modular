@@ -27,4 +27,5 @@
                    :source-paths ["dev"
                                   "{{modular-dir}}/modules/bidi/src"
                                   "{{modular-dir}}/modules/template/src"
-                                  "{{modular-dir}}/modules/cljs/src"]}})
+                                  "{{modular-dir}}/modules/cljs/src"
+                                  "{{cylon-dir}}/src"]}})

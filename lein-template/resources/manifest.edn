@@ -40,16 +40,35 @@
    }
 
   ;; Security components
-  {:component :cylon/default-login-form
-   :dependencies [[cylon "0.2.0"]]
+  {:component :cylon/login-form
+   :dependencies [#_[cylon "0.2.0"]]
    :constructor cylon.impl.login-form/new-login-form
    :key :cylon/login-form
    }
 
   {:component :cylon/atom-backed-session-store
-   :dependencies [[cylon "0.2.0"]]
+   :dependencies [#_[cylon "0.2.0"]]
    :constructor cylon.impl.session/new-atom-backed-session-store
    :key :cylon/session-store
+   }
+
+  {:component :cylon/default-user-domain
+   :dependencies [#_[cylon "0.2.0"]]
+   :constructor cylon.impl.user/new-default-user-domain
+   :key :cylon/user-domain
+   }
+
+  {:component :cylon/pbkdf2-password-hash
+   :dependencies [#_[cylon "0.2.0"]]
+   :constructor cylon.impl.pbkdf2/new-pbkdf2-password-hash
+   :key :cylon/password-hash-algo
+   }
+
+  {:component :cylon/user-file
+   :dependencies [#_[cylon "0.2.0"]]
+   :constructor cylon.impl.user/new-user-file
+   :args [:file (io/file (System/getProperty "user.home") ".{{name}}-users.edn")]
+   :key :cylon/user-store
    }
 
   ;; TODO Need a RingHead for new-auth-request-binding and for CSRF
@@ -84,7 +103,7 @@
  :assemblies
  [
   ;; lein new modular app full-featured-website
-  {:assembly :full-featured-website
+  {:assembly :website
    :components #{:http-kit
                  :ring-head
                  :router
@@ -102,8 +121,27 @@
                     }
    :default? true}
 
-  {:assembly :cylon
-   :components #{:user-domain}
-   :dependency-map {:a :b :c :d}
-   :default? false
-   }]}
+  {:assembly :website-security
+   :components #{:cylon/login-form
+                 :cylon/atom-backed-session-store
+                 :cylon/default-user-domain
+                 :cylon/pbkdf2-password-hash
+                 :cylon/user-file}
+   :dependency-map {:router [:cylon/login-form],
+                    :cylon/login-form {:session-store :cylon/session-store,
+                                       ;; TODO Cylon should 'use' :cylon/* keywords
+                                       :user-domain :cylon/user-domain
+                                       }
+                    :cylon/user-domain {:password-hash-algo :cylon/password-hash-algo
+                                        :user-store :cylon/user-store}
+
+                    }
+   :default? true
+   }
+
+  {:assembly :dev-browser
+   :components #{}
+   :dependency-map {}
+   :default? true}
+
+]}
