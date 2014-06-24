@@ -57,8 +57,8 @@
   :done)
 
 (defprotocol ClojureScriptModule
-  ;; Return a map of :name, :mains and :dependencies
-  (get-definition [_]))
+  (get-definition [_]
+    "Return a map of :name, :mains and :dependencies."))
 
 (defn new-cljs-module [& {:as opts}]
   (let [opts

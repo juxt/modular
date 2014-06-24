@@ -14,15 +14,12 @@
 ;; services. There's an interface (URIs), coupled to an implementation
 ;; (via handlers)
 (defprotocol WebService
-  ;; Return a map, keys (usually namespaced) to Ring handler functions
-  (request-handlers [_])
-  ;; Return a bidi route structure, from patterns to keys in the above
-  ;; request-handlers map. Do NOT use any wrappers such as
-  ;; ->WrapMiddleware that assume the matches are functions (because
-  ;; they won't be)
-  (routes [_])
-  ;; The 'moount' point in the URI tree.
-  (uri-context [_]))
+  (request-handlers [_]
+    "Return a map, keys (usually namespaced) to Ring handler functions")
+  (routes [_]
+    "Return a bidi route structure, from patterns to keys in the above request-handlers map. Do NOT use any wrappers such as ->WrapMiddleware that assume the matches are functions (because they won't be)")
+  (uri-context [_]
+    "The 'mount' point in the URI tree."))
 
 (defrecord WebServiceFromArguments [request-handlers routes uri-context]
   WebService

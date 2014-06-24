@@ -9,11 +9,11 @@
 
 (defprotocol NettyHandlerProvider
   (netty-handler [_])
-  ;; Will be order by priority, lower value is higher priority. A
-  ;; handler with a higher priority will be placed in the handler chain
-  ;; first and get to process messages before handlers of lower
-  ;; priority.
-  (priority [_]))
+  (priority [_]
+    "Will be order by priority, lower value is higher priority. A
+     handler with a higher priority will be placed in the handler chain
+     first and get to process messages before handlers of lower
+     priority."))
 
  (defrecord NettyServer [port so-options]
    component/Lifecycle
