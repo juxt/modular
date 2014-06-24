@@ -44,7 +44,8 @@
   []
   (init)
   (start)
-  :ok)
+  :ok
+  )
 
 (defn reset []
   (stop)

@@ -22,7 +22,9 @@
   "Create a new modular project"
   [name]
   (let [manifest (edn/read-string
-                  (stencil/render-string (slurp (io/resource "manifest.edn"))  {:name name}))
+                  (stencil/render-string
+                   (slurp (io/resource "manifest.edn"))
+                   {:name name}))
 
         component-names (->> manifest :assemblies
                              (filter :default?)
@@ -68,19 +70,23 @@
               :cylon-dir
               (str (System/getProperty "user.home") "/src/cylon")
 
+              ;; TODO Calculate view styles based on components present
+              :view-style {:hiccup false
+                           :mustache true}
+
               :dependency-map
               (->> manifest :assemblies
                    (filter :default?)
                    (mapcat :dependency-map)
                    (group-by first)
                    (reduce-kv (fn [acc k v]
-                                (assoc acc k (into {} (mapcat (comp ensure-map second) v)))
-                                ) {})
+                                (assoc acc k
+                                       (into {}
+                                             (mapcat
+                                              (comp ensure-map second) v))))
+                              {})
                    pprint
-                   with-out-str
-                   )
-
-              }]
+                   with-out-str)}]
 
     (main/info "Generating a new modular project named" (str name "..."))
 
@@ -96,4 +102,6 @@
              ["test/{{sanitized}}/website_tests.clj" (render "website_tests.clj" data)]
 
              ["src-cljs/{{sanitized}}/main.cljs" (render "main.cljs" data)]
+
+             ["resources/templates/page.html.mustache" (render "page.html.mustache")]
              )))

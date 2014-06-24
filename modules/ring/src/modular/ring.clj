@@ -3,58 +3,63 @@
 (ns modular.ring
   (:require
    [com.stuartsierra.component :as component]
-   [clojure.tools.logging :refer (debugf)]))
+   [clojure.tools.logging :refer (debugf infof)]
+   [schema.core :as s]))
 
-(defprotocol RingHandler
-  "Component can satisfy RingHandler if they provide a whole web
-   application"
-  (ring-handler [_]
-    "Provide a Ring handler function, a function that takes the http
+(defprotocol WebRequestHandler
+  "A component can satisfy WebRequestHandler if it can respond to a Ring request"
+  (request-handler [_]
+    "Provide a Ring request handler function, a function that takes the http
     request map as an argument and returns the response"))
 
-(extend-protocol RingHandler
+(extend-protocol WebRequestHandler
   clojure.lang.AFunction
-  (^{:doc "An ordinary function will suffice as a RingHandler satisfying
+  (^{:doc "An 1-arity function is considered a WebRequestHandler satisfying
            component"}
-   ring-handler [this] this))
+   request-handler [this] this))
 
-(defprotocol RingBinding
-  "Component satisfying RingBinding can bind values into the request
+(defprotocol WebRequestBinding
+  "Component satisfying WebRequestBinding can bind values into the request
    object"
-  (ring-binding [_]
+  (request-binding [_]
     "Return a map that will be merged (with merge) into the request
     object"))
 
-(defprotocol RingMiddleware
-  "An ordinary single-arity function will suffice as a RingMiddleware
-   satisfying component"
-  (ring-middleware [_]
-    "Return a function that takes a Ring handler and returns a Ring
+(defprotocol WebRequestMiddleware
+  (request-middleware [_]
+    "Return a function that takes a request handler and returns a request
      handler, usually a wrapper that delegates to the given Ring
      handler"))
 
-(extend-protocol RingMiddleware
+;; A 1-arity function will be considered a WebRequestMiddleware
+;; satisfying component
+(extend-protocol WebRequestMiddleware
   clojure.lang.AFunction
-  (ring-middleware [this] this))
+  (request-middleware [this] this))
 
-(defrecord RingHead []
-  RingHandler
-  (ring-handler [this]
-    (let [dlg (ring-handler (:ring-handler this))
+(defrecord WebRequestHandlerHead []
+  WebRequestHandler
+  (request-handler [this]
+    (let [dlg (request-handler (:request-handler this))
           middleware (->> (vals this)
-                          (filter (partial satisfies? RingMiddleware))
+                          (filter (partial satisfies? WebRequestMiddleware))
+                          (map request-middleware)
                           (apply comp))]
       (middleware
        (fn [req]
          (let [bindings
                (apply merge-with merge
-                      (map #(ring-binding %)
-                           (filter (partial satisfies? RingBinding) (vals this))))]
+                      (map #(request-binding %)
+                           (filter (partial satisfies? WebRequestBinding) (vals this))))]
            (debugf "Request bindings are %s" (keys bindings))
            (dlg (merge req bindings))))))))
 
-(defn new-ring-head
-  "A ring head component adapts a ring-handler with the various
-  middleware and request bindings it depends on."
-  []
-  (component/using (->RingHead) [:ring-handler]))
+(defn new-web-request-handler-head
+  "Returns a record satisfying WebRequestHandler request handler component adapts a request-handler with the various middleware and request bindings it depends on."
+  [& {:as opts}]
+  (component/using
+   (->> opts
+        (merge {})
+        (s/validate {})
+        map->WebRequestHandlerHead)
+   [:request-handler]))

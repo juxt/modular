@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html prefix="dc: http://purl.org/dc/elements/1.1/" lang="en">
+  <head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+
+    <meta property="dc:language" content="en"/>
+    <meta property="dc:title" content="{{web-meta.title}}"/>
+    <meta property="dc:description" content="{{web-meta.description}}"/>
+
+    <title>{{web-meta.org}} - {{web-meta.title}}</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Custom styles -->
+    <link href="/css/style.css" rel="stylesheet">
+
+    <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+        <script src="/js/html5shiv.min.js"></script>
+        <![endif]-->
+
+  </head>
+  <body>
+    <h1>TEST</h1>
+    <div class="container-narrow">
+      {{{body}}}
+    </div>
+
+    <div id="ankha">
+    </div>
+
+    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+    <script src="/js/jquery.min.js"></script>
+    <!-- Include all compiled plugins (below), or include individual files as needed -->
+    <script src="/js/bootstrap.min.js"></script>
+
+    <script src="/js/react-0.9.0.js"></script>
+
+    <!-- Javascripts that have been contributed by other modules -->
+    {{#cljs-builder.javascripts}}
+    <script src="{{{.}}}" type="text/javascript"></script>
+    {{/cljs-builder.javascripts}}
+
+    {{{cljs}}}
+
+  </body>
+</html>

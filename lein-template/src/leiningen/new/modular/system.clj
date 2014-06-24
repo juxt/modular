@@ -59,10 +59,6 @@
 (defn new-base-dependency-map [system-map]
   {{dependency-map}})
 
-(defn get-dependency-map []
-  (let [s-map (new-base-system-map (config))]
-    (new-base-dependency-map s-map)))
-
 (defn new-production-system
   "Create the production system"
   []

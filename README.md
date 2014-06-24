@@ -1,8 +1,23 @@
 # modular
 
-Modular is a set of utility functions to create modular applications
-based on Stuart Sierra's
+Modular provides a meta-architecture for Clojure projects, based on Stuart Sierra's
 [component](https://github.com/stuartsierra/component) library.
+
+Component dependencies form directed acyclic graphs. Two components in a
+dependency relationship are coupled using Clojure protocols.
+
+Besides some simple utility functions, modular is defined by a number of
+pre-built components which can be composed with custom components to
+form application systems.
+
+Modular is an approach, rather than a library or framework.
+
+Benefits include :-
+
+* Components can be reasoned about _in their own terms_ independently from the system
+* Component re-use
+* Architectural consistency
+* Stronger cohesion within parts, weaker coupling between parts
 
 ## Usage
 

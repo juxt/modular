@@ -5,18 +5,18 @@
   ;; lein new modular app +httpkit:80 ; because there's only one possible option in this case
   ;; lein new modular app +httpkit:port:80
   {:component :http-kit
-   :dependencies [[juxt.modular/http-kit "0.5.0-SNAPSHOT"]]
+   :dependencies [#_[juxt.modular/http-kit "0.5.0-SNAPSHOT"]]
    :constructor modular.http-kit/new-webserver
    :options [:port]
    :key :webserver
    }
 
-  {:component :ring-head
+  {:component :webhead
    :dependencies [#_[juxt.modular/ring "0.5.0-SNAPSHOT"]]
-   :constructor modular.ring/new-ring-head
+   :constructor modular.ring/new-web-request-handler-head
    }
 
-  {:component :router
+  {:component :webrouter
    :dependencies [#_[juxt.modular/bidi "0.5.0-SNAPSHOT"]]
    :constructor modular.bidi/new-router
    }
@@ -29,7 +29,7 @@
 
   {:component :cljs-core
    :dependencies [#_[juxt.modular/cljs "0.5.0"]
-                  ;; temporary while working on modular bidi
+                  ;; temporary while working on modular cljs
                   [thheller/shadow-build "0.5.0" :exclusions [org.clojure/clojurescript]]
                   [org.clojure/clojurescript "0.0-2202"]
                   [com.google.javascript/closure-compiler "v20131014"]
@@ -84,12 +84,14 @@
                   [bidi "1.10.3"]
                   [prismatic/schema "0.2.1"]
                   [prismatic/plumbing "0.2.2"]
+
                   ]
    :constructor {{name}}.website/new-website
    }
 
   {:component :{{name}}-template-model
-   :dependencies [#_[juxt.modular/template "0.5.0"]]
+   :dependencies [#_[juxt.modular/template "0.5.0"]
+                  [de.ubercode.clostache/clostache "1.3.1"]]
    :constructor modular.template/new-template-model
    }
 
@@ -105,21 +107,22 @@
   ;; lein new modular app full-featured-website
   {:assembly :website
    :components #{:http-kit
-                 :ring-head
-                 :router
-                 :cljs-builder
-                 :cljs-core
-                 :{{name}}-cljs
+                 :webhead
+                 :webrouter
                  :{{name}}-website
                  :{{name}}-template-model}
-   :dependency-map {:webserver {:ring-handler :ring-head}
-                    :ring-head {:ring-handler :router}
-                    :router [:{{name}}-website :cljs-builder]
+   :dependency-map {:webserver {:request-handler :webhead}
+                    :webhead {:request-handler :webrouter}
+                    :webrouter [:{{name}}-website #_:cljs-builder]
                     :{{name}}-website {:template-model :{{name}}-template-model}
-                    :cljs-builder [:cljs-core :{{name}}-cljs]
-                    :{{name}}-template-model [:cljs-builder]
                     }
    :default? true}
+
+  {:assembly :website+cljs
+   :components #{:cljs-builder :cljs-core :{{name}}-cljs}
+   :dependency-map {:cljs-builder [:cljs-core :{{name}}-cljs]
+                    :{{name}}-template-model [:cljs-builder]}
+   :default? false}
 
   {:assembly :website-security
    :components #{:cylon/login-form
@@ -127,17 +130,18 @@
                  :cylon/default-user-domain
                  :cylon/pbkdf2-password-hash
                  :cylon/user-file}
-   :dependency-map {:router [:cylon/login-form],
+   :dependency-map {:webrouter [:cylon/login-form],
                     :cylon/login-form {:session-store :cylon/session-store,
                                        ;; TODO Cylon should 'use' :cylon/* keywords
                                        :user-domain :cylon/user-domain
                                        }
                     :cylon/user-domain {:password-hash-algo :cylon/password-hash-algo
-                                        :user-store :cylon/user-store}
-
-                    }
+                                        :user-store :cylon/user-store}}
    :default? true
    }
+
+  ;; {:assembly :bootstrap} ;; provides bootstrap login form
+  ;; {:assembly :template}
 
   {:assembly :dev-browser
    :components #{}

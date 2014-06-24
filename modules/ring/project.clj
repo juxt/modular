@@ -5,4 +5,4 @@
   :url "https://github.com/juxt/modular/tree/master/modules/ring"
   :license {:name "The MIT License"
             :url "http://opensource.org/licenses/MIT"}
-  :dependencies [])
+  :dependencies [[prismatic/schema "0.2.1"]])

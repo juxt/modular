@@ -16,6 +16,11 @@
    {{{.}}}
    {{/dependencies}}
 
+   ;; transitive for bootstrap-login-form, while depending on bootstrap-login-form src
+   [garden "1.1.5" :exclusions [org.clojure/clojure]]
+   ;; likewise for http-kit
+   [http-kit "2.1.13"]
+
    ]
 
   :main {{name}}.main
@@ -26,6 +31,9 @@
   :profiles {:dev {:dependencies [[org.clojure/tools.namespace "0.2.4"]]
                    :source-paths ["dev"
                                   "{{modular-dir}}/modules/bidi/src"
+                                  "{{modular-dir}}/modules/ring/src"
                                   "{{modular-dir}}/modules/template/src"
-                                  "{{modular-dir}}/modules/cljs/src"
-                                  "{{cylon-dir}}/src"]}})
+                                  "{{modular-dir}}/modules/http-kit/src"
+;;                                  "{{modular-dir}}/modules/cljs/src"
+                                  "{{cylon-dir}}/src"
+                                  "{{cylon-dir}}/contrib/bootstrap-login-form/src"]}})

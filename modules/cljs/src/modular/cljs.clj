@@ -111,7 +111,7 @@
   (stop [this] this)
 
   WebService
-  (ring-handler-map [this] {})
+  (request-handlers [this] {})
   (routes [this] ["" (->Files {:dir (:target-dir this)
                                :mime-types {"map" "application/javascript"}})])
   (uri-context [this] (:context this))
@@ -120,7 +120,7 @@
   (get-javascript-paths [this] (:javascripts this))
 
   TemplateData
-  (template-data [this _] {:javascripts (get-javascript-paths this)}))
+  (template-data [this] {:javascripts (get-javascript-paths this)}))
 
 (defn new-cljs-builder [& {:as opts}]
   (->> opts

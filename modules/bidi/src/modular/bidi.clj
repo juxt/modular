@@ -3,7 +3,7 @@
 (ns modular.bidi
   (:require
    [schema.core :as s]
-   [modular.ring :refer (RingHandler RingBinding)]
+   [modular.ring :refer (WebRequestHandler WebRequestBinding)]
    [com.stuartsierra.component :as component]
    [bidi.bidi :as bidi :refer (match-route path-for)]
    [clojure.tools.logging :refer :all]
@@ -15,22 +15,23 @@
 ;; (via handlers)
 (defprotocol WebService
   ;; Return a map, keys (usually namespaced) to Ring handler functions
-  (ring-handler-map [_])
+  (request-handlers [_])
   ;; Return a bidi route structure, from patterns to keys in the above
-  ;; ring-handler-map. Do NOT use any wrappers such as ->WrapMiddleware
-  ;; that assume the matches are functions (because they won't be)
+  ;; request-handlers map. Do NOT use any wrappers such as
+  ;; ->WrapMiddleware that assume the matches are functions (because
+  ;; they won't be)
   (routes [_])
   ;; The 'moount' point in the URI tree.
   (uri-context [_]))
 
-(defrecord WebServiceFromArguments [ring-handler-map routes uri-context]
+(defrecord WebServiceFromArguments [request-handlers routes uri-context]
   WebService
-  (ring-handler-map [this] ring-handler-map)
+  (request-handlers [this] request-handlers)
   (routes [this] routes)
   (uri-context [this] uri-context))
 
 (def new-web-service-schema
-  {:ring-handler-map {s/Keyword s/Any}
+  {:request-handlers {s/Keyword s/Any}
    :routes [(s/one s/Any "pattern") (s/one s/Any "matched")]
    :uri-context s/Str})
 
@@ -63,12 +64,12 @@
   (fn [req] (h (merge m req))))
 
 ;; TODO Support route compilation
-(defn as-ring-handler
+(defn as-request-handler
   "Take a WebService component and return a Ring handler."
   [service]
   (assert (satisfies? WebService service))
   (let [routes (routes service)
-        handlers (ring-handler-map service)
+        handlers (request-handlers service)
         ;; Create a route structure which can dispatch to handlers but
         ;; still allow URI formation via keywords.
         joined-routes [(or (uri-context service) "")
@@ -83,8 +84,8 @@
 ;; The ComponentPreference record modifies a bidi route structure to
 ;; preference a given component when forming a URI from a
 ;; keyword. Without ComponentPreference, components using identical
-;; keywords in their ring-handler-map maps could inadvertantly get in
-;; the way of path-for calls from another component.
+;; keywords in their request-handlers map could inadvertantly get in the
+;; way of path-for calls from another component.
 
 (defrecord ComponentPreference [matched component]
   bidi/Matched
@@ -116,15 +117,15 @@
 ;; difficult to obtain in modular applications.
 
 ;; If a keyword is used, e.g. (bidi/path-for routes :foo) then we try
-;; the ring-handler-map of the calling component first, and if there is
+;; the request-handlers of the calling component first, and if there is
 ;; no handler entry for that keyword, all other components'
-;; ring-handler-maps are tried (in an undefined order). This is what is
-;; meant by a component 'preference'.
+;; request-handler maps are tried (in an undefined order). This is what
+;; is meant by a component 'preference'.
 
 ;; If a keyword sequence is used, e.g. (bidi/path-for routes [:foo
 ;; :bar]) then :foo is interpreted as a dependency of the router
 ;; (usually a router is shared between multiple components) and :bar
-;; is a handler in the ring-handler-map of :foo.
+;; is a handler in the request-handlers of :foo.
 
 (defn wrap-capture-component-on-error
   "Wrap handler in a try/catch that will capture the component and
@@ -167,13 +168,13 @@
           ;; Handlers is a two-level map from dependency key to the
           ;; dependency's handler map.
           (logf-result
-           :info "Bidi router determines handlers as %s"
+           :debug "Bidi router determines handlers as %s"
            (apply merge
                   (for [[k v] this
                         :when (satisfies? WebService v)]
                     (try
-                      {k (ring-handler-map v)}
-                      (catch Throwable e (throw (ex-info "Failed to call ring-handler-map" {:k k :v v} e)))))))]
+                      {k (request-handlers v)}
+                      (catch Throwable e (throw (ex-info "Failed to call request-handlers" {:k k :v v} e)))))))]
 
       (assoc this
         :handlers handlers
@@ -187,12 +188,12 @@
   (stop [this] this)
 
   WebService
-  (ring-handler-map [this] (:handlers this))
+  (request-handlers [this] (:handlers this))
   (routes [this] (:routes this))
   (uri-context [this] (:uri-context this))
 
-  RingHandler
-  (ring-handler [this] (as-ring-handler this)))
+  WebRequestHandler
+  (request-handler [this] (as-request-handler this)))
 
 (def new-router-schema
   {:uri-context s/Str})
