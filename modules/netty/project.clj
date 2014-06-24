@@ -1,6 +1,6 @@
 ;; Copyright © 2014 JUXT LTD.
 
-(defproject juxt.modular/netty "0.1.0"
+(defproject juxt.modular/netty "0.5.0"
   :description "A modular extension that provides support for Netty"
   :url "https://github.com/juxt/modular/tree/master/modules/netty"
   :license {:name "The MIT License"

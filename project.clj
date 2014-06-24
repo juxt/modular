@@ -15,15 +15,18 @@
         "modules/bidi"
         ;; "modules/cassandra"
         ;; "modules/datomic"
-        ;; "modules/netty"
-        ;; "modules/mqtt"
+
+        "modules/netty"
+        "modules/mqtt"
+
         "modules/template"
         "modules/web-template"
         ;; "modules/clostache"
         "modules/cljs"
+
         ;; "modules/menu"
-        ;; "modules/maker"
-        ;; "modules/wire-up"
+        "modules/maker"
+        "modules/wire-up"
 
         ;; Modules that still need to be ported over from Jig 1.x
         ;;        "modules/async" ; core.async channels that can be shared by dependants
