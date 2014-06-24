@@ -15,7 +15,7 @@
      first and get to process messages before handlers of lower
      priority."))
 
- (defrecord NettyServer [port so-options]
+ (defrecord NettyServer [port options]
    component/Lifecycle
    (start [this]
 
@@ -29,10 +29,13 @@
        (when (empty? handlers)
          (throw (ex-info "No netty handler dependencies on server" {:component this})))
 
-       (let [boss-group (NioEventLoopGroup.)
-             worker-group (NioEventLoopGroup.)]
+       (let [boss-group     (NioEventLoopGroup.)
+             worker-group   (NioEventLoopGroup.)
+             pre-configure  (get options :pre-configure  identity)
+             post-configure (get options :post-configure identity)]
          (let [b (ServerBootstrap.)]
            (-> b
+               pre-configure
                (.group boss-group worker-group)
                (.channel NioServerSocketChannel)
                (.childHandler
@@ -40,8 +43,9 @@
                   (initChannel [ch]
                     ;;(debugf "Initializing channel with handlers: %s" (vec handlers))
                     (-> ch (.pipeline) (.addLast (into-array ChannelHandler (map (fn [f] (if (fn? f) (f) f)) handlers)))))))
-               (.option ChannelOption/SO_BACKLOG (int (or (:so-backlog so-options) 128)))
-               (.childOption ChannelOption/SO_KEEPALIVE (or (:so-keepalive so-options) true)))
+               (.option ChannelOption/SO_BACKLOG (int (or (:so-backlog options) 128)))
+               (.childOption ChannelOption/SO_KEEPALIVE (or (:so-keepalive options) true))
+               post-configure)
 
            (assoc this
              :channel (.bind b port)
