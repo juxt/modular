@@ -1,6 +1,6 @@
 ;; Copyright © 2014 JUXT LTD.
 
-(defproject juxt.modular/bidi "0.5.0-SNAPSHOT"
+(defproject juxt.modular/bidi "0.5.0"
   :description "A modular extension that provides support for bidi routing"
   :url "https://github.com/juxt/modular/tree/master/modules/bidi"
   :license {:name "The MIT License"
