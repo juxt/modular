@@ -28,6 +28,11 @@
         "modules/maker"
         "modules/wire-up"
 
+        ;; New modules to be released
+        "modules/http-kit"
+        "modules/async"
+
+
         ;; Modules that still need to be ported over from Jig 1.x
         ;;        "modules/async" ; core.async channels that can be shared by dependants
         ;;        "modules/compojure" ; URI routing library
