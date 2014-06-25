@@ -21,6 +21,20 @@
    :constructor modular.bidi/new-router
    }
 
+  {:component :webresources
+   :dependencies [#_[juxt.modular/bidi "0.5.0-SNAPSHOT"]]
+   :constructor modular.bidi/new-web-service
+   :requires bidi.bidi/->ResourcesMaybe
+   :args [:request-handlers {}
+          :routes ["/" {"js/" (->ResourcesMaybe {:prefix "public/js/"})
+                        "css/" (->ResourcesMaybe {:prefix "public/css/"})}]]}
+
+  {:component :webmeta
+   :dependencies [#_[juxt.modular/bidi "0.5.0-SNAPSHOT"]]
+   :constructor modular.template/new-static-template-data
+   :args [:title "{{name}}"]
+   }
+
   {:component :cljs-builder
    :dependencies [[juxt.modular/cljs "0.4.0"]]
    :constructor modular.cljs/new-cljs-builder
@@ -109,16 +123,22 @@
    :components #{:http-kit
                  :webhead
                  :webrouter
+                 :webresources
                  :{{name}}-website
                  :{{name}}-template-model}
    :dependency-map {:webserver {:request-handler :webhead}
                     :webhead {:request-handler :webrouter}
-                    :webrouter [:{{name}}-website #_:cljs-builder]
+                    :webrouter [:{{name}}-website #_:cljs-builder :webresources]
                     :{{name}}-website {:template-model :{{name}}-template-model}
                     }
    :default? true}
 
-  {:assembly :website+cljs
+  {:assembly :webmeta
+   :components #{:webmeta}
+   :dependency-map {:{{name}}-template-model [:webmeta]}
+   :default? true}
+
+  {:assembly :cljs
    :components #{:cljs-builder :cljs-core :{{name}}-cljs}
    :dependency-map {:cljs-builder [:cljs-core :{{name}}-cljs]
                     :{{name}}-template-model [:cljs-builder]}
@@ -148,4 +168,4 @@
    :dependency-map {}
    :default? true}
 
-]}
+  ]}

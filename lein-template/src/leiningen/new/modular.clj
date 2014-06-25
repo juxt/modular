@@ -53,7 +53,8 @@
                                     :refers (apply str (interpose " " (map (comp clojure.core/name) v)))}))
                []
                (->> components
-                    (map :constructor)
+                    (mapcat (juxt :constructor :requires))
+                    (remove nil?)
                     (group-by (comp symbol namespace))))
 
               :components
@@ -104,4 +105,10 @@
              ["src-cljs/{{sanitized}}/main.cljs" (render "main.cljs" data)]
 
              ["resources/templates/page.html.mustache" (render "page.html.mustache")]
+
+             ["resources/public/css/bootstrap.min.css" (render "resources/bootstrap.min.css")]
+             ["resources/public/js/bootstrap.min.js" (render "resources/bootstrap.min.js")]
+             ["resources/public/js/jquery.min.js" (render "resources/jquery.min.js")]
+             ["resources/public/js/react.js" (render "resources/react-0.9.0.js")]
+
              )))

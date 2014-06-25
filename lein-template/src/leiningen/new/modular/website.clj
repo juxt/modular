@@ -6,7 +6,7 @@
    [modular.bidi :refer (WebService as-request-handler)]
    [hiccup.core :refer (html h)]
    [liberator.core :refer (resource)]
-   [bidi.bidi :refer (path-for)]
+   [bidi.bidi :refer (path-for ->Redirect)]
    [clostache.parser :refer (render-resource)]))
 
 {{! "We change the delimiters to avoid conflicting with nested destructuring in the code below" }}
@@ -73,7 +73,8 @@
   (request-handlers [this]
     {::index (resource (index (:template-model this)))})
 
-  (routes [_] ["/" ::index])
+  (routes [_] ["/" {"index.html" ::index
+                    "" (->Redirect 307 ::index)}])
 
   (uri-context [_] "")
 

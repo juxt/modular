@@ -12,7 +12,7 @@
    [modular.maker :refer (make)]
 
    {{#requires}}
-   [{{namespace}} :refer ({{refers}})]
+   [{{namespace}} :refer ({{{refers}}})]
    {{/requires}}
 
    ))
