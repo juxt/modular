@@ -4,6 +4,7 @@
    [com.stuartsierra.component :as component]
    [modular.ring :refer (WebRequestHandler)]
    [modular.bidi :refer (WebService as-request-handler)]
+   [modular.web-template :refer (request-determined-template-data)]
    [hiccup.core :refer (html h)]
    [liberator.core :refer (resource)]
    [bidi.bidi :refer (path-for ->Redirect)]
@@ -17,8 +18,9 @@
   [template-model]
   {:available-media-types #{"text/html"}
    :handle-ok
-   (fn [{{routes :modular.bidi/routes} ; it is idiomaic to destructure
-                                       ; the bidi route structure from
+   (fn [{{routes :modular.bidi/routes :as req}
+                                        ; it is idiomaic to destructure
+                                        ; the bidi route structure from
                                        ; the request
          :request}]
 <%#view-style.hiccup%>
@@ -37,7 +39,7 @@
 <%/view-style.hiccup%>
 <%#view-style.mustache%>
       ;; TODO Mustache templating
-      (render-resource "templates/page.html.mustache" template-model)
+      (render-resource "templates/page.html.mustache" (request-determined-template-data template-model req))
 <%/view-style.mustache%>
      )})
 

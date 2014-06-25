@@ -25,6 +25,25 @@
 
   </head>
   <body>
+    <nav class="navbar navbar-default" role="navigation">
+      <div class="navbar-header">
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+          <span class="sr-only">Toggle navigation</span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <span class="navbar-brand"><a href="{{main-routes.home-href}}">{{title.app-name}}</a></span>
+      </div>
+
+      <!-- Collect the nav links, forms, and other content for toggling -->
+      <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+        <ul class="nav navbar-nav">
+          {{{bootstrap-menu.menu}}}
+        </ul>
+      </div>
+    </nav>
+
     <h1>Congratulations!</h1>
     <h2>Your modular project is up &amp; running</h2>
     <div class="container-narrow">

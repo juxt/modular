@@ -4,13 +4,13 @@
    [clojure.java.io :as io]
    [leiningen.new.modular :refer (modular)]))
 
-(defn delete-dir [dir]
+(defn delete-dir [dir inclusive?]
   (doseq [f (.listFiles dir)]
     (cond
-     (.isDirectory f) (delete-dir f)
+     (.isDirectory f) (delete-dir f true)
      (.isFile f)
      (io/delete-file f)))
-  (io/delete-file dir true))
+  (when inclusive? (io/delete-file dir true)))
 
 (defn get-tmp-dir []
   (io/file (System/getProperty "java.io.tmpdir") "modular-lein-template"))
@@ -18,7 +18,7 @@
 (defn generate-project [name]
   (let [dir (get-tmp-dir)
         projectdir (io/file dir name)]
-    (delete-dir projectdir)
+    (delete-dir projectdir false)
     (binding [leiningen.new.templates/*dir* projectdir]
       (modular name))))
 

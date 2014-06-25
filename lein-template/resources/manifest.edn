@@ -53,6 +53,15 @@
    :args [:name :cljs-core :mains ['cljs.core] :dependencies #{}]
    }
 
+  ;; Menus
+  {:component :menu-index
+   :dependencies [#_[juxt.modular/menu "0.5.0-SNAPSHOT"]]
+   :constructor modular.menu/new-menu-index}
+
+  {:component :bootstrap-menu
+   :dependencies [#_[juxt.modular/menu "0.5.0-SNAPSHOT"]]
+   :constructor modular.menu/new-bootstrap-menu}
+
   ;; Security components
   {:component :cylon/login-form
    :dependencies [#_[cylon "0.2.0"]]
@@ -104,9 +113,9 @@
    }
 
   {:component :{{name}}-template-model
-   :dependencies [#_[juxt.modular/template "0.5.0"]
+   :dependencies [#_[juxt.modular/web-template "0.5.0"]
                   [de.ubercode.clostache/clostache "1.3.1"]]
-   :constructor modular.template/new-template-model
+   :constructor modular.web-template/new-web-request-determined-template-model
    }
 
   {:component :{{name}}-cljs
@@ -114,6 +123,9 @@
    :constructor modular.cljs/new-cljs-module
    :args [:name :{{name}} :mains ['{{name}}.main] :dependencies #{:cljs-core}]
    }
+
+  {:component :example-page
+   :constructor {{name}}.example-page/new-example-page}
   ]
 
  :assemblies
@@ -124,13 +136,21 @@
                  :webhead
                  :webrouter
                  :webresources
+                 :menu-index
                  :{{name}}-website
                  :{{name}}-template-model}
    :dependency-map {:webserver {:request-handler :webhead}
                     :webhead {:request-handler :webrouter}
                     :webrouter [:{{name}}-website #_:cljs-builder :webresources]
                     :{{name}}-website {:template-model :{{name}}-template-model}
+
+                    :menu-index [:example-page]
                     }
+   :default? true}
+
+  {:assembly :example-pages
+   :components #{:example-page}
+   :dependency-map {:webrouter [:example-page]}
    :default? true}
 
   {:assembly :webmeta
@@ -160,8 +180,10 @@
    :default? true
    }
 
-  ;; {:assembly :bootstrap} ;; provides bootstrap login form
-  ;; {:assembly :template}
+  {:assembly :bootstrap
+   :components #{:bootstrap-menu}
+   :dependency-map {:{{name}}-template-model [:bootstrap-menu]}
+   :default? true}
 
   {:assembly :dev-browser
    :components #{}

@@ -33,7 +33,9 @@
                                   "{{modular-dir}}/modules/bidi/src"
                                   "{{modular-dir}}/modules/ring/src"
                                   "{{modular-dir}}/modules/template/src"
+                                  "{{modular-dir}}/modules/web-template/src"
                                   "{{modular-dir}}/modules/http-kit/src"
 ;;                                  "{{modular-dir}}/modules/cljs/src"
+                                  "{{modular-dir}}/modules/menu/src"
                                   "{{cylon-dir}}/src"
                                   "{{cylon-dir}}/contrib/bootstrap-login-form/src"]}})

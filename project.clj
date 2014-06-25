@@ -1,6 +1,8 @@
 ;; Copyright © 2014 JUXT LTD.
 
-(defproject juxt/modular "0.5.0"
+; The version here doesn't really matter because it's the subprojects
+; we're interested in
+(defproject juxt/modular "0.5.1-SNAPSHOT"
   :description "FIXME: write description"
   :url "http://github.com/mastodonc/kixi.stentor"
   :license {:name "The MIT License"
@@ -21,17 +23,16 @@
 
         "modules/template"
         "modules/web-template"
-        ;; "modules/clostache"
         "modules/cljs"
 
         ;; "modules/menu"
         "modules/maker"
         "modules/wire-up"
 
-        ;; New modules to be released
-        "modules/http-kit"
+        ;; New modules to be released (snapshots)
+        "modules/http-kit-events"
         "modules/async"
-
+        "modules/menu"
 
         ;; Modules that still need to be ported over from Jig 1.x
         ;;        "modules/async" ; core.async channels that can be shared by dependants

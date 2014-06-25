@@ -3,7 +3,7 @@
 (ns modular.menu
   (:require
    [com.stuartsierra.component :as component]
-   [modular.template :refer (TemplateModel)]
+   [modular.web-template :refer (WebRequestDeterminedTemplateData)]
    [bidi.bidi :refer (path-for)]
    [hiccup.core :refer (html)]
    [schema.core :as s]))
@@ -28,8 +28,10 @@
   (->MenuIndex))
 
 (defrecord BootstrapMenu []
-  TemplateModel
-  (template-model [this {{routes :modular.bidi/routes :as req} :request :as context}]
+  WebRequestDeterminedTemplateData
+  (request-determined-template-data [this {routes :modular.bidi/routes :as req}]
+    (assert routes
+            "routes cannot be nil, menus must be fronted with a bidi router component so that uris can be generated")
     (let [menu (menu-items (:menu-index this))]
       {:menu
        (html
@@ -41,6 +43,12 @@
                                  (when (visible? (-> ctx
                                                      (assoc :request req)
                                                      (dissoc :visible?)))
+
+;;                                   (println "target:" target)
+;;                                   (println "routes:" routes)
+;;                                   (println "uri:" (apply path-for routes target args))
+
+
                                    [:li (if target
                                           [:a {:href (apply path-for routes target args)} label]
                                           ;; To render properly in bootstrap, need this to be an a element.
@@ -57,8 +65,8 @@
 
 
 (defrecord SideMenu []
-  TemplateModel
-  (template-model [this {{routes :modular.bidi/routes :as req} :request}]
+  WebRequestDeterminedTemplateData
+  (request-determined-template-data [this {routes :modular.bidi/routes :as req}]
     (let [menu (menu-items (:menu-index this))]
       {:menu
        (html
