@@ -20,7 +20,7 @@
         sanitized (str/replace label #"\s+" "")]
     (->> opts
          (merge {:label label
-                 :text "Blank"
+                 :content "Blank"
                  :key (keyword (.toLowerCase sanitized))
                  :path (str "/" sanitized)})
          map->ExamplePage)))

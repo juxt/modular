@@ -103,6 +103,8 @@
 
              ["src/{{sanitized}}/example_page.clj" (render "example_page.clj" data)]
 
+             ["src/{{sanitized}}/restricted_page.clj" (render "restricted_page.clj" data)]
+
              ["test/{{sanitized}}/website_tests.clj" (render "website_tests.clj" data)]
 
              ["src-cljs/{{sanitized}}/main.cljs" (render "main.cljs" data)]

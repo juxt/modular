@@ -23,11 +23,11 @@
       (modular name))))
 
 (defn project-fixture [f]
-  (generate-project "foo")
+  (generate-project "myapp")
   (f))
 
 (use-fixtures :once project-fixture)
 
 (deftest project-generation-tests
   (testing "project file exists"
-    (is (.exists (io/file (get-tmp-dir) "foo/project.clj")))))
+    (is (.exists (io/file (get-tmp-dir) "myapp/project.clj")))))

@@ -4,7 +4,8 @@
   (:require
    [com.stuartsierra.component :as component]
    [clojure.tools.logging :refer (debugf infof)]
-   [schema.core :as s]))
+   [schema.core :as s]
+   [clojure.pprint :refer (pprint)]))
 
 (defprotocol WebRequestHandler
   "A component can satisfy WebRequestHandler if it can respond to a Ring request"
@@ -40,7 +41,13 @@
 (defrecord WebRequestHandlerHead []
   WebRequestHandler
   (request-handler [this]
-    (let [dlg (request-handler (:request-handler this))
+    (let [dlg (when-let [wrh (or (:request-handler this) ; explicit delegate
+                                 ;; or implicitly discovered
+                                 (->> this vals
+                                      (filter (partial satisfies? WebRequestMiddleware))
+                                      ;; choose a winner
+                                      first))]
+                (request-handler wrh))
           middleware (->> (vals this)
                           (filter (partial satisfies? WebRequestMiddleware))
                           (map request-middleware)
@@ -48,18 +55,20 @@
       (middleware
        (fn [req]
          (let [bindings
-               (apply merge-with merge
-                      (map #(request-binding %)
-                           (filter (partial satisfies? WebRequestBinding) (vals this))))]
-           (debugf "Request bindings are %s" (keys bindings))
-           (dlg (merge req bindings))))))))
+               (->> this vals
+                    (filter (partial satisfies? WebRequestBinding))
+                    (map #(request-binding %))
+                    (apply merge-with merge))]
+           (if dlg
+             (dlg (merge req bindings))
+             ;; A nicer (than nil) default :-
+             {:status 200 :body (str "No request handler dependency, request is \n"
+                                     (with-out-str (pprint (merge req bindings))))})))))))
 
 (defn new-web-request-handler-head
   "Returns a record satisfying WebRequestHandler request handler component adapts a request-handler with the various middleware and request bindings it depends on."
   [& {:as opts}]
-  (component/using
-   (->> opts
-        (merge {})
-        (s/validate {})
-        map->WebRequestHandlerHead)
-   [:request-handler]))
+  (->> opts
+       (merge {})
+       (s/validate {})
+       map->WebRequestHandlerHead))
