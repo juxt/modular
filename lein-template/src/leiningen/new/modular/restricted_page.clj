@@ -11,11 +11,11 @@
   (menu-items [this] [{:label "Secure Page" :target ::page}])
 
   WebService
-  (request-handlers [_]
+  (request-handlers [this]
     {::page (-> (fn [req] {:status 200
                            :headers {"Content-Type" "text/html"}
                            :body (str "<h2>" "Bruce's Salary: $xxx,xxx" "</h2>")})
-                (restrict-handler nil nil))})
+                (restrict-handler (:authorizer this) #{:admin}))})
   (routes [_] ["/restricted-page" ::page])
   (uri-context [_] ""))
 
