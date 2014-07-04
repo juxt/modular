@@ -9,3 +9,5 @@ pom.xml.asc
 target
 extract-native.dependencies
 /lein-template/.lein-failures
+/todo.org
+/lein-template/todo.org

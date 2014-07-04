@@ -1,6 +1,6 @@
 ;; Copyright © 2014 JUXT LTD.
 
-(defproject juxt.modular/datomic "0.2.1-SNAPSHOT"
+(defproject juxt.modular/datomic "0.2.1"
   :description "A modular extension that provides support for Datomic"
   :url "https://github.com/juxt/modular/tree/master/modules/bidi"
   :license {:name "The MIT License"

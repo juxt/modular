@@ -2,7 +2,7 @@
 
 ; The version here doesn't really matter because it's the subprojects
 ; we're interested in
-(defproject juxt/modular "0.5.1-SNAPSHOT"
+(defproject juxt/modular "0.5.1"
   :description "FIXME: write description"
   :url "http://github.com/mastodonc/kixi.stentor"
   :license {:name "The MIT License"

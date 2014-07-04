@@ -1,6 +1,6 @@
 ;; Copyright © 2014 JUXT LTD.
 
-(defproject juxt.modular/http-kit-events "0.5.0-SNAPSHOT"
+(defproject juxt.modular/http-kit-events "0.5.1"
   :description "A modular extension that provides support for events over http-kit channels"
   :url "https://github.com/juxt/modular/tree/master/modules/http-kit-events"
   :license {:name "The MIT License"
