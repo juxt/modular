@@ -6,12 +6,14 @@
    [com.stuartsierra.component :as component]
    [clojure.tools.reader.reader-types :refer (indexing-push-back-reader)]
    [datomic.api :as d]
-   [schema.core :as s]))
+   [schema.core :as s]
+   clojure.tools.reader))
 
 (defrecord EphemeralDatabase [uri]
   component/Lifecycle
   (start [this]
-    (assoc this :database (d/create-database uri)))
+    (d/create-database uri)
+    this)
 
   (stop [this]
     (d/delete-database uri)

@@ -1,6 +1,6 @@
 ;; Copyright © 2014 JUXT LTD.
 
-(defproject juxt.modular/datomic "0.2.0"
+(defproject juxt.modular/datomic "0.2.1-SNAPSHOT"
   :description "A modular extension that provides support for Datomic"
   :url "https://github.com/juxt/modular/tree/master/modules/bidi"
   :license {:name "The MIT License"
@@ -11,4 +11,5 @@
                                org.slf4j/jul-to-slf4j
                                org.slf4j/jcl-over-slf4j
                                org.slf4j/log4j-over-slf4j]]
+                 [org.clojure/tools.reader "0.8.3"]
                  ])

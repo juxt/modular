@@ -16,7 +16,7 @@
         "modules/http-kit"
         "modules/bidi"
         ;; "modules/cassandra"
-        ;; "modules/datomic"
+        "modules/datomic"
 
         "modules/netty"
         "modules/mqtt"
