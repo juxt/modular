@@ -204,6 +204,12 @@
        (s/validate new-router-schema)
        map->Router))
 
+(defn make-path
+  "A convenience function to form uris"
+  [req target & args]
+  (apply path-for (::routes req target args)))
+
+
 ;; ------  TODO Router needs to display all possible routes available,
 ;; ------  as debug data, so that people can see easily which routes are
 ;; ------  available. This addresses one of the more difficult and
