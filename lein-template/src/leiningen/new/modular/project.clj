@@ -9,8 +9,8 @@
    [org.clojure/tools.logging "0.2.6"]
    [com.stuartsierra/component "0.2.1"]
 
-   [juxt.modular/maker "0.1.0"]
-   [juxt.modular/wire-up "0.1.0"]
+   [juxt.modular/maker "0.5.0"]
+   [juxt.modular/wire-up "0.5.0"]
 
    {{#dependencies}}
    {{{.}}}
