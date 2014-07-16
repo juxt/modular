@@ -2,10 +2,11 @@
 
 (ns modular.http-kit.events
   (:require
+   [clojure.core.async :as async :refer (go <! go-loop)]
    [com.stuartsierra.component :as component]
-   [clojure.core.async :as async :refer (go <!)]
+   [modular.bidi :refer (WebService)]
    [org.httpkit.server :refer (with-channel send! on-close)]
-   [modular.bidi :refer (WebService)]))
+   [schema.core :as s]))
 
 (defn server-event-source [ch]
   (let [m (async/mult ch)]
@@ -17,13 +18,12 @@
                     (fn [_] (async/close! ch)))
           (send! channel
                  {:headers {"Content-Type" "text/event-stream"}} false)
-          (async/go
-            (loop []
-              (when-let [data (<! ch)]
-                (send! channel
-                       (str "data: " data "\r\n\r\n")
-                       false)
-                (recur)))))))))
+          (go-loop []
+            (when-let [data (<! ch)]
+              (send! channel
+                     (str "data: " data "\r\n\r\n")
+                     false)
+              (recur))))))))
 
 (defrecord EventService []
   WebService
@@ -31,7 +31,10 @@
   (routes [_] ["" ::events])
   (uri-context [_] "/events"))
 
-(defn new-event-service [& {:as opts}]
+
+(s/defnk new-event-service [& {:as opts}]
   (component/using
-   (->> opts map->EventService)
+   (->> opts
+        (merge {:uri })
+        map->EventService)
    [:channel]))
