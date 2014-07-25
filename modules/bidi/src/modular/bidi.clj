@@ -5,7 +5,7 @@
    [schema.core :as s]
    [modular.ring :refer (WebRequestHandler WebRequestBinding)]
    [com.stuartsierra.component :as component]
-   [bidi.bidi :as bidi :refer (match-route path-for)]
+   [bidi.bidi :as bidi :refer (match-route)]
    [clojure.tools.logging :refer :all]
    [plumbing.core :refer (?>)]))
 
@@ -204,10 +204,10 @@
        (s/validate new-router-schema)
        map->Router))
 
-(defn make-path
+(defn path-for
   "A convenience function to form uris"
   [req target & args]
-  (apply path-for (::routes req target args)))
+  (apply bidi/path-for (::routes req target args)))
 
 
 ;; ------  TODO Router needs to display all possible routes available,
