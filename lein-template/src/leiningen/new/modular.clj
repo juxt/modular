@@ -38,12 +38,12 @@
               :sanitized (name-to-path name)
               :snake-cased-name (clojure.string/replace name #"_" "-")
 
-              ;; Probably need to be sorted and with some conflict resolution warnings
-
-              ;; Design decision is to generate anyway (the developer
-              ;; can always delete and start over). Also, developers can
-              ;; be given a warning (ala pacman on Arch) to tell them to
-              ;; expect conflicts - these can be resolved later
+              ;; Probably need to be sorted and with some conflict
+              ;; resolution warnings. Design decision is to generate
+              ;; anyway (the developer can always delete and start
+              ;; over). Also, developers can be given a warning (ala
+              ;; pacman on Arch) to tell them to expect conflicts -
+              ;; these can be resolved later
               :dependencies
               (->> components (mapcat :dependencies) distinct)
 
@@ -70,10 +70,6 @@
 
               :cylon-dir
               (str (System/getProperty "user.home") "/src/cylon")
-
-              ;; TODO Calculate view styles based on components present
-              :view-style {:hiccup false
-                           :mustache true}
 
               :dependency-map
               (->> manifest :assemblies
@@ -109,9 +105,17 @@
 
              ["src-cljs/{{sanitized}}/main.cljs" (render "main.cljs" data)]
 
+             ;; HTML
              ["resources/templates/page.html.mustache" (render "page.html.mustache")]
+             ["resources/templates/home.html.mustache" (render "home.html.mustache")]
 
+             ;; CSS
              ["resources/public/css/bootstrap.min.css" (render "resources/bootstrap.min.css")]
+             ["resources/public/css/bootstrap-theme.min.css" (render "resources/bootstrap-theme.min.css")]
+
+             ["resources/public/css/theme.css" (render "resources/theme.css")]
+
+             ;; JS
              ["resources/public/js/bootstrap.min.js" (render "resources/bootstrap.min.js")]
              ["resources/public/js/jquery.min.js" (render "resources/jquery.min.js")]
              ["resources/public/js/react.js" (render "resources/react-0.9.0.js")]

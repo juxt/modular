@@ -2,7 +2,10 @@
 <html prefix="dc: http://purl.org/dc/elements/1.1/" lang="en">
   <head>
     <meta charset="utf-8"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+    <!-- <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+-->
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <meta property="dc:language" content="en"/>
     <meta property="dc:title" content="{{webmeta.title}}"/>
@@ -12,11 +15,10 @@
 
     <!-- Bootstrap core CSS -->
     <link href="/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap theme -->
+    <link href="/css/bootstrap-theme.min.css" rel="stylesheet">
 
-    <!-- Custom styles -->
-<!--
-    <link href="/css/style.css" rel="stylesheet">
--->
+    <link href="/css/theme.css" rel="stylesheet">
 
     <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
     <!--[if lt IE 9]>
@@ -24,41 +26,43 @@
         <![endif]-->
 
   </head>
-  <body>
-    <nav class="navbar navbar-default" role="navigation">
-      <div class="navbar-header">
-        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
-          <span class="sr-only">Toggle navigation</span>
-          <span class="icon-bar"></span>
-          <span class="icon-bar"></span>
-          <span class="icon-bar"></span>
-        </button>
-        <span class="navbar-brand"><a href="{{main-routes.home-href}}">{{title.app-name}}</a></span>
-      </div>
+  <body role="document">
 
-      <!-- Collect the nav links, forms, and other content for toggling -->
-      <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
-        <ul class="nav navbar-nav">
-          {{{bootstrap-menu.menu}}}
-        </ul>
+    <div class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="/">{{webmeta.title}}</a>
+        </div>
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <div class="navbar-collapse collapse">
+          <ul class="nav navbar-nav">
+            <!-- This is contributed by juxt.modular/menu -->
+            {{{bootstrap-menu.menu}}}
+          </ul>
+        </div>
       </div>
-    </nav>
-
-    <h1>Congratulations!</h1>
-    <h2>Your modular project is up &amp; running</h2>
-    <div class="container-narrow">
-      {{{body}}}
     </div>
 
-    <div id="ankha">
-    </div>
+    {{{content}}}
 
     <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
     <script src="/js/jquery.min.js"></script>
 
     <!-- Include all compiled plugins (below), or include individual files as needed -->
     <script src="/js/bootstrap.min.js"></script>
+
+
+<!--
+    <div id="ankha">
+    </div>
     <script src="/js/react.js"></script>
+-->
 
     <!-- Javascripts that have been contributed by other modules -->
     {{#cljs-builder.javascripts}}

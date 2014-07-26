@@ -3,7 +3,7 @@
 (ns modular.menu
   (:require
    [com.stuartsierra.component :as component]
-   [modular.web-template :refer (WebRequestDeterminedTemplateData)]
+   [modular.web-template :refer (DynamicTemplateData)]
    [bidi.bidi :refer (path-for)]
    [hiccup.core :refer (html)]
    [schema.core :as s]))
@@ -28,8 +28,8 @@
   (->MenuIndex))
 
 (defrecord BootstrapMenu []
-  WebRequestDeterminedTemplateData
-  (request-determined-template-data [this {routes :modular.bidi/routes :as req}]
+  DynamicTemplateData
+  (dynamic-template-data [this {routes :modular.bidi/routes :as req}]
     (assert routes
             "routes cannot be nil, menus must be fronted with a bidi router component so that uris can be generated")
     (let [menu (menu-items (:menu-index this))]
@@ -44,15 +44,16 @@
                                                      (assoc :request req)
                                                      (dissoc :visible?)))
 
-;;                                   (println "target:" target)
-;;                                   (println "routes:" routes)
-;;                                   (println "uri:" (apply path-for routes target args))
+                                   ;;                                   (println "target:" target)
+                                   ;;                                   (println "routes:" routes)
+                                   ;;                                   (println "uri:" (apply path-for routes target args))
 
 
-                                   [:li (if target
-                                          [:a {:href (apply path-for routes target args)} label]
-                                          ;; To render properly in bootstrap, need this to be an a element.
-                                          [:a {:href "#"} label])])))]
+                                   [:li (when (= label "Starbuck") {:class "active"})
+                                    (if target
+                                      [:a {:href (apply path-for routes target args)} label]
+                                      ;; To render properly in bootstrap, need this to be an a element.
+                                      [:a {:href "#"} label])])))]
                    (if parent
                      (list
                       [:li.dropdown
@@ -65,8 +66,8 @@
 
 
 (defrecord SideMenu []
-  WebRequestDeterminedTemplateData
-  (request-determined-template-data [this {routes :modular.bidi/routes :as req}]
+  DynamicTemplateData
+  (dynamic-template-data [this {routes :modular.bidi/routes :as req}]
     (let [menu (menu-items (:menu-index this))]
       {:menu
        (html

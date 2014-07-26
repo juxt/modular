@@ -8,6 +8,8 @@
    [org.clojure/tools.reader "0.8.3"]
    [org.clojure/tools.logging "0.2.6"]
    [com.stuartsierra/component "0.2.1"]
+   [prismatic/schema "0.2.1"]
+   [prismatic/plumbing "0.2.2"]
 
    [juxt.modular/maker "0.5.0"]
    [juxt.modular/wire-up "0.5.0"]
@@ -21,6 +23,9 @@
    ;; likewise for http-kit
    [http-kit "2.1.13"]
 
+   ;; likewise for cylon
+   [cheshire "5.3.1"]
+   [clj-jwt "0.0.8"]
    ]
 
   :main {{name}}.main

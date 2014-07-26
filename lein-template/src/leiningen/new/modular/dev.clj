@@ -10,17 +10,40 @@
 
 (def system nil)
 
+;; We wrap the system in a system wrapper so that we can define a
+;; print-method that will avoid recursion.
+(defrecord SystemWrapper [p]
+  clojure.lang.IDeref
+  (deref [this] (deref p))
+  clojure.lang.IFn
+  (invoke [this a] (p a)))
+
+(defmethod print-method SystemWrapper [_ writer]
+  (.write writer "#system \"<system>\""))
+
+(defmethod print-dup SystemWrapper [_ writer]
+  (.write writer "#system \"<system>\""))
+
+(. clojure.pprint/simple-dispatch addMethod SystemWrapper
+   (fn [x]
+     (print-method x *out*)))
+
+(defn new-system-wrapper []
+  (->SystemWrapper (promise)))
+
 (defn new-dev-system
   "Create a development system"
   []
-  (let [s-map (new-base-system-map (config))
+  (let [systemref (new-system-wrapper)
+        s-map (new-base-system-map (config) systemref)
         d-map (merge-with merge
                           (normalize-dependency-map
                            (new-base-dependency-map s-map))
                           {})]
     (with-meta
       (component/system-using s-map d-map)
-      {:dependencies d-map})))
+      {:dependencies d-map
+       :systemref systemref})))
 
 (defn init
   "Constructs the current development system."
@@ -31,7 +54,12 @@
 (defn start
   "Starts the current development system."
   []
-  (alter-var-root #'system component/start))
+  (alter-var-root
+   #'system
+   (fn [system]
+     (let [started (component/start system)]
+       (deliver (:systemref (meta system)) started)
+       started))))
 
 (defn stop
   "Shuts down and destroys the current development system."

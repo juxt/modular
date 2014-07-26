@@ -6,15 +6,11 @@
    [clojure.tools.reader :refer (read)]
    [clojure.string :as str]
    [clojure.tools.reader.reader-types :refer (indexing-push-back-reader)]
-
    [com.stuartsierra.component :as component :refer (system-map system-using)]
-
    [modular.maker :refer (make)]
-
    {{#requires}}
    [{{namespace}} :refer ({{{refers}}})]
    {{/requires}}
-
    ))
 
 (defn ^:private read-file
@@ -33,11 +29,11 @@
 
 (defn ^:private user-config
   []
-  (config-from (io/file (System/getProperty "user.home") ".presentation.edn")))
+  (config-from (io/file (System/getProperty "user.home") ".{{name}}.edn")))
 
 (defn ^:private config-from-classpath
   []
-  (if-let [res (io/resource "presentation.edn")]
+  (if-let [res (io/resource "{{name}}.edn")]
     (config-from (io/file res))
     {}))
 
@@ -49,7 +45,7 @@
          (user-config)))
 
 (defn new-base-system-map
-  [config]
+  [config systemref]
   (system-map
    {{#components}}
    {{component}} (make {{constructor}} config{{{args}}})
@@ -61,8 +57,8 @@
 
 (defn new-production-system
   "Create the production system"
-  []
-  (let [s-map (new-base-system-map (config))
+  [systemref]
+  (let [s-map (new-base-system-map (config) systemref)
         d-map (new-base-dependency-map s-map)]
     (with-meta
       (component/system-using s-map d-map)

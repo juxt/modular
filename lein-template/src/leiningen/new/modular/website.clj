@@ -4,50 +4,28 @@
    [com.stuartsierra.component :as component]
    [modular.ring :refer (WebRequestHandler)]
    [modular.bidi :refer (WebService as-request-handler)]
-   [modular.web-template :refer (request-determined-template-data)]
+   [modular.web-template :refer (dynamic-template-data)]
    [hiccup.core :refer (html h)]
-   [liberator.core :refer (resource)]
    [bidi.bidi :refer (path-for ->Redirect)]
    [clostache.parser :refer (render-resource)]))
 
-{{! "We change the delimiters to avoid conflicting with nested destructuring in the code below" }}
-{{=<% %>=}}
-
-(defn index
+(defn home-page
   "Define a Liberator resource map for the index (home) page of the website"
   [template-model]
-  {:available-media-types #{"text/html"}
-   :handle-ok
-   (fn [{{routes :modular.bidi/routes :as req}
-                                        ; it is idiomaic to destructure
-                                        ; the bidi route structure from
-                                       ; the request
-         :request}]
-<%#view-style.hiccup%>
-     (html
-      [:head
-       [:title "Welcome"]]
-      [:body
-       [:h1 "Hello World! from <% name %>"]
-       [:h2 "Links"]
-       [:p [:a {:href (path-for routes ::index)} "Home"]]
-       [:h2 "Template Model"]
-       [:pre
-        (h (with-out-str (pprint template-model)))
-        ]
-       ])
-<%/view-style.hiccup%>
-<%#view-style.mustache%>
-      ;; TODO Mustache templating
-      (render-resource "templates/page.html.mustache" (request-determined-template-data template-model req))
-<%/view-style.mustache%>
-     )})
+  (fn [req]
+    {:status 200
+     :body
+     (let [model (dynamic-template-data template-model req)]
+       (render-resource
+        "templates/page.html.mustache"
+        (-> model
+            (assoc :content (render-resource "templates/home.html.mustache" model)))))}))
 
 ;; Consider the component below. It is defined by defrecord.
 ;; It satisfies 2 protocols: modular.bidi.WebService and modular.ring.WebRequestHandler
 
 ;; To satisfy modular.bidi.WebSerivce a component must provide the following:
-;;   request-handler-map: A map between keywords and Ring handlers
+;;   request-handlers: A map between keywords and Ring handlers
 ;;   routes: A bidi route structure, where terminals are keywords
 ;;              - these keywords correspond to the keys in request-handler-map
 ;;   uri-context: Usually an empty string, but acts as a prefix to the route structure
@@ -73,7 +51,7 @@
 (defrecord Website []
   WebService
   (request-handlers [this]
-    {::index (resource (index (:template-model this)))})
+    {::index (home-page (:template-model this))})
 
   (routes [_] ["/" {"index.html" ::index
                     "" (->Redirect 307 ::index)}])
@@ -84,6 +62,9 @@
   (request-handler [this] (as-request-handler this)))
 
 (defn new-website []
+  ;; TODO Depending on the size of the template model, we may want to
+  ;; limit the template-model to minium keys that are necessary, in the
+  ;; case that a SystemDynamicTemplateModel instance is provided.
   (component/using
    (->Website)
    [:template-model]))
