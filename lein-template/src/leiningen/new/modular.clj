@@ -1,12 +1,15 @@
 ;; Copyright © 2014 JUXT LTD.
 
 (ns leiningen.new.modular
+  (:refer-clojure :exclude (split))
   (:require
    [leiningen.new.templates :refer [renderer sanitize year name-to-path ->files *dir*]]
    [leiningen.core.main :as main]
    [clojure.edn :as edn]
    [clojure.java.io :as io]
    [clojure.pprint :refer (pprint)]
+   [clojure.string :refer (split)]
+   [clojure.set :as set]
    [stencil.core :as stencil]))
 
 (def render (renderer "modular"))
@@ -19,15 +22,38 @@
     x))
 
 (defn modular
-  "Create a new modular project"
-  [name]
-  (let [manifest (edn/read-string
+  "Create a new modular project - TODO documentation show go here which
+  will be shown on 'lein new :show modular' , but will only appear when
+  released."
+
+  [name & args]
+
+  (let [augment-by (->> args
+                        (keep (partial re-matches #"\+(.*)") )
+                        (map second)    ; take the grouping
+                        (map #(split % #"/"))
+                        (map (partial apply keyword))
+                        set)
+
+        diminish-by (->> args
+                         (keep (partial re-matches #"\-(.*)") )
+                         (map second)   ; take the grouping
+                         (map #(split % #"/"))
+                         (map (partial apply keyword))
+                         set)
+
+        select-assembly? (fn [{:keys [assembly default?]}]
+                           (or (contains? augment-by assembly)
+                               (and default?
+                                    (not (contains? diminish-by assembly)))))
+
+        manifest (edn/read-string
                   (stencil/render-string
                    (slurp (io/resource "manifest.edn"))
                    {:name name}))
 
         component-names (->> manifest :assemblies
-                             (filter :default?)
+                             (filter select-assembly?)
                              (mapcat :components) set)
 
         components (->> manifest
@@ -73,7 +99,7 @@
 
               :dependency-map
               (->> manifest :assemblies
-                   (filter :default?)
+                   (filter select-assembly?)
                    (mapcat :dependency-map)
                    (group-by first)
                    (reduce-kv (fn [acc k v]
@@ -85,7 +111,13 @@
                    pprint
                    with-out-str)}]
 
-    (main/info "Generating a new modular project named" (str name "..."))
+    (main/info (format "Generating a new modular project named %s with options :-\n%s"
+                       name
+                       (->> manifest :assemblies
+                            (filter select-assembly?)
+                            (map :assembly)
+                            (interpose "\n")
+                            (apply str))))
 
     (->files data
              ["project.clj" (render "project.clj" data)]

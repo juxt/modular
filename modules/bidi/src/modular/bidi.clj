@@ -207,7 +207,7 @@
 (defn path-for
   "A convenience function to form uris"
   [req target & args]
-  (apply bidi/path-for (::routes req target args)))
+  (apply bidi/path-for (::routes req) target args))
 
 
 ;; ------  TODO Router needs to display all possible routes available,

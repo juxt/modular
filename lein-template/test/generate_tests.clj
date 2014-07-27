@@ -15,12 +15,12 @@
 (defn get-tmp-dir []
   (io/file (System/getProperty "java.io.tmpdir") "modular-lein-template"))
 
-(defn generate-project [name]
+(defn generate-project [name & args]
   (let [dir (get-tmp-dir)
         projectdir (io/file dir name)]
     (delete-dir projectdir false)
     (binding [leiningen.new.templates/*dir* projectdir]
-      (modular name))))
+      (apply modular name args))))
 
 (defn project-fixture [f]
   (generate-project "myapp")
@@ -28,6 +28,12 @@
 
 (use-fixtures :once project-fixture)
 
-(deftest project-generation-tests
+(deftest website-tests
+  (generate-project "website")
   (testing "project file exists"
-    (is (.exists (io/file (get-tmp-dir) "myapp/project.clj")))))
+    (is (.exists (io/file (get-tmp-dir) "website/project.clj")))))
+
+(deftest website-with-login-tests
+  (generate-project "website-with-login" "+cylon/login")
+  (testing "project file exists"
+    (is (.exists (io/file (get-tmp-dir) "website-with-login/project.clj")))))
