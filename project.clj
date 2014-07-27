@@ -33,6 +33,7 @@
         "modules/http-kit-events"
         "modules/async"
         "modules/menu"
+        "modules/boilerplate"
 
         ;; Modules that still need to be ported over from Jig 1.x
         ;;        "modules/async" ; core.async channels that can be shared by dependants

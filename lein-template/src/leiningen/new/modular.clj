@@ -8,7 +8,7 @@
    [clojure.edn :as edn]
    [clojure.java.io :as io]
    [clojure.pprint :refer (pprint)]
-   [clojure.string :refer (split)]
+   [clojure.string :refer (split trim)]
    [clojure.set :as set]
    [stencil.core :as stencil]))
 
@@ -20,6 +20,13 @@
   (if (sequential? x)
     (apply zipmap (repeat 2 x))
     x))
+
+(defn indent [indent s]
+  (apply str
+         (interpose "\n"
+                    (for [line (line-seq (io/reader (java.io.StringReader. s)))]
+                      (str (apply str (repeat indent " ")) line)
+                      ))))
 
 (defn modular
   "Create a new modular project - TODO documentation show go here which
@@ -71,12 +78,12 @@
               ;; pacman on Arch) to tell them to expect conflicts -
               ;; these can be resolved later
               :dependencies
-              (->> components (mapcat :dependencies) distinct)
+              (->> components (mapcat :dependencies) distinct sort)
 
               :requires
               (reduce-kv
                (fn [a k v] (conj a {:namespace k
-                                    :refers (apply str (interpose " " (map (comp clojure.core/name) v)))}))
+                                    :refers (apply str (interpose " " (distinct (map (comp clojure.core/name) v))))}))
                []
                (->> components
                     (mapcat (juxt :constructor :requires))
@@ -109,7 +116,10 @@
                                               (comp ensure-map second) v))))
                               {})
                    pprint
-                   with-out-str)}]
+                   with-out-str
+                   trim
+                   (indent 2)
+                   )}]
 
     (main/info (format "Generating a new modular project named %s with options :-\n%s"
                        name
@@ -128,6 +138,8 @@
              ["src/{{sanitized}}/system.clj" (render "system.clj" data)]
 
              ["src/{{sanitized}}/website.clj" (render "website.clj" data)]
+             ;; TODO Write website.clj in terms of boilerplate.clj, it is currently too 'standalone'
+             ["src/{{sanitized}}/boilerplate.clj" (render "boilerplate.clj" data)]
 
              ["src/{{sanitized}}/example_page.clj" (render "example_page.clj" data)]
 

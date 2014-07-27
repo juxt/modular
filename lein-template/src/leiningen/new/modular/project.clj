@@ -18,6 +18,9 @@
    {{{.}}}
    {{/dependencies}}
 
+   ;; Temp
+   [garden "1.1.5"]
+
    ]
 
   :main {{name}}.main
@@ -26,4 +29,8 @@
                  :welcome (println "Type (dev) to start")}
 
   :profiles {:dev {:dependencies [[org.clojure/tools.namespace "0.2.4"]]
-                   :source-paths ["dev"]}})
+                   :source-paths ["dev"
+                                  "{{modular-dir}}/modules/bootstrap/src"
+
+                                  #_"{{cylon-dir}}/src"
+                                  ]}})

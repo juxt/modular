@@ -53,7 +53,17 @@
   {:component :cylon/login-form
    :dependencies [[cylon "0.4.0-SNAPSHOT"]]
    :constructor cylon.impl.authentication/new-authentication-login-form
-   :key :cylon/login-form
+   }
+
+  {:component :cylon/login-form-bootstrap-renderer
+   :dependencies [[cylon "0.4.0-SNAPSHOT"]
+                  #_[juxt.modular/bootstrap "0.1.0-SNAPSHOT"]]
+   :constructor modular.bootstrap.cylon.login-form/new-bootstrap-login-form-renderer
+   }
+
+  {:component :boilerplate
+   :dependencies [#_[juxt.modular/bootstrap "0.1.0-SNAPSHOT"]]
+   :constructor {{name}}.boilerplate/new-boilerplate
    }
 
   {:component :cylon/atom-backed-session-store
@@ -163,18 +173,26 @@
 
   {:assembly :cylon/login
    :components #{:cylon/login-form
+                 :cylon/login-form-bootstrap-renderer
+                 :boilerplate
                  :cylon/atom-backed-session-store
                  :cylon/default-user-domain
                  :cylon/pbkdf2-password-hash
                  :cylon/user-file
+                 :{{name}}-template-model
                  #_:restricted-page
                  #_:authorizer}
    :dependency-map {:webrouter [:cylon/login-form
                                 #_:restricted-page],
                     :cylon/login-form
                     {:session-store :cylon/session-store,
-                     :user-domain :cylon/user-domain
+                     :user-domain :cylon/user-domain,
+                     :renderer :cylon/login-form-bootstrap-renderer
                      },
+                    :cylon/login-form-bootstrap-renderer
+                    {:boilerplate :boilerplate},
+                    :boilerplate
+                    {:template-model :{{name}}-template-model},
                     :cylon/user-domain
                     {:password-hash-algo :cylon/password-hash-algo
                      :user-store :cylon/user-store},
