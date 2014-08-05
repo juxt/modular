@@ -116,11 +116,11 @@
                             (str " " (apply pr-str (:args c))))})
                (sort-by :component))
 
-              :modular-dir
-              (str (System/getProperty "user.home") "/src/modular")
+              #_:modular-dir
+              #_(str (System/getProperty "user.home") "/src/modular")
 
-              :cylon-dir
-              (str (System/getProperty "user.home") "/src/cylon")
+              #_:cylon-dir
+              #_(str (System/getProperty "user.home") "/src/cylon")
 
               :dependency-map
               (->> manifest :assemblies

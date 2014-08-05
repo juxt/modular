@@ -19,10 +19,10 @@
    {{/dependencies}}
 
    ;; Temp
-   [garden "1.1.5"]
-   [cheshire "5.3.1"]
-   [liberator "0.11.0"]
-   [clj-jwt "0.0.8"]
+   #_[garden "1.1.5"]
+   #_[cheshire "5.3.1"]
+   #_[liberator "0.11.0"]
+   #_[clj-jwt "0.0.8"]
    ]
 
   :main {{name}}.main
@@ -32,9 +32,7 @@
 
   :profiles {:dev {:dependencies [[org.clojure/tools.namespace "0.2.4"]]
                    :source-paths ["dev"
-                                  "{{modular-dir}}/modules/bootstrap/src"
-
-                                  "{{modular-dir}}/modules/menu/src"
-
-                                  "{{cylon-dir}}/src"
+                                  #_"{{modular-dir}}/modules/menu/src"
+                                  #_"{{modular-dir}}/modules/bootstrap/src"
+                                  #_"{{cylon-dir}}/src"
                                   ]}})
