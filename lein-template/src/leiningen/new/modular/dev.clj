@@ -6,6 +6,8 @@
    [clojure.tools.namespace.repl :refer (refresh refresh-all)]
    [com.stuartsierra.component :as component]
    [{{name}}.system :refer (config new-base-system-map new-base-dependency-map)]
+   [dev-components :refer (new-user-domain-seeder
+                           wrap-schema-validation)]
    [modular.wire-up :refer (normalize-dependency-map)]))
 
 (def system nil)
@@ -35,11 +37,24 @@
   "Create a development system"
   []
   (let [systemref (new-system-wrapper)
-        s-map (new-base-system-map (config) systemref)
+        s-map (->
+               (new-base-system-map (config) systemref)
+               (assoc
+                 :user-domain-seeder
+                 (component/using
+                  (new-user-domain-seeder :users [{:id "dev" :password {{{password}}}}])
+                  {:cylon/user-domain :cylon/user-domain})
+                 :wrap-schema-validation wrap-schema-validation))
         d-map (merge-with merge
                           (normalize-dependency-map
                            (new-base-dependency-map s-map))
-                          {})]
+                          (normalize-dependency-map
+                           {
+                            ;; Here is an example of how to extend the
+                            ;; middleware chain using the webhead
+                            ;; component. We wire in a dependency on a
+                            ;; 1-arity middleware function.
+                            :webhead [:wrap-schema-validation]}))]
     (with-meta
       (component/system-using s-map d-map)
       {:dependencies d-map

@@ -2,6 +2,7 @@
 
 (ns modular.bootstrap.cylon.login-form
   (:require
+   [clojure.tools.logging :refer :all]
    [modular.bootstrap :refer (ContentBoilerplate wrap-content-in-boilerplate)]
    [cylon.impl.authentication :refer (LoginFormRenderer)]
    [hiccup.core :refer (html h)]
@@ -41,6 +42,7 @@
   LoginFormRenderer
   (render-login-form
     [this req model]
+    (debugf "Model passed to form renderer: %s" model)
     (boilerplate
      this req
      (html
@@ -51,7 +53,7 @@
                            :style "border: 1px dotted #555"
                            :action (-> model :form :action)}
 
-        [:h2.form-signin-heading [:span.glyphicon.glyphicon-user] "&nbsp;&nbsp;Please sign in&#8230"]
+        [:h2.form-signin-heading "&nbsp;&nbsp;Please sign in&#8230"]
 
         #_(when login-status
             [:div.alert.alert-warning.alert-dismissable
@@ -59,24 +61,24 @@
              (case login-status
                :failed [:span [:strong "Failed: "] "Please check email and password and try again or " [:a.alert-link {:href "#"} "reset your password"] "."])])
 
-        (for [[n {:keys [password? placeholder required autofocus value]}]
+        (for [[n {:keys [name password? placeholder required autofocus value]}]
               (map vector (range) (-> model :form :fields))]
           [:input.form-control
            (merge
-            {:name (str "field-" n)
+            {:name name
              :type (if password? "password" "text")
              :value value}
             (when placeholder {:placeholder placeholder})
             (when required {:required required})
             (when autofocus {:autofocus autofocus}))])
 
-        [:label.checkbox
+        #_[:label.checkbox
          [:input {:name "remember" :type :checkbox :value "remember-me"} "Remember me"]]
 
         [:button.btn.btn-lg.btn-primary.btn-block {:type "submit"} "Sign in"]
 
-        [:p]
-        [:a {:href "#"} "Reset password"]
+        #_[:p]
+        #_[:a {:href "#"} "Reset password"]
         ]]))))
 
 (defn new-bootstrap-login-form-renderer [& {:as opts}]

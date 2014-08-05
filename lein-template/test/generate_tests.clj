@@ -22,11 +22,11 @@
     (binding [leiningen.new.templates/*dir* projectdir]
       (apply modular name args))))
 
-(defn project-fixture [f]
+#_(defn project-fixture [f]
   (generate-project "myapp")
   (f))
 
-(use-fixtures :once project-fixture)
+#_(use-fixtures :once project-fixture)
 
 (deftest website-tests
   (generate-project "website")

@@ -30,13 +30,22 @@
   (request-middleware [_]
     "Return a function that takes a request handler and returns a request
      handler, usually a wrapper that delegates to the given Ring
-     handler"))
+     handler."))
 
 ;; A 1-arity function will be considered a WebRequestMiddleware
 ;; satisfying component
 (extend-protocol WebRequestMiddleware
   clojure.lang.AFunction
   (request-middleware [this] this))
+
+;; A WebRequestHandlerHead component may be placed 'in front of' a
+;; delegate WebRequestHandler. It allows middleware and bindings to be
+;; added via explicit dependency wiring. The advantage of this approach,
+;; in comparison to traditional Ring middleware chaining, is that this
+;; opens middleware chains for extension. The 'open for extension'
+;; principle (also exhibited by Clojure's multimethods and records) is
+;; an important feature of a modular application and considered worth
+;; the extra effort required in understanding it.
 
 (defrecord WebRequestHandlerHead []
   WebRequestHandler

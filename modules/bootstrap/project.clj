@@ -10,4 +10,6 @@
                  [prismatic/schema "0.2.1"]
                  [prismatic/plumbing "0.2.2"]
                  [hiccup "1.0.5"]
-                 [garden "1.1.5"]])
+                 [garden "1.1.5"]
+                 [juxt.modular/web-template "0.5.0"]
+                 [juxt.modular/bidi "0.4.0"]])

@@ -6,6 +6,6 @@
   :license {:name "The MIT License"
             :url "http://opensource.org/licenses/MIT"}
   :dependencies [[com.stuartsierra/component "0.2.1"]
-                 [juxt.modular/bidi "0.4.0"]
-                 [juxt.modular/web-template "0.5.0"]
-                 [prismatic/schema "0.2.1"]])
+                 [prismatic/schema "0.2.1"]
+                 ;; menu extends Cylon's login-form
+                 [cylon "0.4.0-SNAPSHOT"]])

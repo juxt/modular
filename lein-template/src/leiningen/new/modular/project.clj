@@ -20,7 +20,9 @@
 
    ;; Temp
    [garden "1.1.5"]
-
+   [cheshire "5.3.1"]
+   [liberator "0.11.0"]
+   [clj-jwt "0.0.8"]
    ]
 
   :main {{name}}.main
@@ -32,5 +34,7 @@
                    :source-paths ["dev"
                                   "{{modular-dir}}/modules/bootstrap/src"
 
-                                  #_"{{cylon-dir}}/src"
+                                  "{{modular-dir}}/modules/menu/src"
+
+                                  "{{cylon-dir}}/src"
                                   ]}})

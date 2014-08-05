@@ -1,7 +1,7 @@
 ;; Copyright © 2014 JUXT LTD.
 
 (ns leiningen.new.modular
-  (:refer-clojure :exclude (split))
+  (:refer-clojure :exclude (split read *data-readers*))
   (:require
    [leiningen.new.templates :refer [renderer sanitize year name-to-path ->files *dir*]]
    [leiningen.core.main :as main]
@@ -10,7 +10,10 @@
    [clojure.pprint :refer (pprint)]
    [clojure.string :refer (split trim)]
    [clojure.set :as set]
-   [stencil.core :as stencil]))
+   [stencil.core :as stencil]
+   [clojure.tools.reader :refer (read *data-readers*)]
+   [clojure.tools.reader.reader-types :refer (indexing-push-back-reader)]
+   ))
 
 (def render (renderer "modular"))
 
@@ -27,6 +30,19 @@
                     (for [line (line-seq (io/reader (java.io.StringReader. s)))]
                       (str (apply str (repeat indent " ")) line)
                       ))))
+
+(defn load-edn-string [s]
+  (binding [*data-readers* {'markdown (fn [x] x)}]
+    (read
+     (indexing-push-back-reader
+      (java.io.PushbackReader. (java.io.CharArrayReader. (.toCharArray s)))))))
+
+(defn generate-password []
+  (apply str
+       (shuffle (concat
+                 (take 3 (repeatedly #(rand-nth (map char (range (int \A) (inc (int \Z)))))))
+                 (take 3 (repeatedly #(rand-nth (map char (range (int \a) (inc (int \z)))))))
+                 (take 1 (repeatedly #(rand-nth (map char (range (int \0) (inc (int \9)))))))))))
 
 (defn modular
   "Create a new modular project - TODO documentation show go here which
@@ -54,7 +70,7 @@
                                (and default?
                                     (not (contains? diminish-by assembly)))))
 
-        manifest (edn/read-string
+        manifest (load-edn-string
                   (stencil/render-string
                    (slurp (io/resource "manifest.edn"))
                    {:name name}))
@@ -91,12 +107,14 @@
                     (group-by (comp symbol namespace))))
 
               :components
-              (for [c components
-                    :let [ctr (:constructor c)]]
-                {:component (or (:key c) (:component c))
-                 :constructor (symbol (clojure.core/name ctr))
-                 :args (if (empty? (:args c)) ""
-                           (str " " (apply pr-str (:args c))))})
+              (->>
+               (for [c components
+                     :let [ctr (:constructor c)]]
+                 {:component (or (:key c) (:component c))
+                  :constructor (symbol (clojure.core/name ctr))
+                  :args (if (empty? (:args c)) ""
+                            (str " " (apply pr-str (:args c))))})
+               (sort-by :component))
 
               :modular-dir
               (str (System/getProperty "user.home") "/src/modular")
@@ -131,8 +149,11 @@
 
     (->files data
              ["project.clj" (render "project.clj" data)]
-             ["dev/dev.clj" (render "dev.clj" data)]
+             ["dev/dev.clj" (render "dev.clj" (assoc data "password" (format "\"%s\"" (generate-password))))]
              ["dev/user.clj" (render "user.clj" data)]
+
+             ["dev/dev_components.clj" (render "dev_components.clj" data)]
+
              ["src/{{sanitized}}/main.clj" (render "main.clj" data)]
 
              ["src/{{sanitized}}/system.clj" (render "system.clj" data)]
@@ -149,6 +170,9 @@
 
              ["src-cljs/{{sanitized}}/main.cljs" (render "main.cljs" data)]
 
+             ;; Log configuration
+             ["resources/logback.xml" (render "logback.xml" data)]
+
              ;; HTML
              ["resources/templates/page.html.mustache" (render "page.html.mustache")]
              ["resources/templates/home.html.mustache" (render "home.html.mustache")]
@@ -161,7 +185,8 @@
 
              ;; JS
              ["resources/public/js/bootstrap.min.js" (render "resources/bootstrap.min.js")]
-             ["resources/public/js/jquery.min.js" (render "resources/jquery.min.js")]
+             ["resources/public/js/jquery.min.js" (render "resources/jquery-2.1.1.min.js")]
+             ["resources/public/js/jquery.min.map" (render "resources/jquery-2.1.1.min.map")]
              ["resources/public/js/react.js" (render "resources/react-0.9.0.js")]
 
              )))
