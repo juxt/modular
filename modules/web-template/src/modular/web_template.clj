@@ -33,28 +33,3 @@
 
 (defn new-dependency-dynamic-template-model [& {:as static}]
   (->DependencyDynamicTemplateModel static))
-
-
-;; A special template model component supports both the static and
-;; request-sensitive contributors. Contributors are specified in
-;; dependencies. The constructor is given a deref'able system. It is
-;; rare that components must introspect the entire system. In the case
-;; of templates, however, there is many situations where circular
-;; dependencies can arise otherwise.
-
-(defrecord SystemDynamicTemplateModel [systemref]
-  DynamicTemplateData
-  (dynamic-template-data [this request]
-    (apply merge
-           (for [[k v] @systemref]
-             (cond
-              (= v this) nil     ; ignore self
-              (satisfies? TemplateData v)
-              {k (template-data v)}
-              (satisfies? DynamicTemplateData v)
-              {k (dynamic-template-data v request)})))))
-
-(defn new-system-dynamic-template-model [& {:as opts}]
-  (->> opts
-       (s/validate {:systemref (s/pred #(instance? clojure.lang.IDeref %))}) ; TODO Schema for a deref'able
-       map->SystemDynamicTemplateModel))
