@@ -1,6 +1,6 @@
 ;; Copyright © 2014 JUXT LTD.
 
-(defproject juxt.modular/menu "0.5.2"
+(defproject juxt.modular/menu "0.5.3-SNAPSHOT"
   :description "A modular extension that provides support for menus, navbars, and other navigation elements that house hyperlinks."
   :url "https://github.com/juxt/modular/tree/master/modules/nav"
   :license {:name "The MIT License"

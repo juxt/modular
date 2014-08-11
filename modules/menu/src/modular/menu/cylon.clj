@@ -7,7 +7,7 @@
 
 ;; Cylon
 
-(extend-type LoginForm
+(defrecord LoginFormMenuItems
   MenuItems
   (menu-items [component] [{:label (:label component)
                             :target :cylon.impl.authentication/GET-login-form
@@ -15,11 +15,11 @@
 
 (def new-login-form-schema {:label s/Str})
 
-(defn new-login-form
+(defn new-login-form-menu-items
   "Create a new login form component that has a specific label for its menu-item.
   menu-items."
   [& {:as opts}]
   (->> opts
        (merge {:label "Login"})
        (s/validate new-login-form-schema)
-       (merge (apply cylon/new-authentication-login-form (dissoc opts :label)))))
+       map->LoginFormMenuItems))
