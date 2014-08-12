@@ -1,6 +1,6 @@
 (defproject {{name}} "0.1.0-SNAPSHOT"
-  :description "FIXME: write description"
-  :url "http://example.com/FIXME"
+  :description "A modular project created with lein new modular"
+  :url "http://github.com/USER/{{name}}"
 
   :dependencies
   [
