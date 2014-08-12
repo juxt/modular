@@ -45,7 +45,7 @@
          (user-config)))
 
 (defn new-base-system-map
-  [config systemref]
+  [config]
   (system-map
    {{#components}}
    {{component}} (make {{constructor}} config{{{args}}})
@@ -57,8 +57,8 @@
 
 (defn new-production-system
   "Create the production system"
-  [systemref]
-  (let [s-map (new-base-system-map (config) systemref)
+  []
+  (let [s-map (new-base-system-map (config))
         d-map (new-base-dependency-map s-map)]
     (with-meta
       (component/system-using s-map d-map)

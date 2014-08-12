@@ -73,7 +73,8 @@
         manifest (load-edn-string
                   (stencil/render-string
                    (slurp (io/resource "manifest.edn"))
-                   {:name name}))
+                   {:name name
+                    :dev-password (format "\"%s\"" (generate-password))}))
 
         component-names (->> manifest :assemblies
                              (filter select-assembly?)
@@ -102,6 +103,18 @@
                                     :refers (apply str (interpose " " (distinct (map (comp clojure.core/name) v))))}))
                []
                (->> components
+                    (filter (comp not :dev?))
+                    (mapcat (juxt :constructor :requires))
+                    (remove nil?)
+                    (group-by (comp symbol namespace))))
+
+              :dev-requires
+              (reduce-kv
+               (fn [a k v] (conj a {:namespace k
+                                    :refers (apply str (interpose " " (distinct (map (comp clojure.core/name) v))))}))
+               []
+               (->> components
+                    (filter :dev?)
                     (mapcat (juxt :constructor :requires))
                     (remove nil?)
                     (group-by (comp symbol namespace))))
@@ -109,6 +122,19 @@
               :components
               (->>
                (for [c components
+                     :when (not (:dev? c))
+                     :let [ctr (:constructor c)]
+                     ]
+                 {:component (or (:key c) (:component c))
+                  :constructor (symbol (clojure.core/name ctr))
+                  :args (if (empty? (:args c)) ""
+                            (str " " (apply pr-str (:args c))))})
+               (sort-by :component))
+
+              :dev-components
+              (->>
+               (for [c components
+                     :when (:dev? c)
                      :let [ctr (:constructor c)]]
                  {:component (or (:key c) (:component c))
                   :constructor (symbol (clojure.core/name ctr))
@@ -149,7 +175,7 @@
 
     (->files data
              ["project.clj" (render "project.clj" data)]
-             ["dev/dev.clj" (render "dev.clj" (assoc data "password" (format "\"%s\"" (generate-password))))]
+             ["dev/dev.clj" (render "dev.clj" data)]
              ["dev/user.clj" (render "user.clj" data)]
 
              ["dev/dev_components.clj" (render "dev_components.clj" data)]

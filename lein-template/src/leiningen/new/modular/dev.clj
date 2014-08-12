@@ -6,8 +6,12 @@
    [clojure.tools.namespace.repl :refer (refresh refresh-all)]
    [com.stuartsierra.component :as component]
    [{{name}}.system :refer (config new-base-system-map new-base-dependency-map)]
-   [dev-components :refer (new-user-domain-seeder
-                           wrap-schema-validation)]
+   [modular.maker :refer (make)]
+   [dev-components :refer (wrap-schema-validation)]
+   {{#dev-requires}}
+   [{{namespace}} :refer ({{{refers}}})]
+   {{/dev-requires}}
+
    [modular.wire-up :refer (normalize-dependency-map)]))
 
 (def system nil)
@@ -36,14 +40,16 @@
 (defn new-dev-system
   "Create a development system"
   []
-  (let [systemref (new-system-wrapper)
+  (let [config (config)
+        ;; System can be referred to by dev 'tools' components (to help
+        ;; debugging)
+        systemref (new-system-wrapper)
         s-map (->
-               (new-base-system-map (config) systemref)
+               (new-base-system-map config)
                (assoc
-                 :user-domain-seeder
-                 (component/using
-                  (new-user-domain-seeder :users [{:id "dev" :password {{{password}}}}])
-                  {:cylon/user-domain :cylon/user-domain})
+                 {{#dev-components}}
+                 {{component}} (make {{constructor}} config{{{args}}})
+                 {{/dev-components}}
                  :wrap-schema-validation wrap-schema-validation))
         d-map (merge-with merge
                           (normalize-dependency-map

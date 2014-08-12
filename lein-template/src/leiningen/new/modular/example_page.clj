@@ -7,11 +7,10 @@
    [modular.web-template :refer (dynamic-template-data)]
    [clostache.parser :refer (render-resource)]
    [plumbing.core :refer (<-)]
+   [schema.core :as s]
    [hiccup.core :refer (html)]))
 
-(defrecord ExamplePage [label content key path order]
-  MenuItems
-  (menu-items [_] [{:label label :target key :order order}])
+(defrecord ExamplePage [title content key path]
   WebService
   (request-handlers [this]
     {key (fn [req]
@@ -23,18 +22,27 @@
                (assoc model
                  :content (html [:div.container
                                  [:div.page-header
-                                  [:h1 label]
+                                  [:h1 title]
                                   [:p content]]]))))})})
   (routes [_] ["" {path key}])
   (uri-context [_] ""))
 
 (defn new-example-page [& {:as opts}]
-  (let [label (or (:label opts) "Page")
-        sanitized (str/replace label #"\s+" "")]
-    (->> opts
-         (merge {:label label
-                 :content "Blank"
-                 :key (keyword (.toLowerCase sanitized))
-                 :path (str "/" (.toLowerCase sanitized))})
-         map->ExamplePage
-         (<- (using [:template-model])))))
+  (->> opts
+       (merge {:content "Blank"})
+       (s/validate {:title s/Str
+                    :content s/Str
+                    :key s/Keyword
+                    :path s/Str})
+       map->ExamplePage
+       (<- (using [:template-model]))))
+
+(defrecord ExamplePageMenuItems [label target order]
+  MenuItems
+  (menu-items [_] [{:label label :target target :order order}]))
+
+(defn new-example-page-menu-items [& {:as opts}]
+  (->> opts
+       (s/validate {:label s/Str
+                    :target s/Keyword})
+       map->ExamplePageMenuItems))
