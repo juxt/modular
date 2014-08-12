@@ -2,18 +2,16 @@
   (:require
    [modular.menu :refer (MenuItems)]
    [cylon.impl.authentication :as cylon]
-   [schema.core :as s])
-  (:import (cylon.impl.authentication LoginForm)))
+   [schema.core :as s]))
 
 ;; Cylon
 
-(defrecord LoginFormMenuItems
+(defrecord LoginFormMenuItems [label]
   MenuItems
-  (menu-items [component] [{:label (:label component)
-                            :target :cylon.impl.authentication/GET-login-form
-                            :order \Z}]))
-
-(def new-login-form-schema {:label s/Str})
+  (menu-items [component]
+    [{:label label
+      :target :cylon.impl.authentication/GET-login-form
+      :order \Z}]))
 
 (defn new-login-form-menu-items
   "Create a new login form component that has a specific label for its menu-item.
@@ -21,5 +19,5 @@
   [& {:as opts}]
   (->> opts
        (merge {:label "Login"})
-       (s/validate new-login-form-schema)
+       (s/validate {:label s/Str})
        map->LoginFormMenuItems))
