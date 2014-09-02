@@ -11,5 +11,6 @@
                  [prismatic/plumbing "0.2.2"]
                  [hiccup "1.0.5"]
                  [garden "1.1.5"]
+                 [juxt.modular/menu "0.5.3"]
                  [juxt.modular/web-template "0.5.1"]
                  [juxt.modular/bidi "0.5.2"]])
