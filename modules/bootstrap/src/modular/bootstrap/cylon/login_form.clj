@@ -38,7 +38,7 @@
     (wrap-content-in-boilerplate bp req content)
     content))
 
-(defrecord BootstrapLoginFormRenderer []
+(defrecord BootstrapLoginFormRenderer [prompt]
   LoginFormRenderer
   (render-login-form
     [this req model]
@@ -53,7 +53,7 @@
                            :style "border: 1px dotted #555"
                            :action (-> model :form :action)}
 
-        [:h2.form-signin-heading "&nbsp;&nbsp;Please sign in&#8230"]
+        [:h2.form-signin-heading prompt]
 
         #_(when login-status
             [:div.alert.alert-warning.alert-dismissable
@@ -81,8 +81,12 @@
         #_[:a {:href "#"} "Reset password"]
         ]]))))
 
+(def new-bootstrap-login-form-renderer-schema
+  {(s/optional-key :boilerplate) (s/protocol ContentBoilerplate)
+   :prompt s/Str})
+
 (defn new-bootstrap-login-form-renderer [& {:as opts}]
   (->> opts
-       (merge {})
-       (s/validate {(s/optional-key :boilerplate) (s/protocol ContentBoilerplate)})
+       (merge {:prompt "Please sign in&#8230"})
+       (s/validate new-bootstrap-login-form-renderer-schema)
        map->BootstrapLoginFormRenderer))
