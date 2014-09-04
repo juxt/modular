@@ -5,6 +5,7 @@
    [clojure.tools.logging :refer :all]
    [modular.bootstrap :refer (ContentBoilerplate wrap-content-in-boilerplate)]
    [cylon.impl.authentication :refer (LoginFormRenderer)]
+   [cylon.impl.signup :refer (SignupFormRenderer)]
    [hiccup.core :refer (html h)]
    [garden.core :refer (css)]
    [garden.units :refer (pt em px)]
@@ -90,3 +91,47 @@
        (merge {:prompt "Please sign in&#8230"})
        (s/validate new-bootstrap-login-form-renderer-schema)
        map->BootstrapLoginFormRenderer))
+
+;; Sign up users
+
+(defrecord BootstrapSignupFormRenderer [prompt]
+  SignupFormRenderer
+  (render-signup-form
+    [this req model]
+    (debugf "Model passed to form renderer: %s" model)
+    (boilerplate
+     this req
+     (html
+      [:div
+       [:style (styles)]
+       [:form.form-signin {:role :form
+                           :method (-> model :form :method)
+                           :style "border: 1px dotted #555"
+                           :action (-> model :form :action)}
+
+        [:h2.form-signin-heading prompt]
+
+        (for [[n {:keys [name password? placeholder required autofocus value]}]
+              (map vector (range) (-> model :form :fields))]
+          [:input.form-control
+           (merge
+            {:name name
+             :type (if password? "password" "text")
+             :value value}
+            (when placeholder {:placeholder placeholder})
+            (when required {:required required})
+            (when autofocus {:autofocus autofocus}))])
+
+        [:button.btn.btn-lg.btn-primary.btn-block {:type "submit"} "Sign up"]
+
+        ]]))))
+
+(def new-bootstrap-signup-form-renderer-schema
+  {(s/optional-key :boilerplate) (s/protocol ContentBoilerplate)
+   :prompt s/Str})
+
+(defn new-bootstrap-signup-form-renderer [& {:as opts}]
+  (->> opts
+       (merge {:prompt "Please sign up&#8230"})
+       (s/validate new-bootstrap-signup-form-renderer-schema)
+       map->BootstrapSignupFormRenderer))
