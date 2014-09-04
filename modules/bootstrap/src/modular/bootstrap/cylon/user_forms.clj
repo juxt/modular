@@ -1,6 +1,6 @@
 ;; Copyright © 2014 JUXT LTD.
 
-(ns modular.bootstrap.cylon.login-form
+(ns modular.bootstrap.cylon.user-forms
   (:require
    [clojure.tools.logging :refer :all]
    [modular.bootstrap :refer (ContentBoilerplate wrap-content-in-boilerplate)]
@@ -39,7 +39,7 @@
     (wrap-content-in-boilerplate bp req content)
     content))
 
-(defrecord BootstrapLoginFormRenderer [prompt]
+(defrecord BootstrapUserFormRenderer [login-prompt signup-prompt]
   LoginFormRenderer
   (render-login-form
     [this req model]
@@ -54,7 +54,7 @@
                            :style "border: 1px dotted #555"
                            :action (-> model :form :action)}
 
-        [:h2.form-signin-heading prompt]
+        [:h2.form-signin-heading login-prompt]
 
         #_(when login-status
             [:div.alert.alert-warning.alert-dismissable
@@ -74,27 +74,14 @@
             (when autofocus {:autofocus autofocus}))])
 
         #_[:label.checkbox
-         [:input {:name "remember" :type :checkbox :value "remember-me"} "Remember me"]]
+           [:input {:name "remember" :type :checkbox :value "remember-me"} "Remember me"]]
 
         [:button.btn.btn-lg.btn-primary.btn-block {:type "submit"} "Sign in"]
 
         #_[:p]
         #_[:a {:href "#"} "Reset password"]
-        ]]))))
+        ]])))
 
-(def new-bootstrap-login-form-renderer-schema
-  {(s/optional-key :boilerplate) (s/protocol ContentBoilerplate)
-   :prompt s/Str})
-
-(defn new-bootstrap-login-form-renderer [& {:as opts}]
-  (->> opts
-       (merge {:prompt "Please sign in&#8230"})
-       (s/validate new-bootstrap-login-form-renderer-schema)
-       map->BootstrapLoginFormRenderer))
-
-;; Sign up users
-
-(defrecord BootstrapSignupFormRenderer [prompt]
   SignupFormRenderer
   (render-signup-form
     [this req model]
@@ -109,7 +96,7 @@
                            :style "border: 1px dotted #555"
                            :action (-> model :form :action)}
 
-        [:h2.form-signin-heading prompt]
+        [:h2.form-signin-heading signup-prompt]
 
         (for [[n {:keys [name password? placeholder required autofocus value]}]
               (map vector (range) (-> model :form :fields))]
@@ -126,12 +113,14 @@
 
         ]]))))
 
-(def new-bootstrap-signup-form-renderer-schema
+(def new-bootstrap-user-form-renderer-schema
   {(s/optional-key :boilerplate) (s/protocol ContentBoilerplate)
-   :prompt s/Str})
+   :login-prompt s/Str
+   :signup-prompt s/Str})
 
-(defn new-bootstrap-signup-form-renderer [& {:as opts}]
+(defn new-bootstrap-user-form-renderer [& {:as opts}]
   (->> opts
-       (merge {:prompt "Please sign up&#8230"})
-       (s/validate new-bootstrap-signup-form-renderer-schema)
-       map->BootstrapSignupFormRenderer))
+       (merge {:login-prompt "Please sign in&#8230"
+               :signup-prompt "Please sign up&#8230"})
+       (s/validate new-bootstrap-user-form-renderer-schema)
+       map->BootstrapUserFormRenderer))
