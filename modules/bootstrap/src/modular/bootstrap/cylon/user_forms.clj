@@ -5,7 +5,7 @@
    [clojure.tools.logging :refer :all]
    [modular.bootstrap :refer (ContentBoilerplate wrap-content-in-boilerplate)]
    [cylon.impl.authentication :refer (LoginFormRenderer)]
-   [cylon.impl.signup :refer (SignupFormRenderer)]
+   [cylon.impl.signup :refer (SignupFormRenderer EmailVerifiedRenderer)]
    [hiccup.core :refer (html h)]
    [garden.core :refer (css)]
    [garden.units :refer (pt em px)]
@@ -111,7 +111,19 @@
 
         [:button.btn.btn-lg.btn-primary.btn-block {:type "submit"} "Sign up"]
 
-        ]]))))
+        ]])))
+   EmailVerifiedRenderer
+   (render-email-verified [this req model]
+     (boilerplate
+      this req
+      (html
+       [:div
+        [:style (styles)]
+        (:message model)
+        ]))
+     )
+
+  )
 
 (def new-bootstrap-user-form-renderer-schema
   {(s/optional-key :boilerplate) (s/protocol ContentBoilerplate)
