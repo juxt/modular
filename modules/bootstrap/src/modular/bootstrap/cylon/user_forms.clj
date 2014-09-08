@@ -5,7 +5,7 @@
    [clojure.tools.logging :refer :all]
    [modular.bootstrap :refer (ContentBoilerplate wrap-content-in-boilerplate)]
    [cylon.impl.authentication :refer (LoginFormRenderer)]
-   [cylon.impl.signup :refer (SignupFormRenderer EmailVerifiedRenderer)]
+   [cylon.impl.signup :refer (SignupFormRenderer EmailVerifiedRenderer ResetPasswordRenderer)]
    [hiccup.core :refer (html h)]
    [garden.core :refer (css)]
    [garden.units :refer (pt em px)]
@@ -39,7 +39,7 @@
     (wrap-content-in-boilerplate bp req content)
     content))
 
-(defrecord BootstrapUserFormRenderer [login-prompt signup-prompt]
+(defrecord BootstrapUserFormRenderer [login-prompt signup-prompt reset-pw-prompt]
   LoginFormRenderer
   (render-login-form
     [this req model]
@@ -123,16 +123,48 @@
         ]))
      )
 
+    ResetPasswordRenderer
+    (render-reset-password [this req model]
+      (boilerplate
+       this req
+       (html
+        [:div
+         [:style (styles)]
+         [:form.form-signin {:role :form
+                             :method (-> model :form :method)
+                             :style "border: 1px dotted #555"
+                             :action (-> model :form :action)}
+
+          [:h2.form-signin-heading reset-pw-prompt]
+
+          (for [[n {:keys [name password? placeholder required autofocus value]}]
+                (map vector (range) (-> model :form :fields))]
+            [:input.form-control
+             (merge
+              {:name name
+               :type (if password? "password" "text")
+               :value value}
+              (when placeholder {:placeholder placeholder})
+              (when required {:required required})
+              (when autofocus {:autofocus autofocus}))])
+
+          [:button.btn.btn-lg.btn-primary.btn-block {:type "submit"} "Reset Pw"]
+
+          ]]))
+      )
+
   )
 
 (def new-bootstrap-user-form-renderer-schema
   {(s/optional-key :boilerplate) (s/protocol ContentBoilerplate)
    :login-prompt s/Str
-   :signup-prompt s/Str})
+   :signup-prompt s/Str
+   :reset-pw-prompt s/Str})
 
 (defn new-bootstrap-user-form-renderer [& {:as opts}]
   (->> opts
        (merge {:login-prompt "Please sign in&#8230"
-               :signup-prompt "Please sign up&#8230"})
+               :signup-prompt "Please sign up&#8230"
+               :reset-pw-prompt "Reset your password&#8230"})
        (s/validate new-bootstrap-user-form-renderer-schema)
        map->BootstrapUserFormRenderer))
