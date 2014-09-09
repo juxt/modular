@@ -4,22 +4,33 @@
    [clojure.java.io :as io]
    [leiningen.new.modular :refer (modular)]))
 
-(defn delete-dir [dir inclusive?]
-  (doseq [f (.listFiles dir)]
-    (cond
-     (.isDirectory f) (delete-dir f true)
-     (.isFile f)
-     (io/delete-file f)))
-  (when inclusive? (io/delete-file dir true)))
+(defn delete-dir
+  ;; Sometimes we don't want to delete the top-level directory because
+  ;; it forces us to cd back into it from the shell when testing.
+  ([dir] (delete-dir dir false))
+  ([dir inclusive?]
+     (when (.exists dir)
+       (doseq [f (.listFiles dir)]
+         (cond
+          (.isDirectory f) (delete-dir f true)
+          (.isFile f)
+          (io/delete-file f)))
+       (when inclusive? (io/delete-file dir true)))))
 
 (defn get-tmp-dir []
-  (io/file (System/getProperty "java.io.tmpdir") "modular-lein-template"))
+  (doto
+      (io/file (System/getProperty "java.io.tmpdir") "modular-lein-template")
+    (.mkdirs)))
 
 (defn generate-project [name & args]
+  (println "Generate project")
   (let [dir (get-tmp-dir)
         projectdir (io/file dir name)]
-    (delete-dir projectdir false)
-    (binding [leiningen.new.templates/*dir* projectdir]
+    (println "Deleting directory" projectdir)
+    (delete-dir projectdir)
+    (binding [leiningen.new.templates/*dir* projectdir
+              leiningen.new.templates/*force?* true]
+      (println "Applying modular")
       (apply modular name args))))
 
 #_(defn project-fixture [f]
