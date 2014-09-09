@@ -2,6 +2,7 @@
 
 (ns modular.bootstrap.cylon.user-forms
   (:require
+   [com.stuartsierra.component :as component]
    [clojure.tools.logging :refer :all]
    [modular.bootstrap :refer (ContentBoilerplate wrap-content-in-boilerplate)]
    [cylon.impl.authentication :refer (LoginFormRenderer)]
@@ -112,46 +113,47 @@
         [:button.btn.btn-lg.btn-primary.btn-block {:type "submit"} "Sign up"]
 
         ]])))
-   EmailVerifiedRenderer
-   (render-email-verified [this req model]
-     (boilerplate
-      this req
-      (html
-       [:div
-        [:style (styles)]
-        (:message model)
-        ]))
-     )
 
-    ResetPasswordRenderer
-    (render-reset-password [this req model]
-      (boilerplate
-       this req
-       (html
-        [:div
-         [:style (styles)]
-         [:form.form-signin {:role :form
-                             :method (-> model :form :method)
-                             :style "border: 1px dotted #555"
-                             :action (-> model :form :action)}
+  EmailVerifiedRenderer
+  (render-email-verified [this req model]
+    (boilerplate
+     this req
+     (html
+      [:div
+       [:style (styles)]
+       (:message model)
+       ]))
+    )
 
-          [:h2.form-signin-heading reset-pw-prompt]
+  ResetPasswordRenderer
+  (render-reset-password [this req model]
+    (boilerplate
+     this req
+     (html
+      [:div
+       [:style (styles)]
+       [:form.form-signin {:role :form
+                           :method (-> model :form :method)
+                           :style "border: 1px dotted #555"
+                           :action (-> model :form :action)}
 
-          (for [[n {:keys [name password? placeholder required autofocus value]}]
-                (map vector (range) (-> model :form :fields))]
-            [:input.form-control
-             (merge
-              {:name name
-               :type (if password? "password" "text")
-               :value value}
-              (when placeholder {:placeholder placeholder})
-              (when required {:required required})
-              (when autofocus {:autofocus autofocus}))])
+        [:h2.form-signin-heading reset-pw-prompt]
 
-          [:button.btn.btn-lg.btn-primary.btn-block {:type "submit"} "Reset Pw"]
+        (for [[n {:keys [name password? placeholder required autofocus value]}]
+              (map vector (range) (-> model :form :fields))]
+          [:input.form-control
+           (merge
+            {:name name
+             :type (if password? "password" "text")
+             :value value}
+            (when placeholder {:placeholder placeholder})
+            (when required {:required required})
+            (when autofocus {:autofocus autofocus}))])
 
-          ]]))
-      )
+        [:button.btn.btn-lg.btn-primary.btn-block {:type "submit"} "Reset Pw"]
+
+        ]]))
+    )
 
   )
 
@@ -162,9 +164,11 @@
    :reset-pw-prompt s/Str})
 
 (defn new-bootstrap-user-form-renderer [& {:as opts}]
-  (->> opts
-       (merge {:login-prompt "Please sign in&#8230"
-               :signup-prompt "Please sign up&#8230"
-               :reset-pw-prompt "Reset your password&#8230"})
-       (s/validate new-bootstrap-user-form-renderer-schema)
-       map->BootstrapUserFormRenderer))
+  (component/using
+   (->> opts
+        (merge {:login-prompt "Please sign in&#8230"
+                :signup-prompt "Please sign up&#8230"
+                :reset-pw-prompt "Reset your password&#8230"})
+        (s/validate new-bootstrap-user-form-renderer-schema)
+        map->BootstrapUserFormRenderer)
+   [:boilerplate]))
