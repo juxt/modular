@@ -3,7 +3,7 @@
 (ns leiningen.new.modular
   (:refer-clojure :exclude (split read *data-readers*))
   (:require
-   [leiningen.new.templates :refer [renderer sanitize year name-to-path ->files *dir*]]
+   [leiningen.new.templates :refer [renderer sanitize year name-to-path ->files *dir* *force?*]]
    [leiningen.core.main :as main]
    [clojure.edn :as edn]
    [clojure.java.io :as io]
