@@ -6,7 +6,7 @@
    [clojure.tools.logging :refer :all]
    [modular.bootstrap :refer (ContentBoilerplate wrap-content-in-boilerplate)]
    [cylon.impl.authentication :refer (LoginFormRenderer)]
-   [cylon.impl.signup :refer (SignupFormRenderer EmailVerifiedRenderer ResetPasswordRenderer)]
+   [cylon.impl.signup :refer (SignupFormRenderer EmailVerifiedRenderer ResetPasswordRenderer WelcomeRenderer)]
    [hiccup.core :refer (html h)]
    [garden.core :refer (css)]
    [garden.units :refer (pt em px)]
@@ -113,6 +113,27 @@
         [:button.btn.btn-lg.btn-primary.btn-block {:type "submit"} "Sign up"]
 
         ]])))
+
+  WelcomeRenderer
+  (render-welcome
+    [this req model]
+    (debugf "Model passed to form renderer: %s" model)
+    (boilerplate
+     this req
+     (html
+      [:div
+       [:style (styles)]
+       (-> model :message)
+       [:form.form-signin {:role :form
+                           :method (-> model :form :method)
+                           :style "border: 1px dotted #555"
+                           :action (-> model :form :action)}
+
+
+        [:button.btn.btn-lg.btn-primary.btn-block {:type "submit"} "continue"]
+
+        ]])))
+
 
   EmailVerifiedRenderer
   (render-email-verified [this req model]
