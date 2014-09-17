@@ -5,8 +5,10 @@
    [com.stuartsierra.component :as component]
    [clojure.tools.logging :refer :all]
    [modular.bootstrap :refer (ContentBoilerplate wrap-content-in-boilerplate)]
+   [modular.bidi :refer (path-for)]
    [cylon.impl.authentication :refer (LoginFormRenderer)]
-   [cylon.impl.signup :refer (SignupFormRenderer EmailVerifiedRenderer ResetPasswordRenderer WelcomeRenderer)]
+   [cylon.signup.protocols :refer (SignupFormRenderer EmailVerifiedRenderer ResetPasswordRenderer WelcomeRenderer)]
+   [cylon.totp :as totp]
    [hiccup.core :refer (html h)]
    [garden.core :refer (css)]
    [garden.units :refer (pt em px)]
@@ -22,6 +24,7 @@
                    :margin "40px auto"}
     [:.form-signin-heading :.checkbox {:margin-bottom (px 10)}]
     [:.checkbox [:font-weight :normal]]
+    [:p.note {:font-size "70%"}]
     [:.form-control {:position :relative
                      :height :auto
                      :box-sizing :border-box
@@ -40,7 +43,7 @@
     (wrap-content-in-boilerplate bp req content)
     content))
 
-(defrecord BootstrapUserFormRenderer [login-prompt signup-prompt reset-pw-prompt]
+(defrecord BootstrapUserFormRenderer [login-prompt signup-prompt reset-pw-prompt totp-appname]
   LoginFormRenderer
   (render-login-form
     [this req model]
@@ -78,6 +81,12 @@
            [:input {:name "remember" :type :checkbox :value "remember-me"} "Remember me"]]
 
         [:button.btn.btn-lg.btn-primary.btn-block {:type "submit"} "Sign in"]
+
+        [:p]
+
+        [:div
+         (when-let [signup-uri (-> model :form :signup-uri)]
+           [:p.note  "Don't have an account? " [:a {:href signup-uri} "Sign up"]])]
 
         #_[:p]
         #_[:a {:href "#"} "Reset password"]
@@ -123,17 +132,24 @@
      (html
       [:div
        [:style (styles)]
-       (-> model :message)
-       [:form.form-signin {:role :form
-                           :method (-> model :form :method)
-                           :style "border: 1px dotted #555"
-                           :action (-> model :form :action)}
+       [:div
+        [:p (:name model) ", thank you for signing up. Your user-id is "
+         [:tt (:cylon/subject-identifier model)]]
 
-
-        [:button.btn.btn-lg.btn-primary.btn-block {:type "submit"} "continue"]
-
-        ]])))
-
+        (when-let [totp-secret (:totp-secret model)]
+          [:div
+           [:p "Please scan this image into your 2-factor authentication app"]
+           [:img {:src (totp/qr-code
+                        (format "%s@%s" (:cylon/subject-identifier model)
+                                totp-appname)
+                        totp-secret)}]
+           [:p "Alternatively, type in this secret into your authenticator application: "
+            [:code totp-secret]]])
+        [:p "We have sent you an email containing a personal verification code. Please check your email and click on the verification link contained in the email."]
+        [:div
+         [:p "Model..."]
+         [:pre (h (pr-str model))]]
+        [:p "Now proceed to " (path-for req :devices)]]])))
 
   EmailVerifiedRenderer
   (render-email-verified [this req model]
@@ -173,13 +189,11 @@
 
         [:button.btn.btn-lg.btn-primary.btn-block {:type "submit"} "Reset Pw"]
 
-        ]]))
-    )
-
-  )
+        ]]))))
 
 (def new-bootstrap-user-form-renderer-schema
   {(s/optional-key :boilerplate) (s/protocol ContentBoilerplate)
+   (s/optional-key :totp-appname) s/Str
    :login-prompt s/Str
    :signup-prompt s/Str
    :reset-pw-prompt s/Str})
@@ -189,7 +203,8 @@
    (->> opts
         (merge {:login-prompt "Please sign in&#8230"
                 :signup-prompt "Please sign up&#8230"
-                :reset-pw-prompt "Reset your password&#8230"})
+                :reset-pw-prompt "Reset your password&#8230"
+                :totp-appname "cylon"})
         (s/validate new-bootstrap-user-form-renderer-schema)
         map->BootstrapUserFormRenderer)
    [:boilerplate]))
