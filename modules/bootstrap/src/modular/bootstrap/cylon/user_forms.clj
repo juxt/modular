@@ -149,7 +149,7 @@
         [:div
          [:p "Model..."]
          [:pre (h (pr-str model))]]
-        [:p "Now proceed to " (path-for req :devices)]]])))
+        [:p "Now proceed to " [:a {:href (:redirection-uri model)} "continue"]]]])))
 
   EmailVerifiedRenderer
   (render-email-verified [this req model]
