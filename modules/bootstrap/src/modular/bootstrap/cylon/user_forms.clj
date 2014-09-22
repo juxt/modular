@@ -173,6 +173,11 @@
                            :action (-> model :form :action)}
 
         [:h2.form-signin-heading reset-pw-prompt]
+        (when (-> model :reset-status)
+            [:div.alert.alert-warning.alert-dismissable
+             [:button.close {:type "button" :data-dismiss "alert" :aria-hidden "true"} "&times;"]
+             [:span [:strong "Failed: "]
+                      (-> model :reset-status)]])
 
         (for [[n {:keys [name password? placeholder required autofocus value]}]
               (map vector (range) (-> model :form :fields))]
@@ -185,7 +190,7 @@
             (when required {:required required})
             (when autofocus {:autofocus autofocus}))])
 
-        [:button.btn.btn-lg.btn-primary.btn-block {:type "submit"} "Reset Pw"]
+        [:button.btn.btn-lg.btn-primary.btn-block {:type "submit"} "Reset Password"]
 
         ]]))))
 
