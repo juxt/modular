@@ -154,9 +154,15 @@
     (boilerplate
      this req
      (html
-      [:div
-       [:style (styles)]
-       (:message model)
+      [:div.row {:style "padding-top: 50px"}
+       [:div.col-md-2]
+       [:div.col-md-10
+        [:h2  (:header model)]]]
+      [:div.row
+       [:div.col-md-2]
+       [:div.col-md-10
+        [:style (styles)]
+        (:message model)]
        ]))
     )
 
