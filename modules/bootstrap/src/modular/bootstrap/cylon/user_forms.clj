@@ -86,7 +86,9 @@
 
         [:div
          (when-let [signup-uri (-> model :form :signup-uri)]
-           [:p.note  "Don't have an account? " [:a {:href signup-uri} "Sign up"]])]
+           [:p.note  "Don't have an account? " [:a {:href signup-uri} "Sign up"]])
+         (when-let [reset-uri (-> model :form :reset-uri)]
+           [:p.note  "Have you forgotten your password? " [:a {:href reset-uri} "Reset"]])]
 
         #_[:p]
         #_[:a {:href "#"} "Reset password"]
