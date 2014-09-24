@@ -7,7 +7,7 @@
    [modular.bootstrap :refer (ContentBoilerplate wrap-content-in-boilerplate)]
    [modular.bidi :refer (path-for)]
    [cylon.impl.authentication :refer (LoginFormRenderer)]
-   [cylon.signup.protocols :refer (SignupFormRenderer EmailVerifiedRenderer ResetPasswordRenderer WelcomeRenderer)]
+   [cylon.signup.protocols :refer (SignupFormRenderer SimpleMessageRenderer RequestResetPasswordFormRenderer WelcomeRenderer)]
    [cylon.totp :as totp]
    [hiccup.core :refer (html h)]
    [garden.core :refer (css)]
@@ -43,7 +43,10 @@
     (wrap-content-in-boilerplate bp req content)
     content))
 
-(defrecord BootstrapUserFormRenderer [login-prompt signup-prompt reset-pw-prompt totp-appname]
+(defrecord BootstrapUserFormRenderer [login-prompt
+                                      signup-prompt
+                                      reset-password-request-prompt
+                                      totp-appname]
   LoginFormRenderer
   (render-login-form
     [this req model]
@@ -149,25 +152,23 @@
          [:pre (h (pr-str model))]]
         (when (:redirection-uri model) [:p "Now proceed to " [:a {:href (:redirection-uri model)} "continue"]])]])))
 
-  EmailVerifiedRenderer
-  (render-email-verified [this req model]
+  SimpleMessageRenderer
+  (render-simple-message [this req model]
     (boilerplate
      this req
      (html
       [:div.row {:style "padding-top: 50px"}
        [:div.col-md-2]
        [:div.col-md-10
-        [:h2  (:header model)]]]
+        [:h2 (:header model)]]]
       [:div.row
        [:div.col-md-2]
        [:div.col-md-10
         [:style (styles)]
-        (:message model)]
-       ]))
-    )
+        (:message model)]])))
 
-  ResetPasswordRenderer
-  (render-reset-password [this req model]
+  RequestResetPasswordFormRenderer
+  (render-request-reset-password-form [this req model]
     (boilerplate
      this req
      (html
@@ -178,7 +179,7 @@
                            :style "border: 1px dotted #555"
                            :action (-> model :form :action)}
 
-        [:h2.form-signin-heading reset-pw-prompt]
+        [:h2.form-signin-heading reset-password-request-prompt]
         (when (-> model :reset-status)
             [:div.alert.alert-warning.alert-dismissable
              [:button.close {:type "button" :data-dismiss "alert" :aria-hidden "true"} "&times;"]
@@ -212,7 +213,7 @@
    (->> opts
         (merge {:login-prompt "Please sign in&#8230"
                 :signup-prompt "Please sign up&#8230"
-                :reset-pw-prompt "Reset your password&#8230"
+                :reset-password-request-prompt "Reset your password&#8230"
                 :totp-appname "cylon"})
         (s/validate new-bootstrap-user-form-renderer-schema)
         map->BootstrapUserFormRenderer)
