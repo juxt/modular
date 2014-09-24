@@ -206,7 +206,7 @@
    (s/optional-key :totp-appname) s/Str
    :login-prompt s/Str
    :signup-prompt s/Str
-   :reset-pw-prompt s/Str})
+   :reset-password-request-prompt s/Str})
 
 (defn new-bootstrap-user-form-renderer [& {:as opts}]
   (component/using
