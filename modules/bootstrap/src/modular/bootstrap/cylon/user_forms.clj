@@ -1,12 +1,11 @@
 ;; Copyright © 2014 JUXT LTD.
-
 (ns modular.bootstrap.cylon.user-forms
   (:require
    [com.stuartsierra.component :as component]
    [clojure.tools.logging :refer :all]
    [modular.bootstrap :refer (ContentBoilerplate wrap-content-in-boilerplate)]
    [modular.bidi :refer (path-for)]
-   [cylon.impl.authentication :refer (LoginFormRenderer)]
+   [cylon.authentication.login :refer (LoginFormRenderer)]
    [cylon.signup.protocols :refer (SignupFormRenderer SimpleMessageRenderer RequestResetPasswordFormRenderer WelcomeRenderer)]
    [cylon.totp :as totp]
    [hiccup.core :refer (html h)]
@@ -62,6 +61,10 @@
                            :action (-> model :form :action)}
 
         [:h2.form-signin-heading login-prompt]
+
+        ;; When post-login-redirect is given, pass it through post_login-redirect
+        (when-let [post-login-redirect (-> model :form :post-login-redirect)]
+          [:input {:type "hidden" :name "post_login_redirect" :value post-login-redirect}])
 
         #_(when login-status
             [:div.alert.alert-warning.alert-dismissable
@@ -153,19 +156,19 @@
         (when (:redirection-uri model) [:p "Now proceed to " [:a {:href (:redirection-uri model)} "continue"]])]])))
 
   SimpleMessageRenderer
-  (render-simple-message [this req model]
+  (render-simple-message [this req heading message]
     (boilerplate
      this req
      (html
       [:div.row {:style "padding-top: 50px"}
        [:div.col-md-2]
        [:div.col-md-10
-        [:h2 (:header model)]]]
+        [:h2 heading]]]
       [:div.row
        [:div.col-md-2]
        [:div.col-md-10
         [:style (styles)]
-        (:message model)]])))
+        message]])))
 
   RequestResetPasswordFormRenderer
   (render-request-reset-password-form [this req model]
