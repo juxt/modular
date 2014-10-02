@@ -1,6 +1,6 @@
 ;; Copyright © 2014 JUXT LTD.
 
-(defproject juxt.modular/async "0.5.1"
+(defproject juxt.modular/async "0.5.2-SNAPSHOT"
   :description "A modular extension that provides support core.async"
   :url "https://github.com/juxt/modular/tree/master/modules/http-kit"
   :license {:name "The MIT License"
