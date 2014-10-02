@@ -1,6 +1,6 @@
 ;; Copyright © 2014 JUXT LTD.
 
-(defproject juxt.modular/bootstrap "0.2.0-SNAPSHOT"
+(defproject juxt.modular/bootstrap "0.2.0"
   :description "A modular extension that HTML rendering of components with the Twitter Bootstrap library."
   :url "https://github.com/juxt/modular/tree/master/modules/bootstrap"
   :license {:name "The MIT License"
