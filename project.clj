@@ -41,7 +41,8 @@
         ;;        "modules/jetty" ; HTTP server
         ]
 
-  :dependencies [[org.clojure/tools.logging "0.2.6"]]
+  :dependencies [[org.clojure/clojure "1.6.0"]
+                 [org.clojure/tools.logging "0.2.6"]]
 
   :repl-options {:prompt (fn [ns] (str "modular " ns "> "))}
 
