@@ -7,7 +7,7 @@
    [org.clojure/clojure "1.6.0"]
    [org.clojure/tools.reader "0.8.3"]
    [org.clojure/tools.logging "0.2.6"]
-   [com.stuartsierra/component "0.2.1"]
+   [com.stuartsierra/component "0.2.2"]
    [prismatic/schema "0.2.1"]
    [prismatic/plumbing "0.2.2"]
 
