@@ -19,8 +19,6 @@
   "Create a development system"
   []
   (let [config (config)
-        ;; System can be referred to by dev 'tools' components (to help
-        ;; debugging)
         s-map (->
                (new-base-system-map config)
                (assoc
