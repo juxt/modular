@@ -1,14 +1,14 @@
 ;; Copyright © 2014 JUXT LTD.
 
 (ns leiningen.new.modular
-  (:refer-clojure :exclude (split read *data-readers*))
+  (:refer-clojure :exclude (split read *data-readers* replace))
   (:require
    [leiningen.new.templates :refer [renderer sanitize year name-to-path ->files *dir* *force?*]]
    [leiningen.core.main :as main]
    [clojure.edn :as edn]
    [clojure.java.io :as io]
    [clojure.pprint :refer (pprint)]
-   [clojure.string :refer (split trim)]
+   [clojure.string :refer (split trim replace)]
    [clojure.set :as set]
    [stencil.core :as stencil]
    [clojure.tools.reader :refer (read *data-readers*)]
@@ -16,6 +16,13 @@
    ))
 
 (def render (renderer "modular"))
+
+(def KEY-TYPE :keyword)
+;; An attempt is made to ensure keywords are unique by lengthening
+;; them. But keyword pairs can be just as effective, and more useful
+;; since they code the assembly keyword in a data-structure rather than
+;; encoding as a string
+#_(def KEY-TYPE :vector)
 
 (defn ensure-map
   "Turn vector style into map style, if necessary. For example: [:a :b :c] -> {:a :a, :b :b, :c :c}"
@@ -43,6 +50,21 @@
                  (take 3 (repeatedly #(rand-nth (map char (range (int \A) (inc (int \Z)))))))
                  (take 3 (repeatedly #(rand-nth (map char (range (int \a) (inc (int \z)))))))
                  (take 1 (repeatedly #(rand-nth (map char (range (int \0) (inc (int \9)))))))))))
+
+(defn close-parens [s]
+  (replace s #"\n\s*\)" ")"))
+
+(defn make-key [ns n]
+  (case KEY-TYPE
+    :vector [ns n]
+    :keyword (keyword (apply str (interpose "-" (map #(if % (clojure.core/name %) nil) [ns n]))))))
+
+(defn gbf
+  "Group by first and apply function to values"
+  [f seq] (reduce-kv
+           (fn [a k v] (conj a [k (f (map second v))]))
+           []
+           (group-by first seq)))
 
 (defn modular
   "Create a new modular project - TODO documentation show go here which
@@ -76,17 +98,94 @@
                    {:name name
                     :dev-password (format "\"%s\"" (generate-password))}))
 
-        component-names (->> manifest :assemblies
-                             (filter select-assembly?)
-                             (mapcat :components) set)
+        component-keys (->> manifest :assemblies
+                            (filter select-assembly?)
+                            (mapcat :components) vals set)
 
         components (->> manifest
                         :components
-                        (filter (comp component-names :component)))
+                        (filter (comp component-keys :component)))
+
+        components-by-id (->> manifest
+                              :components
+                              (map (juxt :component identity))
+                              (into {}))
+
+        assemblies (for [a (->> manifest :assemblies (filter select-assembly?))]
+                     {:fname (str (clojure.core/name (:assembly a)) "-components")
+
+                      :assembly (:assembly a)
+
+                      :components
+                      (for [[n {component-ref :component
+                                using :using
+                                dependencies :dependencies
+                                args :args :as instance
+                                }]
+                            (:components a)
+                            :let [component (when component-ref
+                                              (get components-by-id component-ref))
+                                  constructor (if component
+                                                (:constructor component)
+                                                (:constructor instance))]]
+                        (merge
+                         (when component
+                           {:component component})
+
+                         {:dependencies
+                          (if component
+                            (concat
+                             (:dependencies (get components-by-id component-ref))
+                             dependencies)
+                            dependencies)}
+
+                         {:key (make-key (:assembly a) n)
+                          :refers (conj (:refers instance) constructor)
+                          :constructor (symbol (clojure.core/name constructor))
+                          :args (map (partial zipmap [:k :v]) (partition 2 args))
+
+                          ;; Construct 'using' here, not in template
+                          ;; it could be a map, it could be a vector
+
+                          :using (pr-str
+                                  (or (:using instance) []))
+
+
+
+                          :pad10 (apply str (repeat (+ 10 (count (str n))) \space))
+                          :pad18 (apply str (repeat (+ 18 (count (str n))) \space))
+                          }))
+
+                      :dependency-map (:dependency-map a)
+                      })
 
         data {:name name
               :sanitized (name-to-path name)
               :snake-cased-name (clojure.string/replace name #"_" "-")
+
+              #_:requires
+              #_(reduce-kv
+                 (fn [a k v] (conj a {:namespace k
+                                      :refers (apply str (interpose " " (distinct (map (comp clojure.core/name) v))))}))
+                 []
+                 (->> components
+                      (filter (comp not :dev?))
+                      (mapcat (juxt :constructor :requires))
+                      (remove nil?)
+                      (group-by (comp symbol namespace))))
+
+              #_:dev-requires
+              #_(reduce-kv
+                 (fn [a k v] (conj a {:namespace k
+                                      :refers (apply str (interpose " " (distinct (map (comp clojure.core/name) v))))}))
+                 []
+                 (->> components
+                      (filter :dev?)
+                      (mapcat (juxt :constructor :requires))
+                      (remove nil?)
+                      (group-by (comp symbol namespace))))
+
+              :assemblies assemblies
 
               ;; Probably need to be sorted and with some conflict
               ;; resolution warnings. Design decision is to generate
@@ -95,75 +194,99 @@
               ;; pacman on Arch) to tell them to expect conflicts -
               ;; these can be resolved later
               :dependencies
-              (->> components (mapcat :dependencies) distinct sort)
-
-              :requires
-              (reduce-kv
-               (fn [a k v] (conj a {:namespace k
-                                    :refers (apply str (interpose " " (distinct (map (comp clojure.core/name) v))))}))
-               []
-               (->> components
-                    (filter (comp not :dev?))
-                    (mapcat (juxt :constructor :requires))
-                    (remove nil?)
-                    (group-by (comp symbol namespace))))
-
-              :dev-requires
-              (reduce-kv
-               (fn [a k v] (conj a {:namespace k
-                                    :refers (apply str (interpose " " (distinct (map (comp clojure.core/name) v))))}))
-               []
-               (->> components
-                    (filter :dev?)
-                    (mapcat (juxt :constructor :requires))
-                    (remove nil?)
-                    (group-by (comp symbol namespace))))
-
-              :components
               (->>
-               (for [c components
-                     :when (not (:dev? c))
-                     :let [ctr (:constructor c)]
-                     ]
-                 {:component (or (:key c) (:component c))
-                  :constructor (symbol (clojure.core/name ctr))
-                  :args (if (empty? (:args c)) ""
-                            (str " " (apply pr-str (:args c))))})
-               (sort-by :component))
+               (for [asmbly assemblies
+                     c (:components asmbly)
+                     dep (:dependencies c)]
+                 dep)
+               sort distinct)
 
-              :dev-components
+
+              :refers
               (->>
-               (for [c components
-                     :when (:dev? c)
-                     :let [ctr (:constructor c)]]
-                 {:component (or (:key c) (:component c))
-                  :constructor (symbol (clojure.core/name ctr))
-                  :args (if (empty? (:args c)) ""
-                            (str " " (apply pr-str (:args c))))})
-               (sort-by :component))
+               (for [asmbly assemblies
+                     c (:components asmbly)
+                     refer (:refers c)]
+                 refer)
+               sort distinct
+               (group-by (comp symbol namespace))
+               (reduce-kv
+                (fn [a k v] (conj a {:namespace k
+                                     :refers (apply str (interpose " " (distinct (map (comp clojure.core/name) v))))}))
+                []
+                )
+               )
 
-              #_:modular-dir
-              #_(str (System/getProperty "user.home") "/src/modular")
+              #_:components
+              #_(->>
+                 (for [c components
+                       :when (not (:dev? c))
+                       :let [ctr (:constructor c)]]
+                   {:component (or (:key c) (:component c))
+                    :constructor (symbol (clojure.core/name ctr))
+                    :args (if (empty? (:args c)) ""
+                              (str " " (apply pr-str (:args c))))})
+                 (sort-by :component))
 
-              #_:cylon-dir
-              #_(str (System/getProperty "user.home") "/src/cylon")
+              #_:dev-components
+              #_(->>
+                 (for [c components
+                       :when (:dev? c)
+                       :let [ctr (:constructor c)]]
+                   {:component (or (:key c) (:component c))
+                    :constructor (symbol (clojure.core/name ctr))
+                    :args (if (empty? (:args c)) ""
+                              (str " " (apply pr-str (:args c))))})
+                 (sort-by :component))
+
+              ;; Dependency maps will be useful for adding dependencies
+              ;; to components that already exist, such as template
+              ;; models and menus
 
               :dependency-map
-              (->> manifest :assemblies
-                   (filter select-assembly?)
-                   (mapcat :dependency-map)
-                   (group-by first)
-                   (reduce-kv (fn [acc k v]
-                                (assoc acc k
-                                       (into {}
-                                             (mapcat
-                                              (comp ensure-map second) v))))
-                              {})
-                   pprint
-                   with-out-str
-                   trim
-                   (indent 2)
-                   )}]
+              (pr-str
+               (->>
+                (for [a assemblies
+                      :let [mkey #(if (keyword? %) (make-key (:assembly a) %)
+                                      (apply make-key %))]
+
+                      [k v] (:dependency-map a)
+                      [n v] (ensure-map v)
+                      ]
+                  [(mkey k) [n (mkey v)]])
+                ;; This call to 'first' should actually check to ensure
+                ;; there aren't multiple entries, if there are it means
+                ;; we have a conflict - more than one dependency is trying to bind
+                (gbf #(into {} (gbf first %)))
+                (into {})
+                ))
+
+              #_(->> assemblies
+                     (mapcat :dependency-map)
+                     (group-by first)
+                     (reduce-kv (fn [acc k v]
+                                  (assoc acc k
+                                         (into {}
+                                               (mapcat
+                                                (comp ensure-map second) v))))
+                                {})
+                     #_pprint
+                     #_with-out-str
+                     #_trim
+                     #_(indent 2)
+                     )}]
+
+    #_(println (->> assemblies
+                    (mapcat :dependency-map)
+                    (group-by first)
+                    (reduce-kv (fn [acc k v]
+                                 (assoc acc k
+                                        (into {}
+                                              (mapcat
+                                               (comp ensure-map second) v))))
+                               {})
+
+                    ))
 
     (main/info (format "Generating a new modular project named %s with options :-\n%s"
                        name
@@ -172,6 +295,8 @@
                             (map :assembly)
                             (interpose "\n")
                             (apply str))))
+
+    ;;    (throw (ex-info "refers" {:refers (:refers data)}))
 
     (->files data
              ["project.clj" (render "project.clj" data)]
@@ -182,9 +307,13 @@
 
              ["src/{{sanitized}}/main.clj" (render "main.clj" data)]
 
-             ["src/{{sanitized}}/system.clj" (render "system.clj" data)]
+             ["src/{{sanitized}}/system.clj" (close-parens (render "system.clj" data))]
 
              ["src/{{sanitized}}/website.clj" (render "website.clj" data)]
+
+             ;; Our Hello World! handler
+             ["src/{{sanitized}}/simple_webservice.clj" (render "simple_webservice.clj" data)]
+
              ;; TODO Write website.clj in terms of boilerplate.clj, it is currently too 'standalone'
              ["src/{{sanitized}}/boilerplate.clj" (render "boilerplate.clj" data)]
 

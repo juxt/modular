@@ -1,165 +1,166 @@
 {
  :components
  [
-  {:component :http-kit
+  {:component :modular.http-kit/webserver
    :dependencies [[juxt.modular/http-kit "0.5.1"]]
    :constructor modular.http-kit/new-webserver
    :options [:port]
-   :key :webserver
+   :using [:request-handler]
    }
 
-  {:component :webhead
-   :dependencies [[juxt.modular/ring "0.5.1"]]
-   :constructor modular.ring/new-web-request-handler-head
-   }
-
-  {:component :webrouter
+  {:component :modular.bidi/router
    :dependencies [[juxt.modular/bidi "0.5.2"]]
    :constructor modular.bidi/new-router
    }
 
-  {:component :webresources
+  {:component :modular.bidi/web-service
    :dependencies [[juxt.modular/bidi "0.5.2"]]
-   :constructor modular.bidi/new-web-service
-   :requires bidi.bidi/->ResourcesMaybe
-   :args [:request-handlers {}
-          :routes ["/" {"js/" (->ResourcesMaybe {:prefix "public/js/"})
-                        "css/" (->ResourcesMaybe {:prefix "public/css/"})}]]}
+   :constructor modular.bidi/new-web-service}
+
+  #_{:component :webresources
+     :dependencies [[juxt.modular/bidi "0.5.2"]]
+     :constructor modular.bidi/new-web-service
+     :refers [bidi.bidi/->ResourcesMaybe]
+     ;; TODO The args should belong to the instance
+     :args [:request-handlers {}
+            :routes ["/" {"js/" (->ResourcesMaybe {:prefix "public/js/"})
+                          "css/" (->ResourcesMaybe {:prefix "public/css/"})}]]}
 
   {:component :webmeta
    :dependencies [[juxt.modular/bidi "0.5.2"]]
    :constructor modular.template/new-static-template-data
+   ;; TODO The args should belong to the instance
    :args [:title "{{name}}"]
    }
 
   {:component :cljs-builder
    :dependencies [[juxt.modular/cljs "0.4.0"]]
    :constructor modular.cljs/new-cljs-builder
+   ;; TODO The args should belong to the instance
    :args [:id :default :source-path "src-cljs"]
    }
 
   {:component :cljs-core
    :dependencies [[juxt.modular/cljs "0.5.0"]]
    :constructor modular.cljs/new-cljs-module
+   ;; TODO The args should belong to the instance
    :args [:name :cljs-core :mains ['cljs.core] :dependencies #{}]
    }
 
   ;; Menus
-  {:component :menu-index
+  {:component :modular.menu/menu-index
    :dependencies [[juxt.modular/menu "0.5.3"]]
    :constructor modular.menu/new-menu-index}
 
   {:component :bootstrap-menu
-   :dependencies [[juxt.modular/bootstrap "0.1.0"]]
+   :dependencies [[juxt.modular/bootstrap "0.2.0"]]
    :constructor modular.bootstrap.menu/new-bootstrap-menu}
 
   ;; Security components
   {:component :cylon/login-form
-   :dependencies [[cylon "0.4.1"]]
+   :dependencies [[cylon "0.5.0-20141014.130020-17"]]
    :constructor cylon.impl.authentication/new-authentication-login-form
    }
 
   {:component :login-form-menu-items
-   :dependencies [[cylon "0.4.1"]
+   :dependencies [[cylon "0.5.0-20141014.130020-17"]
                   [juxt.modular/menu "0.5.3"]]
    :constructor modular.menu.cylon/new-login-form-menu-items
    }
 
   {:component :cylon/login-form-bootstrap-renderer
-   :dependencies [[cylon "0.4.1"]
-                  [juxt.modular/bootstrap "0.1.0"]]
+   :dependencies [[cylon "0.5.0-20141014.130020-17"]
+                  [juxt.modular/bootstrap "0.2.0"]]
    :constructor modular.bootstrap.cylon.login-form/new-bootstrap-login-form-renderer
    }
 
   {:component :boilerplate
-   :dependencies [[juxt.modular/bootstrap "0.1.0"]]
+   :dependencies [[juxt.modular/bootstrap "0.2.0"]]
    :constructor {{name}}.boilerplate/new-boilerplate
    }
 
   {:component :cylon/atom-backed-session-store
-   :dependencies [[cylon "0.4.1"]]
+   :dependencies [[cylon "0.5.0-20141014.130020-17"]]
    :constructor cylon.impl.session/new-atom-backed-session-store
    :args [:expiry-seconds 3600 :id :login]
-   :key :cylon/session-store
    }
 
   {:component :cylon/default-user-domain
-   :dependencies [[cylon "0.4.1"]]
+   :dependencies [[cylon "0.5.0-20141014.130020-17"]]
    :constructor cylon.impl.user/new-default-user-domain
-   :key :cylon/user-domain
    }
 
   {:component :cylon/pbkdf2-password-hash
-   :dependencies [[cylon "0.4.1"]]
+   :dependencies [[cylon "0.5.0-20141014.130020-17"]]
    :constructor cylon.impl.pbkdf2/new-pbkdf2-password-hash
-   :key :cylon/password-hash-algo
    }
 
   {:component :cylon/user-file
-   :dependencies [[cylon "0.4.1"]]
+   :dependencies [[cylon "0.5.0-20141014.130020-17"]]
    :constructor cylon.impl.user/new-user-file
+   ;; TODO The args should belong to the instance
    :args [:file (io/file (System/getProperty "user.home") ".{{name}}-users.edn")]
-   :key :cylon/user-store
    }
 
   {:component :authorizer
-   :dependencies [[cylon "0.4.1"]]
+   :dependencies [[cylon "0.5.0-20141014.130020-17"]]
    :constructor cylon.impl.authorization/new-logged-in-authorizer
    }
 
   {:component :user-domain-seeder
-   :dependencies [[cylon "0.4.1"]]
+   :dependencies [[cylon "0.5.0-20141014.130020-17"]]
    :constructor cylon.impl.user/new-user-domain-seeder
    :args [:users [{:id "dev" :password {{{dev-password}}} }]]
    :dev? true
+   }
+
+  {:component :modular.web-template/dependency-dynamic-template-model
+   :dependencies [[juxt.modular/web-template "0.5.2"]
+                  [de.ubercode.clostache/clostache "1.3.1"]]
+   :constructor modular.web-template/new-dependency-dynamic-template-model
    }
 
   ;; Project-local components
   {:component :website
    :dependencies [[hiccup "1.0.5"]
                   [juxt.modular/bidi "0.5.2"]]
-   :constructor {{name}}.website/new-website}
+   :constructor {{name}}.website/new-website
+   :using [:template-model]}
 
+  #_{:component :{{name}}-cljs
+     :dependencies [[juxt.modular/cljs "0.5.0"]]
+     :constructor modular.cljs/new-cljs-module
+     ;; TODO The args should belong to the instance
+     :args [:name :{{name}} :mains ['{{name}}.main] :dependencies #{:cljs-core}]
+     }
 
-  {:component :template-model
-   :dependencies [[juxt.modular/web-template "0.5.2"]
-                  [de.ubercode.clostache/clostache "1.3.1"]]
-   :constructor modular.web-template/new-dependency-dynamic-template-model
-   }
+  #_{:component :example-page
+     :constructor {{name}}.example-page/new-example-page
+     ;; TODO The args should belong to the instance
+     :args [:title "First example page"
+            :content "Example page (A) generated by modular."
+            :path "/example-page-a"
+            ]}
 
-  {:component :{{name}}-cljs
-   :dependencies [[juxt.modular/cljs "0.5.0"]]
-   :constructor modular.cljs/new-cljs-module
-   :args [:name :{{name}} :mains ['{{name}}.main] :dependencies #{:cljs-core}]
-   }
+  #_{:component :example-page-menu-items
+     :constructor {{name}}.example-page/new-example-page-menu-items
+     ;; TODO The args should belong to the instance
+     :args [:label "First example page"
+            :target :example-page-a]}
 
-  {:component :example-page-a
-   :constructor {{name}}.example-page/new-example-page
-   :args [:title "First example page"
-          :content "Example page (A) generated by modular."
-          :key :example-page-a
-          :path "/example-page-a"
-          ]}
+  #_{:component :example-page-b
+     :constructor {{name}}.example-page/new-example-page
+     :args [:title "Second example page"
+            :content "Example page (B) generated by modular."
+            :path "/example-page-b"]}
 
-  {:component :example-page-a-menu-items
-   :constructor {{name}}.example-page/new-example-page-menu-items
-   :args [:label "First example page"
-          :target :example-page-a]}
+  #_{:component :example-page-b-menu-items
+     :constructor {{name}}.example-page/new-example-page-menu-items
+     :args [:label "Second example page"
+            :target :example-page-b]}
 
-  {:component :example-page-b
-   :constructor {{name}}.example-page/new-example-page
-   :args [:title "Second example page"
-          :content "Example page (B) generated by modular."
-          :key :example-page-b
-          :path "/example-page-b"]}
-
-  {:component :example-page-b-menu-items
-   :constructor {{name}}.example-page/new-example-page-menu-items
-   :args [:label "Second example page"
-          :target :example-page-b]}
-
-  {:component :restricted-page
-   :constructor {{name}}.restricted-page/new-restricted-page}
+  #_{:component :restricted-page
+     :constructor {{name}}.restricted-page/new-restricted-page}
   ]
 
  :assemblies
@@ -169,19 +170,45 @@
   ;; lein new modular app +httpkit:port:80
 
   ;; lein new modular app full-featured-website
-  {:assembly :website
-   :components #{:http-kit
-                 :webrouter
-                 :webhead
-                 :webresources
-                 :menu-index
-                 :website
-                 :template-model}
-   :dependency-map {:webserver {:request-handler :webhead}
-                    :webhead {:request-handler :webrouter}
-                    :webrouter [:website :webresources]
-                    :website {:template-model :template-model}
-                    }
+  {:assembly :http-listener
+   :components
+   {
+    #_:template-model
+    #_{:component :modular.web-template/dependency-dynamic-template-model}
+
+    #_:website #_{:component :website
+                  :dependencies [[hiccup "1.0.5"]
+                                 [juxt.modular/bidi "0.5.2"]]
+                  :using {:template-model :template-model}}
+
+    #_:webresources
+    #_{:component :modular.bidi/web-service
+       :refers [bidi.bidi/->ResourcesMaybe]
+       :args [:request-handlers {}
+              :routes ["/" {"js/" (->ResourcesMaybe {:prefix "public/js/"})
+                            "css/" (->ResourcesMaybe {:prefix "public/css/"})}]]}
+
+    :listener {:component :modular.http-kit/webserver}
+
+    ;;                :menu-index :menu-index
+    }
+   :default? true}
+
+  {:assembly :modular-bidi-routes
+   :components {:webrouter
+                {:component :modular.bidi/router
+                 ;;:using [:website :webresources]
+                 }}
+   ;; TODO rename to component-dependencies and dependencies above
+   ;; should be renamed to library-dependencies
+   :dependency-map {[:http-listener :listener] {:request-handler :webrouter}}
+   :default? true}
+
+
+  {:assembly :simple-webservice
+   :components {:simple-webservice
+                {:constructor {{name}}.simple-webservice/new-website}}
+   :dependency-map {[:modular-bidi-routes :webrouter] [:simple-webservice]}
    :default? true}
 
   {:assembly :example-pages
@@ -194,17 +221,17 @@
                     :example-page-b {:template-model :template-model}
                     :menu-index [:example-page-a-menu-items
                                  :example-page-b-menu-items]}
-   :default? true}
+   #_:default? #_true}
 
   {:assembly :webmeta
    :components #{:webmeta}
    :dependency-map {:template-model [:webmeta]}
-   :default? true}
+   #_:default? #_true}
 
   {:assembly :cljs
    :components #{:cljs-builder :cljs-core :{{name}}-cljs}
    :dependency-map {:cljs-builder [:cljs-core :{{name}}-cljs]}
-   :default? false}
+   #_:default? #_false}
 
   {:assembly :cylon/login
    :components #{:cylon/login-form
@@ -216,11 +243,10 @@
                  :cylon/pbkdf2-password-hash
                  :cylon/user-file
                  :template-model
-                 :user-domain-seeder
-                 #_:restricted-page
-                 #_:authorizer}
+                 :user-domain-seeder}
+
    :dependency-map {:webrouter [:cylon/login-form
-                                #_:restricted-page],
+                                ],
                     :cylon/login-form
                     {:session-store :cylon/session-store,
                      :user-domain :cylon/user-domain,
@@ -233,25 +259,25 @@
                     :cylon/user-domain
                     {:password-hash-algo :cylon/password-hash-algo
                      :user-store :cylon/user-store},
-                    :menu-index [:login-form-menu-items #_:restricted-page]}
-   :default? false
+                    :menu-index [:login-form-menu-items]}
+   #_:default? #_false
    :doc {:main #markdown "cylon-login.md"}}
 
   {:assembly :bootstrap
    :components #{:bootstrap-menu}
    :dependency-map {:bootstrap-menu {:menu-index :menu-index}
                     :template-model {:menu :bootstrap-menu}}
-   :default? true}
+   #_:default? #_true}
 
   {:assembly :dev-browser
    :components #{}
    :dependency-map {}
-   :default? true}
+   #_:default? #_true}
   ]
 
- ;; TODO: Support systems, which are collections of assemblies
- :systems
- {"basic-website" [:website :http-kit]}
+ ;; TODO: Support options, which are collections of assemblies
+ :options
+ {"basic-website" [:website]}
 
  }
 

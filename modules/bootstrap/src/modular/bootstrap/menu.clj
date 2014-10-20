@@ -24,11 +24,6 @@
                                                      (assoc :request req)
                                                      (dissoc :visible?)))
 
-                                   ;;                                   (println "target:" target)
-                                   ;;                                   (println "routes:" routes)
-                                   ;;                                   (println "uri:" (apply path-for routes target args))
-
-
                                    [:li (when (= label "Starbuck") {:class "active"})
                                     (if target
                                       [:a {:href (apply path-for routes target args)} label]
@@ -43,7 +38,6 @@
 
 (defn new-bootstrap-menu []
   (component/using (->BootstrapMenu) [:menu-index]))
-
 
 (defrecord SideMenu []
   DynamicTemplateData
