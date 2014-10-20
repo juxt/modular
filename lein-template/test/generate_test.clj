@@ -31,7 +31,9 @@
     (binding [leiningen.new.templates/*dir* projectdir
               leiningen.new.templates/*force?* true]
       (println "Applying modular")
-      (apply modular name args))))
+      (try
+        (apply modular name args)
+        (catch Exception e (.printStackTrace e))))))
 
 #_(defn project-fixture [f]
   (generate-project "myapp")
@@ -44,7 +46,7 @@
   (testing "project file exists"
     (is (.exists (io/file (get-tmp-dir) "website/project.clj")))))
 
-(deftest website-with-login-tests
+#_(deftest website-with-login-tests
   (generate-project "website-with-login" "+cylon/login")
   (testing "project file exists"
     (is (.exists (io/file (get-tmp-dir) "website-with-login/project.clj")))))

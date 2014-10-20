@@ -6,7 +6,7 @@
    [clojure.tools.reader :refer (read)]
    [clojure.string :as str]
    [clojure.tools.reader.reader-types :refer (indexing-push-back-reader)]
-   [com.stuartsierra.component :as component :refer (system-map system-using)]
+   [com.stuartsierra.component :refer (system-map system-using using)]
    [modular.maker :refer (make)]
    {{#requires}}
    [{{namespace}} :refer ({{{refers}}})]
@@ -44,22 +44,32 @@
   (merge (config-from-classpath)
          (user-config)))
 
-(defn new-base-system-map
-  [config]
-  (system-map
-   {{#components}}
-   {{component}} (make {{constructor}} config{{{args}}})
-   {{/components}}
-   ))
+{{#assemblies}}
+(defn {{fn}} [system config]
+  (assoc system
+    {{#components}}
+    {{key}}
+    (using
+      (make {{constructor}} config
+{{#args}}
+       {{k}} {{{v}}}
+{{/args}})
+      {{using}})
 
-(defn new-base-dependency-map [system-map]
-{{dependency-map}})
+{{/components}}))
+
+{{/assemblies}}
+(defn new-system-map
+  [config]
+  (apply system-map
+    (apply concat
+      (-> {}
+          {{#assemblies}}
+          ({{fn}} config)
+          {{/assemblies}}
+          ))))
 
 (defn new-production-system
   "Create the production system"
   []
-  (let [s-map (new-base-system-map (config))
-        d-map (new-base-dependency-map s-map)]
-    (with-meta
-      (component/system-using s-map d-map)
-      {:dependencies d-map})))
+  (system-using (new-system-map (config)) {}))

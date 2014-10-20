@@ -1,14 +1,14 @@
 ;; Copyright © 2014 JUXT LTD.
 
 (ns leiningen.new.modular
-  (:refer-clojure :exclude (split read *data-readers*))
+  (:refer-clojure :exclude (split read *data-readers* replace))
   (:require
    [leiningen.new.templates :refer [renderer sanitize year name-to-path ->files *dir* *force?*]]
    [leiningen.core.main :as main]
    [clojure.edn :as edn]
    [clojure.java.io :as io]
    [clojure.pprint :refer (pprint)]
-   [clojure.string :refer (split trim)]
+   [clojure.string :refer (split trim replace)]
    [clojure.set :as set]
    [stencil.core :as stencil]
    [clojure.tools.reader :refer (read *data-readers*)]
@@ -16,6 +16,9 @@
    ))
 
 (def render (renderer "modular"))
+
+(def KEY-TYPE :keyword)
+#_(def KEY-TYPE :vector)
 
 (defn ensure-map
   "Turn vector style into map style, if necessary. For example: [:a :b :c] -> {:a :a, :b :b, :c :c}"
@@ -43,6 +46,14 @@
                  (take 3 (repeatedly #(rand-nth (map char (range (int \A) (inc (int \Z)))))))
                  (take 3 (repeatedly #(rand-nth (map char (range (int \a) (inc (int \z)))))))
                  (take 1 (repeatedly #(rand-nth (map char (range (int \0) (inc (int \9)))))))))))
+
+(defn close-parens [s]
+  (replace s #"\n\s*\)" ")"))
+
+(defn make-key [ns n]
+  (case KEY-TYPE
+    :vector (pr-str [ns n])
+    :keyword (keyword (apply str (interpose "-" (map clojure.core/name [ns n]))))))
 
 (defn modular
   "Create a new modular project - TODO documentation show go here which
@@ -76,13 +87,18 @@
                    {:name name
                     :dev-password (format "\"%s\"" (generate-password))}))
 
-        component-names (->> manifest :assemblies
-                             (filter select-assembly?)
-                             (mapcat :components) set)
+        component-keys (->> manifest :assemblies
+                            (filter select-assembly?)
+                            (mapcat :components) vals set)
 
         components (->> manifest
                         :components
-                        (filter (comp component-names :component)))
+                        (filter (comp component-keys :component)))
+
+        components-by-id (->> manifest
+                              :components
+                              (map (juxt :component identity))
+                              (into {}))
 
         data {:name name
               :sanitized (name-to-path name)
@@ -119,51 +135,73 @@
                     (remove nil?)
                     (group-by (comp symbol namespace))))
 
-              :components
-              (->>
-               (for [c components
-                     :when (not (:dev? c))
-                     :let [ctr (:constructor c)]
-                     ]
-                 {:component (or (:key c) (:component c))
-                  :constructor (symbol (clojure.core/name ctr))
-                  :args (if (empty? (:args c)) ""
-                            (str " " (apply pr-str (:args c))))})
-               (sort-by :component))
+              :assemblies
+              (for [asmbly
+                    (->> manifest :assemblies
+                         (filter select-assembly?))]
+                {:fn (str (clojure.core/name (:assembly asmbly)) "-components")
+                 :components
+                 (for [[n {cname :component
+                           using :using
+                           args :args}]
+                       (:components asmbly)
+                       :let [com (get components-by-id cname)
+                             ctr (:constructor com)]]
+                   {:key (make-key (:assembly asmbly) n)
+                    :component com
+                    :pad10 (apply str (repeat (+ 10 (count (str n))) \space))
+                    :pad18 (apply str (repeat (+ 18 (count (str n))) \space))
+                    :constructor (symbol (clojure.core/name ctr))
+                    :args (map (partial zipmap [:k :v]) (partition 2 args))
 
-              :dev-components
-              (->>
-               (for [c components
-                     :when (:dev? c)
-                     :let [ctr (:constructor c)]]
-                 {:component (or (:key c) (:component c))
-                  :constructor (symbol (clojure.core/name ctr))
-                  :args (if (empty? (:args c)) ""
-                            (str " " (apply pr-str (:args c))))})
-               (sort-by :component))
+                    ;; Construct 'using' here, not in template
+                    ;; it could be a map, it could be a vector
 
-              #_:modular-dir
-              #_(str (System/getProperty "user.home") "/src/modular")
+                    :using (pr-str (if (not-empty (:using com))
+                                     (into {}
+                                           (for [u (:using com)]
+                                             [u (make-key (:assembly asmbly) (get using u))]))
+                                     (vec (for [u using]
+                                            (make-key (:assembly asmbly) u)))))})})
 
-              #_:cylon-dir
-              #_(str (System/getProperty "user.home") "/src/cylon")
+              #_:components
+              #_(->>
+                 (for [c components
+                       :when (not (:dev? c))
+                       :let [ctr (:constructor c)]]
+                   {:component (or (:key c) (:component c))
+                    :constructor (symbol (clojure.core/name ctr))
+                    :args (if (empty? (:args c)) ""
+                              (str " " (apply pr-str (:args c))))})
+                 (sort-by :component))
 
-              :dependency-map
-              (->> manifest :assemblies
-                   (filter select-assembly?)
-                   (mapcat :dependency-map)
-                   (group-by first)
-                   (reduce-kv (fn [acc k v]
-                                (assoc acc k
-                                       (into {}
-                                             (mapcat
-                                              (comp ensure-map second) v))))
-                              {})
-                   pprint
-                   with-out-str
-                   trim
-                   (indent 2)
-                   )}]
+              #_:dev-components
+              #_(->>
+                 (for [c components
+                       :when (:dev? c)
+                       :let [ctr (:constructor c)]]
+                   {:component (or (:key c) (:component c))
+                    :constructor (symbol (clojure.core/name ctr))
+                    :args (if (empty? (:args c)) ""
+                              (str " " (apply pr-str (:args c))))})
+                 (sort-by :component))
+
+              #_:dependency-map
+              #_(->> manifest :assemblies
+                     (filter select-assembly?)
+                     (mapcat :dependency-map)
+                     (group-by first)
+                     (reduce-kv (fn [acc k v]
+                                  (assoc acc k
+                                         (into {}
+                                               (mapcat
+                                                (comp ensure-map second) v))))
+                                {})
+                     pprint
+                     with-out-str
+                     trim
+                     (indent 2)
+                     )}]
 
     (main/info (format "Generating a new modular project named %s with options :-\n%s"
                        name
@@ -182,7 +220,7 @@
 
              ["src/{{sanitized}}/main.clj" (render "main.clj" data)]
 
-             ["src/{{sanitized}}/system.clj" (render "system.clj" data)]
+             ["src/{{sanitized}}/system.clj" (close-parens (render "system.clj" data))]
 
              ["src/{{sanitized}}/website.clj" (render "website.clj" data)]
              ;; TODO Write website.clj in terms of boilerplate.clj, it is currently too 'standalone'
