@@ -186,31 +186,23 @@
        :refers [bidi.bidi/->ResourcesMaybe]
        :args [:request-handlers {}
               :routes ["/" {"js/" (->ResourcesMaybe {:prefix "public/js/"})
-                            "css/" (->ResourcesMaybe {:prefix "public/css/"})}]]
-       }
+                            "css/" (->ResourcesMaybe {:prefix "public/css/"})}]]}
 
-
-    :listener {:component :modular.http-kit/webserver
-               #_:using #_{:request-handler :webrouter}}
+    :listener {:component :modular.http-kit/webserver}
 
     ;;                :menu-index :menu-index
     }
    :default? true}
 
   {:assembly :modular-bidi-routes
-   :components
-   {
-    :webrouter
-    {:component :modular.bidi/router
-     ;;:using [:website :webresources]
-     }
-
-    }
-   ;; rename to component-dependencies and dependencies above should be
-   ;; renamed to library-dependencies
+   :components {:webrouter
+                {:component :modular.bidi/router
+                 ;;:using [:website :webresources]
+                 }}
+   ;; TODO rename to component-dependencies and dependencies above
+   ;; should be renamed to library-dependencies
    :dependency-map {[:http-listener :listener] {:request-handler :webrouter}}
-   :default? true
-   }
+   :default? true}
 
   {:assembly :example-pages
    :components #{:example-page-a
