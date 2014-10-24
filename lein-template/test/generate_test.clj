@@ -42,7 +42,7 @@
 
 #_(use-fixtures :once project-fixture)
 
-;;(generate-project "website")
+(generate-project "website")
 
 (deftest website-tests
   (generate-project "website")
