@@ -208,7 +208,7 @@
     }
    ;; rename to component-dependencies and dependencies above should be
    ;; renamed to library-dependencies
-   :dependency-map {[:website :listener] :webrouter}
+   :dependency-map {[:http-listener :listener] {:request-handler :webrouter}}
    :default? true
    }
 

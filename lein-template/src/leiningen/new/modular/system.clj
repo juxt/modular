@@ -69,7 +69,12 @@
           {{/assemblies}}
           ))))
 
+(defn new-dependency-map
+  []
+  {{dependency-map}})
+
 (defn new-production-system
   "Create the production system"
   []
-  (system-using (new-system-map (config)) {}))
+  (system-using (new-system-map (config))
+                (new-dependency-map)))

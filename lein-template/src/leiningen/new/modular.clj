@@ -59,6 +59,13 @@
     :vector [ns n]
     :keyword (keyword (apply str (interpose "-" (map #(if % (clojure.core/name %) nil) [ns n]))))))
 
+(defn gbf
+  "Group by first and apply function to values"
+  [f seq] (reduce-kv
+           (fn [a k v] (conj a [k (f (map second v))]))
+           []
+           (group-by first seq)))
+
 (defn modular
   "Create a new modular project - TODO documentation show go here which
   will be shown on 'lein new :show modular' , but will only appear when
@@ -104,39 +111,53 @@
                               (map (juxt :component identity))
                               (into {}))
 
-        assemblies (for [asmbly (->> manifest :assemblies (filter select-assembly?))]
-                     {:fname (str (clojure.core/name (:assembly asmbly)) "-components")
+        assemblies (for [a (->> manifest :assemblies (filter select-assembly?))]
+                     {:fname (str (clojure.core/name (:assembly a)) "-components")
+
+                      :assembly (:assembly a)
+
                       :components
-                      (for [[n {cname :component
+                      (for [[n {component-ref :component
                                 using :using
-                                args :args :as instance}]
-                            (:components asmbly)
-                            :let [com (if cname (get components-by-id cname) instance)
-                                  ctr (:constructor com)]]
-                        {:key (make-key (:assembly asmbly) n)
-                         :component com
-                         :dependencies (distinct (concat (:dependencies com)
-                                                         (:dependencies instance)))
-                         :refers (conj (:refers instance) ctr)
-                         :constructor (symbol (clojure.core/name ctr))
-                         :args (map (partial zipmap [:k :v]) (partition 2 args))
+                                dependencies :dependencies
+                                args :args :as instance
+                                }]
+                            (:components a)
+                            :let [component (when component-ref
+                                              (get components-by-id component-ref))
+                                  constructor (if component
+                                                (:constructor component)
+                                                (:constructor instance))]]
+                        (merge
+                         (when component
+                           {:component component})
 
-                         ;; Construct 'using' here, not in template
-                         ;; it could be a map, it could be a vector
+                         {:dependencies
+                          (if component
+                            (concat
+                             (:dependencies (get components-by-id component-ref))
+                             dependencies)
+                            dependencies)}
 
-                         :using (pr-str
-                                 (if cname
-                                   (if (not-empty (:using com))
-                                     (into {}
-                                           (for [u (:using com)]
-                                             [u (make-key (:assembly asmbly) (get using u))]))
-                                     (vec (for [u using]
-                                            (make-key (:assembly asmbly) u))))
-                                   (:using instance)))
+                         {:key (make-key (:assembly a) n)
+                          :refers (conj (:refers instance) constructor)
+                          :constructor (symbol (clojure.core/name constructor))
+                          :args (map (partial zipmap [:k :v]) (partition 2 args))
 
-                         :pad10 (apply str (repeat (+ 10 (count (str n))) \space))
-                         :pad18 (apply str (repeat (+ 18 (count (str n))) \space))
-                         })})
+                          ;; Construct 'using' here, not in template
+                          ;; it could be a map, it could be a vector
+
+                          :using (pr-str
+                                  (or (:using instance) []))
+
+
+
+                          :pad10 (apply str (repeat (+ 10 (count (str n))) \space))
+                          :pad18 (apply str (repeat (+ 18 (count (str n))) \space))
+                          }))
+
+                      :dependency-map (:dependency-map a)
+                      })
 
         data {:name name
               :sanitized (name-to-path name)
@@ -144,25 +165,25 @@
 
               #_:requires
               #_(reduce-kv
-               (fn [a k v] (conj a {:namespace k
-                                    :refers (apply str (interpose " " (distinct (map (comp clojure.core/name) v))))}))
-               []
-               (->> components
-                    (filter (comp not :dev?))
-                    (mapcat (juxt :constructor :requires))
-                    (remove nil?)
-                    (group-by (comp symbol namespace))))
+                 (fn [a k v] (conj a {:namespace k
+                                      :refers (apply str (interpose " " (distinct (map (comp clojure.core/name) v))))}))
+                 []
+                 (->> components
+                      (filter (comp not :dev?))
+                      (mapcat (juxt :constructor :requires))
+                      (remove nil?)
+                      (group-by (comp symbol namespace))))
 
               #_:dev-requires
               #_(reduce-kv
-               (fn [a k v] (conj a {:namespace k
-                                    :refers (apply str (interpose " " (distinct (map (comp clojure.core/name) v))))}))
-               []
-               (->> components
-                    (filter :dev?)
-                    (mapcat (juxt :constructor :requires))
-                    (remove nil?)
-                    (group-by (comp symbol namespace))))
+                 (fn [a k v] (conj a {:namespace k
+                                      :refers (apply str (interpose " " (distinct (map (comp clojure.core/name) v))))}))
+                 []
+                 (->> components
+                      (filter :dev?)
+                      (mapcat (juxt :constructor :requires))
+                      (remove nil?)
+                      (group-by (comp symbol namespace))))
 
               :assemblies assemblies
 
@@ -190,10 +211,10 @@
                sort distinct
                (group-by (comp symbol namespace))
                (reduce-kv
-               (fn [a k v] (conj a {:namespace k
-                                    :refers (apply str (interpose " " (distinct (map (comp clojure.core/name) v))))}))
-               []
-               )
+                (fn [a k v] (conj a {:namespace k
+                                     :refers (apply str (interpose " " (distinct (map (comp clojure.core/name) v))))}))
+                []
+                )
                )
 
               #_:components
@@ -218,10 +239,29 @@
                               (str " " (apply pr-str (:args c))))})
                  (sort-by :component))
 
-              ;; Dependency maps will be useful for adding dependencies to components that already exist, such as template models and menus
-              #_:dependency-map
-              #_(->> manifest :assemblies
-                     (filter select-assembly?)
+              ;; Dependency maps will be useful for adding dependencies
+              ;; to components that already exist, such as template
+              ;; models and menus
+
+              :dependency-map
+              (pr-str
+               (->>
+                (for [a assemblies
+                      :let [mkey #(if (keyword? %) (make-key (:assembly a) %)
+                                      (apply make-key %))]
+
+                      [k v] (:dependency-map a)
+                      [n v] (ensure-map v)
+                      ]
+                  [(mkey k) [n (mkey v)]])
+                ;; This call to 'first' should actually check to ensure
+                ;; there aren't multiple entries, if there are it means
+                ;; we have a conflict - more than one dependency is trying to bind
+                (gbf #(into {} (gbf first %)))
+                (into {})
+                ))
+
+              #_(->> assemblies
                      (mapcat :dependency-map)
                      (group-by first)
                      (reduce-kv (fn [acc k v]
@@ -230,11 +270,23 @@
                                                (mapcat
                                                 (comp ensure-map second) v))))
                                 {})
-                     pprint
-                     with-out-str
-                     trim
-                     (indent 2)
+                     #_pprint
+                     #_with-out-str
+                     #_trim
+                     #_(indent 2)
                      )}]
+
+    #_(println (->> assemblies
+                    (mapcat :dependency-map)
+                    (group-by first)
+                    (reduce-kv (fn [acc k v]
+                                 (assoc acc k
+                                        (into {}
+                                              (mapcat
+                                               (comp ensure-map second) v))))
+                               {})
+
+                    ))
 
     (main/info (format "Generating a new modular project named %s with options :-\n%s"
                        name
@@ -244,7 +296,7 @@
                             (interpose "\n")
                             (apply str))))
 
-;;    (throw (ex-info "refers" {:refers (:refers data)}))
+    ;;    (throw (ex-info "refers" {:refers (:refers data)}))
 
     (->files data
              ["project.clj" (render "project.clj" data)]

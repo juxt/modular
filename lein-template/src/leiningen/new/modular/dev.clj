@@ -5,7 +5,7 @@
    [clojure.repl :refer (apropos dir doc find-doc pst source)]
    [clojure.tools.namespace.repl :refer (refresh refresh-all)]
    [com.stuartsierra.component :as component]
-   [{{name}}.system :refer (config new-system-map)]
+   [{{name}}.system :refer (config new-system-map new-dependency-map)]
    [modular.maker :refer (make)]
    [dev-components :refer (wrap-schema-validation)]
    {{#dev-requires}}
@@ -25,8 +25,9 @@
                  {{#dev-components}}
                  {{component}} (make {{constructor}} config{{{args}}})
                  {{/dev-components}}
-                 :wrap-schema-validation wrap-schema-validation))]
-    (component/system-using s-map {})))
+                 :wrap-schema-validation wrap-schema-validation))
+        d-map (new-dependency-map)]
+    (component/system-using s-map d-map)))
 
 (defn init
   "Constructs the current development system."
