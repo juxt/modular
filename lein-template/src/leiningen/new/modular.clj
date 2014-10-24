@@ -18,6 +18,10 @@
 (def render (renderer "modular"))
 
 (def KEY-TYPE :keyword)
+;; An attempt is made to ensure keywords are unique by lengthening
+;; them. But keyword pairs can be just as effective, and more useful
+;; since they code the assembly keyword in a data-structure rather than
+;; encoding as a string
 #_(def KEY-TYPE :vector)
 
 (defn ensure-map
@@ -52,8 +56,8 @@
 
 (defn make-key [ns n]
   (case KEY-TYPE
-    :vector (pr-str [ns n])
-    :keyword (keyword (apply str (interpose "-" (map clojure.core/name [ns n]))))))
+    :vector [ns n]
+    :keyword (keyword (apply str (interpose "-" (map #(if % (clojure.core/name %) nil) [ns n]))))))
 
 (defn modular
   "Create a new modular project - TODO documentation show go here which
@@ -100,21 +104,46 @@
                               (map (juxt :component identity))
                               (into {}))
 
+        assemblies (for [asmbly (->> manifest :assemblies (filter select-assembly?))]
+                     {:fname (str (clojure.core/name (:assembly asmbly)) "-components")
+                      :components
+                      (for [[n {cname :component
+                                using :using
+                                args :args :as instance}]
+                            (:components asmbly)
+                            :let [com (if cname (get components-by-id cname) instance)
+                                  ctr (:constructor com)]]
+                        {:key (make-key (:assembly asmbly) n)
+                         :component com
+                         :dependencies (distinct (concat (:dependencies com)
+                                                         (:dependencies instance)))
+                         :refers (conj (:refers instance) ctr)
+                         :constructor (symbol (clojure.core/name ctr))
+                         :args (map (partial zipmap [:k :v]) (partition 2 args))
+
+                         ;; Construct 'using' here, not in template
+                         ;; it could be a map, it could be a vector
+
+                         :using (pr-str
+                                 (if cname
+                                   (if (not-empty (:using com))
+                                     (into {}
+                                           (for [u (:using com)]
+                                             [u (make-key (:assembly asmbly) (get using u))]))
+                                     (vec (for [u using]
+                                            (make-key (:assembly asmbly) u))))
+                                   (:using instance)))
+
+                         :pad10 (apply str (repeat (+ 10 (count (str n))) \space))
+                         :pad18 (apply str (repeat (+ 18 (count (str n))) \space))
+                         })})
+
         data {:name name
               :sanitized (name-to-path name)
               :snake-cased-name (clojure.string/replace name #"_" "-")
 
-              ;; Probably need to be sorted and with some conflict
-              ;; resolution warnings. Design decision is to generate
-              ;; anyway (the developer can always delete and start
-              ;; over). Also, developers can be given a warning (ala
-              ;; pacman on Arch) to tell them to expect conflicts -
-              ;; these can be resolved later
-              :dependencies
-              (->> components (mapcat :dependencies) distinct sort)
-
-              :requires
-              (reduce-kv
+              #_:requires
+              #_(reduce-kv
                (fn [a k v] (conj a {:namespace k
                                     :refers (apply str (interpose " " (distinct (map (comp clojure.core/name) v))))}))
                []
@@ -124,8 +153,8 @@
                     (remove nil?)
                     (group-by (comp symbol namespace))))
 
-              :dev-requires
-              (reduce-kv
+              #_:dev-requires
+              #_(reduce-kv
                (fn [a k v] (conj a {:namespace k
                                     :refers (apply str (interpose " " (distinct (map (comp clojure.core/name) v))))}))
                []
@@ -135,34 +164,37 @@
                     (remove nil?)
                     (group-by (comp symbol namespace))))
 
-              :assemblies
-              (for [asmbly
-                    (->> manifest :assemblies
-                         (filter select-assembly?))]
-                {:fn (str (clojure.core/name (:assembly asmbly)) "-components")
-                 :components
-                 (for [[n {cname :component
-                           using :using
-                           args :args}]
-                       (:components asmbly)
-                       :let [com (get components-by-id cname)
-                             ctr (:constructor com)]]
-                   {:key (make-key (:assembly asmbly) n)
-                    :component com
-                    :pad10 (apply str (repeat (+ 10 (count (str n))) \space))
-                    :pad18 (apply str (repeat (+ 18 (count (str n))) \space))
-                    :constructor (symbol (clojure.core/name ctr))
-                    :args (map (partial zipmap [:k :v]) (partition 2 args))
+              :assemblies assemblies
 
-                    ;; Construct 'using' here, not in template
-                    ;; it could be a map, it could be a vector
+              ;; Probably need to be sorted and with some conflict
+              ;; resolution warnings. Design decision is to generate
+              ;; anyway (the developer can always delete and start
+              ;; over). Also, developers can be given a warning (ala
+              ;; pacman on Arch) to tell them to expect conflicts -
+              ;; these can be resolved later
+              :dependencies
+              (->>
+               (for [asmbly assemblies
+                     c (:components asmbly)
+                     dep (:dependencies c)]
+                 dep)
+               sort distinct)
 
-                    :using (pr-str (if (not-empty (:using com))
-                                     (into {}
-                                           (for [u (:using com)]
-                                             [u (make-key (:assembly asmbly) (get using u))]))
-                                     (vec (for [u using]
-                                            (make-key (:assembly asmbly) u)))))})})
+
+              :refers
+              (->>
+               (for [asmbly assemblies
+                     c (:components asmbly)
+                     refer (:refers c)]
+                 refer)
+               sort distinct
+               (group-by (comp symbol namespace))
+               (reduce-kv
+               (fn [a k v] (conj a {:namespace k
+                                    :refers (apply str (interpose " " (distinct (map (comp clojure.core/name) v))))}))
+               []
+               )
+               )
 
               #_:components
               #_(->>
@@ -186,6 +218,7 @@
                               (str " " (apply pr-str (:args c))))})
                  (sort-by :component))
 
+              ;; Dependency maps will be useful for adding dependencies to components that already exist, such as template models and menus
               #_:dependency-map
               #_(->> manifest :assemblies
                      (filter select-assembly?)
@@ -210,6 +243,8 @@
                             (map :assembly)
                             (interpose "\n")
                             (apply str))))
+
+;;    (throw (ex-info "refers" {:refers (:refers data)}))
 
     (->files data
              ["project.clj" (render "project.clj" data)]

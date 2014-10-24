@@ -4,6 +4,7 @@
    [clojure.java.io :as io]
    [leiningen.new.modular :refer (modular)]))
 
+
 (defn delete-dir
   ;; Sometimes we don't want to delete the top-level directory because
   ;; it forces us to cd back into it from the shell when testing.
@@ -40,6 +41,8 @@
   (f))
 
 #_(use-fixtures :once project-fixture)
+
+;;(generate-project "website")
 
 (deftest website-tests
   (generate-project "website")

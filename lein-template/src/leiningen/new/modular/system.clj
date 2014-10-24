@@ -8,9 +8,9 @@
    [clojure.tools.reader.reader-types :refer (indexing-push-back-reader)]
    [com.stuartsierra.component :refer (system-map system-using using)]
    [modular.maker :refer (make)]
-   {{#requires}}
+   {{#refers}}
    [{{namespace}} :refer ({{{refers}}})]
-   {{/requires}}
+   {{/refers}}
    ))
 
 (defn ^:private read-file
@@ -45,7 +45,7 @@
          (user-config)))
 
 {{#assemblies}}
-(defn {{fn}} [system config]
+(defn {{fname}} [system config]
   (assoc system
     {{#components}}
     {{key}}
@@ -65,7 +65,7 @@
     (apply concat
       (-> {}
           {{#assemblies}}
-          ({{fn}} config)
+          ({{fname}} config)
           {{/assemblies}}
           ))))
 

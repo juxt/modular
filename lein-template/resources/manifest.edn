@@ -20,7 +20,7 @@
   #_{:component :webresources
      :dependencies [[juxt.modular/bidi "0.5.2"]]
      :constructor modular.bidi/new-web-service
-     :requires bidi.bidi/->ResourcesMaybe
+     :refers [bidi.bidi/->ResourcesMaybe]
      ;; TODO The args should belong to the instance
      :args [:request-handlers {}
             :routes ["/" {"js/" (->ResourcesMaybe {:prefix "public/js/"})
@@ -48,7 +48,7 @@
    }
 
   ;; Menus
-  {:component :menu-index
+  {:component :modular.menu/menu-index
    :dependencies [[juxt.modular/menu "0.5.3"]]
    :constructor modular.menu/new-menu-index}
 
@@ -114,27 +114,27 @@
    :dev? true
    }
 
-  ;; Project-local components
-  {:component :website
-   :dependencies [[hiccup "1.0.5"]
-                  [juxt.modular/bidi "0.5.2"]]
-   :constructor {{name}}.website/new-website}
-
-
-  {:component :template-model
+  {:component :modular.web-template/dependency-dynamic-template-model
    :dependencies [[juxt.modular/web-template "0.5.2"]
                   [de.ubercode.clostache/clostache "1.3.1"]]
    :constructor modular.web-template/new-dependency-dynamic-template-model
    }
 
-  {:component :{{name}}-cljs
+  ;; Project-local components
+  {:component :website
+   :dependencies [[hiccup "1.0.5"]
+                  [juxt.modular/bidi "0.5.2"]]
+   :constructor {{name}}.website/new-website
+   :using [:template-model]}
+
+  #_{:component :{{name}}-cljs
    :dependencies [[juxt.modular/cljs "0.5.0"]]
    :constructor modular.cljs/new-cljs-module
    ;; TODO The args should belong to the instance
    :args [:name :{{name}} :mains ['{{name}}.main] :dependencies #{:cljs-core}]
    }
 
-  {:component :example-page
+  #_{:component :example-page
    :constructor {{name}}.example-page/new-example-page
    ;; TODO The args should belong to the instance
    :args [:title "First example page"
@@ -142,7 +142,7 @@
           :path "/example-page-a"
           ]}
 
-  {:component :example-page-menu-items
+  #_{:component :example-page-menu-items
    :constructor {{name}}.example-page/new-example-page-menu-items
    ;; TODO The args should belong to the instance
    :args [:label "First example page"
@@ -172,10 +172,17 @@
   ;; lein new modular app full-featured-website
   {:assembly :website
    :components
-   {
+   {:template-model
+    {:component :modular.web-template/dependency-dynamic-template-model}
+
+    :website {:component :website
+              :dependencies [[hiccup "1.0.5"]
+                             [juxt.modular/bidi "0.5.2"]]
+              :using {:template-model :template-model}}
+
     :webresources
     {:component :modular.bidi/web-service
-     :requires bidi.bidi/->ResourcesMaybe
+     :refers [bidi.bidi/->ResourcesMaybe]
      :args [:request-handlers {}
             :routes ["/" {"js/" (->ResourcesMaybe {:prefix "public/js/"})
                           "css/" (->ResourcesMaybe {:prefix "public/css/"})}]]
@@ -187,20 +194,8 @@
     :listener {:component :modular.http-kit/webserver
                :using {:request-handler :webrouter}}
 
-
-    ;;                :webresources :webresources
-
-    ;;                :webrouter :webrouter
-    ;;                :webhead :webhead
     ;;                :menu-index :menu-index
-    ;;                :website :website
-    ;;                :template-model :template-model
     }
-   :dependency-map {:webserver {:request-handler :webhead}
-                    :webhead {:request-handler :webrouter}
-                    :webrouter [:website :webresources]
-                    :website {:template-model :template-model}
-                    }
    :default? true}
 
   {:assembly :example-pages
