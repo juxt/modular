@@ -204,6 +204,13 @@
    :dependency-map {[:http-listener :listener] {:request-handler :webrouter}}
    :default? true}
 
+
+  {:assembly :simple-webservice
+   :components {:simple-webservice
+                {:constructor {{name}}.simple-webservice/new-website}}
+   :dependency-map {[:modular-bidi-routes :webrouter] [:simple-webservice]}
+   :default? true}
+
   {:assembly :example-pages
    :components #{:example-page-a
                  :example-page-a-menu-items

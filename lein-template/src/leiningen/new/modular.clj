@@ -310,6 +310,10 @@
              ["src/{{sanitized}}/system.clj" (close-parens (render "system.clj" data))]
 
              ["src/{{sanitized}}/website.clj" (render "website.clj" data)]
+
+             ;; Our Hello World! handler
+             ["src/{{sanitized}}/simple_webservice.clj" (render "simple_webservice.clj" data)]
+
              ;; TODO Write website.clj in terms of boilerplate.clj, it is currently too 'standalone'
              ["src/{{sanitized}}/boilerplate.clj" (render "boilerplate.clj" data)]
 
