@@ -7,7 +7,6 @@
    [com.stuartsierra.component :as component]
    [{{name}}.system :refer (config new-system-map new-dependency-map)]
    [modular.maker :refer (make)]
-   [dev-components :refer (wrap-schema-validation)]
    {{#dev-requires}}
    [{{namespace}} :refer ({{{refers}}})]
    {{/dev-requires}}
@@ -25,7 +24,7 @@
                  {{#dev-components}}
                  {{component}} (make {{constructor}} config{{{args}}})
                  {{/dev-components}}
-                 :wrap-schema-validation wrap-schema-validation))
+                 ))
         d-map (new-dependency-map)]
     (component/system-using s-map d-map)))
 

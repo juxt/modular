@@ -43,8 +43,8 @@
   []
   (merge (config-from-classpath)
          (user-config)))
-
 {{#assemblies}}
+{{#fname}}
 (defn {{fname}} [system config]
   (assoc system
     {{#components}}
@@ -55,8 +55,8 @@
        {{k}} {{{v}}}
 {{/args}})
       {{using}})
-
 {{/components}}))
+{{/fname}}
 
 {{/assemblies}}
 (defn new-system-map
