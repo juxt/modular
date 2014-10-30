@@ -1,4 +1,4 @@
-(ns {{name}}.simple-webservice
+(ns {{name}}.simple-bidi-website
   (:require
    [clojure.pprint :refer (pprint)]
    [modular.ring :refer (WebRequestHandler)]

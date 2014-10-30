@@ -211,12 +211,12 @@
    :dependency-map {[:http-listener :listener] {:request-handler :webrouter}}
    :default? true}
 
-  {:assembly :simple-webservice
-   :components {:simple-webservice
-                {:constructor {{name}}.simple-webservice/new-website}}
-   :dependency-map {[:modular-bidi-routes :webrouter] [:simple-webservice]}
-   :files [{:template "simple_webservice.clj"
-            :target "src/{{sanitized}}/simple_webservice.clj"}]
+  {:assembly :simple-bidi-website
+   :components {:website
+                {:constructor {{name}}.simple-bidi-website/new-website}}
+   :dependency-map {[:modular-bidi-routes :webrouter] [:website]}
+   :files [{:template "simple_bidi_website.clj"
+            :target "src/{{sanitized}}/simple_bidi_website.clj"}]
    :default? true}
 
   {:assembly :example-pages
