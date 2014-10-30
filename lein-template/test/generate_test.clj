@@ -2,6 +2,7 @@
   (:require
    [clojure.test :refer :all]
    [clojure.java.io :as io]
+   [clojure.java.shell :refer (sh)]
    [leiningen.new.modular :refer (modular)]))
 
 
@@ -36,6 +37,13 @@
         (apply modular name args)
         (catch Exception e (.printStackTrace e))))))
 
+(defn generate-checkout [name src project]
+  (println "Generate checkout:" project)
+  (let [dir (get-tmp-dir)
+        projectdir (io/file dir name)]
+    (.mkdirs (io/file projectdir "checkouts"))
+    (sh "ln" "-s" src (.getPath (io/file projectdir (str "checkouts/" project))))))
+
 #_(defn project-fixture [f]
   (generate-project "myapp")
   (f))
@@ -46,6 +54,7 @@
 
 (deftest website-tests
   (generate-project "website")
+
   (testing "project file exists"
     (is (.exists (io/file (get-tmp-dir) "website/project.clj")))))
 
