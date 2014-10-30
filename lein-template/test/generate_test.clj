@@ -5,7 +5,6 @@
    [clojure.java.shell :refer (sh)]
    [leiningen.new.modular :refer (modular)]))
 
-
 (defn delete-dir
   ;; Sometimes we don't want to delete the top-level directory because
   ;; it forces us to cd back into it from the shell when testing.
@@ -24,7 +23,7 @@
       (io/file (System/getProperty "java.io.tmpdir") "modular-lein-template")
     (.mkdirs)))
 
-(defn generate-project [name & args]
+(defn generate-project [name app-template & args]
   (println "Generate project")
   (let [dir (get-tmp-dir)
         projectdir (io/file dir name)]
@@ -34,7 +33,7 @@
               leiningen.new.templates/*force?* true]
       (println "Applying modular")
       (try
-        (apply modular name args)
+        (apply modular name app-template args)
         (catch Exception e (.printStackTrace e))))))
 
 (defn generate-checkout [name src project]
@@ -45,20 +44,18 @@
     (sh "ln" "-s" src (.getPath (io/file projectdir (str "checkouts/" project))))))
 
 #_(defn project-fixture [f]
-  (generate-project "myapp")
+  (generate-project "myapp" "hello-world-web")
   (f))
 
 #_(use-fixtures :once project-fixture)
 
-;;(generate-project "website")
-
 (deftest website-tests
-  (generate-project "website")
+  (generate-project "website" "hello-world-web")
 
-  (testing "project file exists"
+  (testing "project file should exist"
     (is (.exists (io/file (get-tmp-dir) "website/project.clj")))))
 
 #_(deftest website-with-login-tests
-  (generate-project "website-with-login" "+cylon/login")
+  (generate-project "website-with-login" "hello-world-web" "+cylon/login")
   (testing "project file exists"
     (is (.exists (io/file (get-tmp-dir) "website-with-login/project.clj")))))
