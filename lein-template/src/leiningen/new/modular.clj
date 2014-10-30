@@ -98,7 +98,8 @@
                   (stencil/render-string
                    (slurp (io/resource "manifest.edn"))
                    {:name name
-                    :dev-password (format "\"%s\"" (generate-password))}))
+                    :dev-password (format "\"%s\"" (generate-password))
+                    :sanitized (name-to-path name)}))
 
         component-keys (->> manifest :assemblies
                             (filter select-assembly?)
@@ -114,52 +115,51 @@
                               (into {}))
 
         assemblies (for [a (->> manifest :assemblies (filter select-assembly?))]
-                     {:fname (str (clojure.core/name (:assembly a)) "-components")
+                     (merge a
+                            {:fname (when (:components a)
+                                      (str (clojure.core/name (:assembly a)) "-components"))
+                             :components
+                             (when (:components a)
+                               (for [[n {component-ref :component
+                                         using :using
+                                         dependencies :dependencies
+                                         args :args :as instance
+                                         }]
+                                     (:components a)
+                                     :let [component (when component-ref
+                                                       (get components-by-id component-ref))
+                                           constructor (if component
+                                                         (:constructor component)
+                                                         (:constructor instance))]]
+                                 (merge
+                                  (when component
+                                    {:component component})
 
-                      :assembly (:assembly a)
+                                  {:dependencies
+                                   (if component
+                                     (concat
+                                      (:dependencies (get components-by-id component-ref))
+                                      dependencies)
+                                     dependencies)}
 
-                      :components
-                      (for [[n {component-ref :component
-                                using :using
-                                dependencies :dependencies
-                                args :args :as instance
-                                }]
-                            (:components a)
-                            :let [component (when component-ref
-                                              (get components-by-id component-ref))
-                                  constructor (if component
-                                                (:constructor component)
-                                                (:constructor instance))]]
-                        (merge
-                         (when component
-                           {:component component})
+                                  {:key (make-key (:assembly a) n)
+                                   :refers (conj (:refers instance) constructor)
+                                   :constructor (symbol (clojure.core/name constructor))
+                                   :args (map (partial zipmap [:k :v]) (partition 2 args))
 
-                         {:dependencies
-                          (if component
-                            (concat
-                             (:dependencies (get components-by-id component-ref))
-                             dependencies)
-                            dependencies)}
+                                   ;; Construct 'using' here, not in template
+                                   ;; it could be a map, it could be a vector
 
-                         {:key (make-key (:assembly a) n)
-                          :refers (conj (:refers instance) constructor)
-                          :constructor (symbol (clojure.core/name constructor))
-                          :args (map (partial zipmap [:k :v]) (partition 2 args))
-
-                          ;; Construct 'using' here, not in template
-                          ;; it could be a map, it could be a vector
-
-                          :using (pr-str
-                                  (or (:using instance) []))
+                                   :using (pr-str
+                                           (or (:using instance) []))
 
 
 
-                          :pad10 (apply str (repeat (+ 10 (count (str n))) \space))
-                          :pad18 (apply str (repeat (+ 18 (count (str n))) \space))
-                          }))
+                                   :pad10 (apply str (repeat (+ 10 (count (str n))) \space))
+                                   :pad18 (apply str (repeat (+ 18 (count (str n))) \space))
+                                   })))
 
-                      :dependency-map (:dependency-map a)
-                      })
+                             }))
 
         data {:name name
               :sanitized (name-to-path name)
@@ -263,6 +263,8 @@
                 (into {})
                 ))
 
+              :files (mapcat :files assemblies)
+
               #_(->> assemblies
                      (mapcat :dependency-map)
                      (group-by first)
@@ -286,9 +288,7 @@
                                         (into {}
                                               (mapcat
                                                (comp ensure-map second) v))))
-                               {})
-
-                    ))
+                               {})))
 
     (main/info (format "Generating a new modular project named %s with options :-\n%s"
                        name
@@ -298,50 +298,54 @@
                             (interpose "\n")
                             (apply str))))
 
-    (->files data
+    (letfn [(proc-file [{:keys [target template close-parens?]}]
+              [target (cond-> (render template data) close-parens? close-parens)])]
+      (main/info (format "files are %s" (apply str (apply pr-str (map proc-file (:files data))))))
+      (apply ->files data (map proc-file (:files data))))
+
+    #_(apply ->files data (process-files (:files data))
+             ;; Core files
              ["project.clj" (render "project.clj" data)]
+             ["src/{{sanitized}}/system.clj" (close-parens (render "system.clj" data))]
              ["dev/dev.clj" (render "dev.clj" data)]
              ["dev/user.clj" (render "user.clj" data)]
 
              ["dev/dev_components.clj" (render "dev_components.clj" data)]
 
-             ["src/{{sanitized}}/main.clj" (render "main.clj" data)]
-
-             ["src/{{sanitized}}/system.clj" (close-parens (render "system.clj" data))]
-
-             ["src/{{sanitized}}/website.clj" (render "website.clj" data)]
+             #_["src/{{sanitized}}/main.clj" (render "main.clj" data)]
+             #_["src/{{sanitized}}/website.clj" (render "website.clj" data)]
 
              ;; Our Hello World! handler
-             ["src/{{sanitized}}/simple_webservice.clj" (render "simple_webservice.clj" data)]
+             #_["src/{{sanitized}}/simple_webservice.clj" (render "simple_webservice.clj" data)]
 
              ;; TODO Write website.clj in terms of boilerplate.clj, it is currently too 'standalone'
-             ["src/{{sanitized}}/boilerplate.clj" (render "boilerplate.clj" data)]
+             #_["src/{{sanitized}}/boilerplate.clj" (render "boilerplate.clj" data)]
 
-             ["src/{{sanitized}}/example_page.clj" (render "example_page.clj" data)]
+             #_["src/{{sanitized}}/example_page.clj" (render "example_page.clj" data)]
 
-             ["src/{{sanitized}}/restricted_page.clj" (render "restricted_page.clj" data)]
+             #_["src/{{sanitized}}/restricted_page.clj" (render "restricted_page.clj" data)]
 
-             ["test/{{sanitized}}/website_tests.clj" (render "website_tests.clj" data)]
+             #_["test/{{sanitized}}/website_tests.clj" (render "website_tests.clj" data)]
 
-             ["src-cljs/{{sanitized}}/main.cljs" (render "main.cljs" data)]
+             #_["src-cljs/{{sanitized}}/main.cljs" (render "main.cljs" data)]
 
              ;; Log configuration
-             ["resources/logback.xml" (render "logback.xml" data)]
+             #_["resources/logback.xml" (render "logback.xml" data)]
 
              ;; HTML
-             ["resources/templates/page.html.mustache" (render "page.html.mustache")]
-             ["resources/templates/home.html.mustache" (render "home.html.mustache")]
+             #_["resources/templates/page.html.mustache" (render "page.html.mustache")]
+             #_["resources/templates/home.html.mustache" (render "home.html.mustache")]
 
              ;; CSS
-             ["resources/public/css/bootstrap.min.css" (render "resources/bootstrap.min.css")]
-             ["resources/public/css/bootstrap-theme.min.css" (render "resources/bootstrap-theme.min.css")]
+             #_["resources/public/css/bootstrap.min.css" (render "resources/bootstrap.min.css")]
+             #_["resources/public/css/bootstrap-theme.min.css" (render "resources/bootstrap-theme.min.css")]
 
-             ["resources/public/css/theme.css" (render "resources/theme.css")]
+             #_["resources/public/css/theme.css" (render "resources/theme.css")]
 
              ;; JS
-             ["resources/public/js/bootstrap.min.js" (render "resources/bootstrap.min.js")]
-             ["resources/public/js/jquery.min.js" (render "resources/jquery-2.1.1.min.js")]
-             ["resources/public/js/jquery.min.map" (render "resources/jquery-2.1.1.min.map")]
-             ["resources/public/js/react.js" (render "resources/react-0.9.0.js")]
+             #_["resources/public/js/bootstrap.min.js" (render "resources/bootstrap.min.js")]
+             #_["resources/public/js/jquery.min.js" (render "resources/jquery-2.1.1.min.js")]
+             #_["resources/public/js/jquery.min.map" (render "resources/jquery-2.1.1.min.map")]
+             #_["resources/public/js/react.js" (render "resources/react-0.9.0.js")]
 
              )))
