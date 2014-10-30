@@ -7,5 +7,6 @@
             :url "http://opensource.org/licenses/MIT"}
   :dependencies [[org.clojure/clojure "1.6.0"]
                  ;; EDN reader with location metadata
-                 [org.clojure/tools.reader "0.8.3"]]
+                 [org.clojure/tools.reader "0.8.3"]
+                 [org.clojure/tools.logging "0.2.6"]]
   :eval-in-leiningen true)

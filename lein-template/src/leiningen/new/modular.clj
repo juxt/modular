@@ -10,9 +10,11 @@
    [clojure.pprint :refer (pprint)]
    [clojure.string :refer (split trim replace)]
    [clojure.set :as set]
+   [clojure.java.shell :refer (sh)]
    [stencil.core :as stencil]
    [clojure.tools.reader :refer (read *data-readers*)]
    [clojure.tools.reader.reader-types :refer (indexing-push-back-reader)]
+   [clojure.tools.logging :refer :all]
    ))
 
 (def render (renderer "modular"))
@@ -295,8 +297,6 @@
                             (map :assembly)
                             (interpose "\n")
                             (apply str))))
-
-    ;;    (throw (ex-info "refers" {:refers (:refers data)}))
 
     (->files data
              ["project.clj" (render "project.clj" data)]
