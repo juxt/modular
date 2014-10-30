@@ -300,7 +300,6 @@
 
     (letfn [(proc-file [{:keys [target template close-parens?]}]
               [target (cond-> (render template data) close-parens? close-parens)])]
-      (main/info (format "files are %s" (apply str (apply pr-str (map proc-file (:files data))))))
       (apply ->files data (map proc-file (:files data))))
 
     #_(apply ->files data (process-files (:files data))
