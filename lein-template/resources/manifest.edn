@@ -174,8 +174,7 @@
    :files [{:template "project.clj" :target "project.clj"}
            {:template "system.clj" :target "src/{{sanitized}}/system.clj" :close-parens? true}
            {:template "dev.clj" :target "dev/dev.clj"}
-           {:template "user.clj" :target "dev/user.clj"}]
-   :default? true}
+           {:template "user.clj" :target "dev/user.clj"}]}
 
   {:assembly :http-listener
    :components
@@ -196,18 +195,16 @@
                             "css/" (->ResourcesMaybe {:prefix "public/css/"})}]]}
 
     :listener {:component :modular.http-kit/webserver}
-
     ;;                :menu-index :menu-index
     }
-   :default? true}
+   }
 
   {:assembly :hello-world-website
    :components {:handler
                 {:constructor {{name}}.hello-world-website/new-handler}}
    :dependency-map {[:http-listener :listener] {:request-handler :handler}}
    :files [{:template "hello_world_website.clj"
-            :target "src/{{sanitized}}/hello_world_website.clj"}]
-   :default? true}
+            :target "src/{{sanitized}}/hello_world_website.clj"}]}
 
   {:assembly :modular-bidi-routes
    :components {:webrouter
@@ -216,16 +213,14 @@
                  }}
    ;; TODO rename to component-dependencies and dependencies above
    ;; should be renamed to library-dependencies
-   :dependency-map {[:http-listener :listener] {:request-handler :webrouter}}
-   :default? false}
+   :dependency-map {[:http-listener :listener] {:request-handler :webrouter}}}
 
   {:assembly :simple-bidi-website
    :components {:website
                 {:constructor {{name}}.simple-bidi-website/new-website}}
    :dependency-map {[:modular-bidi-routes :webrouter] [:website]}
    :files [{:template "simple_bidi_website.clj"
-            :target "src/{{sanitized}}/simple_bidi_website.clj"}]
-   :default? false}
+            :target "src/{{sanitized}}/simple_bidi_website.clj"}]}
 
   {:assembly :example-pages
    :components #{:example-page-a
@@ -236,18 +231,15 @@
                     :example-page-a {:template-model :template-model}
                     :example-page-b {:template-model :template-model}
                     :menu-index [:example-page-a-menu-items
-                                 :example-page-b-menu-items]}
-   #_:default? #_true}
+                                 :example-page-b-menu-items]}}
 
   {:assembly :webmeta
    :components #{:webmeta}
-   :dependency-map {:template-model [:webmeta]}
-   #_:default? #_true}
+   :dependency-map {:template-model [:webmeta]}}
 
   {:assembly :cljs
    :components #{:cljs-builder :cljs-core :{{name}}-cljs}
-   :dependency-map {:cljs-builder [:cljs-core :{{name}}-cljs]}
-   #_:default? #_false}
+   :dependency-map {:cljs-builder [:cljs-core :{{name}}-cljs]}}
 
   {:assembly :cylon/login
    :components #{:cylon/login-form
@@ -276,24 +268,19 @@
                     {:password-hash-algo :cylon/password-hash-algo
                      :user-store :cylon/user-store},
                     :menu-index [:login-form-menu-items]}
-   #_:default? #_false
    :doc {:main #markdown "cylon-login.md"}}
 
   {:assembly :bootstrap
    :components #{:bootstrap-menu}
    :dependency-map {:bootstrap-menu {:menu-index :menu-index}
-                    :template-model {:menu :bootstrap-menu}}
-   #_:default? #_true}
+                    :template-model {:menu :bootstrap-menu}}}
 
   {:assembly :dev-browser
    :components #{}
-   :dependency-map {}
-   #_:default? #_true}
-  ]
+   :dependency-map {}}]
 
- ;; TODO: Support options, which are collections of assemblies
- :options
- {"basic-website" [:website]}
+ :application-templates
+ {"hello-world-web" #{:http-listener :hello-world-website}}
 
  }
 

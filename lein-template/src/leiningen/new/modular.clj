@@ -73,7 +73,7 @@
   will be shown on 'lein new :show modular' , but will only appear when
   released."
 
-  [name & args]
+  [name app-template & args]
 
   (let [augment-by (->> args
                         (keep (partial re-matches #"\+(.*)") )
@@ -89,10 +89,7 @@
                          (map (partial apply keyword))
                          set)
 
-        select-assembly? (fn [{:keys [assembly default?]}]
-                           (or (contains? augment-by assembly)
-                               (and default?
-                                    (not (contains? diminish-by assembly)))))
+
 
         manifest (load-edn-string
                   (stencil/render-string
@@ -100,6 +97,15 @@
                    {:name name
                     :dev-password (format "\"%s\"" (generate-password))
                     :sanitized (name-to-path name)}))
+
+        select-assembly?
+        (fn [{:keys [assembly]}]
+          (when-let [includes
+                     (conj (-> manifest :application-templates (get app-template #{})) :core)]
+            (infof "select asm? %s %s" includes assembly)
+            (or (contains? augment-by assembly)
+                (and (includes assembly)
+                     (not (contains? diminish-by assembly))))))
 
         component-keys (->> manifest :assemblies
                             (filter select-assembly?)
@@ -114,7 +120,8 @@
                               (map (juxt :component identity))
                               (into {}))
 
-        assemblies (for [a (->> manifest :assemblies (filter select-assembly?))]
+        assemblies (for [a (->> manifest :assemblies (filter select-assembly?))
+                         :let [_ (infof "a is %s" a)]]
                      (merge a
                             {:fname (when (:components a)
                                       (str (clojure.core/name (:assembly a)) "-components"))
