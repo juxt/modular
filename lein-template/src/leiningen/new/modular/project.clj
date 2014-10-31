@@ -14,9 +14,9 @@
    [juxt.modular/maker "0.5.0"]
    [juxt.modular/wire-up "0.5.0"]
 
-   {{#dependencies}}
+   {{#library-dependencies}}
    {{{.}}}
-   {{/dependencies}}
+   {{/library-dependencies}}
    ]
 
   :main {{name}}.main
