@@ -252,14 +252,14 @@
               ;; to components that already exist, such as template
               ;; models and menus
 
-              :dependency-map
+              :dependencies
               (pr-str
                (->>
                 (for [a assemblies
                       :let [mkey #(if (keyword? %) (make-key (:assembly a) %)
                                       (apply make-key %))]
 
-                      [k v] (:dependency-map a)
+                      [k v] (:dependencies a)
                       [n v] (ensure-map v)
                       ]
                   [(mkey k) [n (mkey v)]])
@@ -273,7 +273,7 @@
               :files (mapcat :files assemblies)
 
               #_(->> assemblies
-                     (mapcat :dependency-map)
+                     (mapcat :dependencies)
                      (group-by first)
                      (reduce-kv (fn [acc k v]
                                   (assoc acc k
@@ -288,7 +288,7 @@
                      )}]
 
     #_(println (->> assemblies
-                    (mapcat :dependency-map)
+                    (mapcat :dependencies)
                     (group-by first)
                     (reduce-kv (fn [acc k v]
                                  (assoc acc k
