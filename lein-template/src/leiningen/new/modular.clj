@@ -129,7 +129,7 @@
                              (when (:components a)
                                (for [[n {component-ref :component
                                          using :using
-                                         dependencies :dependencies
+                                         library-dependencies :library-dependencies
                                          args :args :as instance
                                          }]
                                      (:components a)
@@ -142,12 +142,12 @@
                                   (when component
                                     {:component component})
 
-                                  {:dependencies
+                                  {:library-dependencies
                                    (if component
                                      (concat
-                                      (:dependencies (get components-by-id component-ref))
-                                      dependencies)
-                                     dependencies)}
+                                      (:library-dependencies (get components-by-id component-ref))
+                                      library-dependencies)
+                                     library-dependencies)}
 
                                   {:key (make-key (:assembly a) n)
                                    :refers (conj (:refers instance) constructor)
@@ -202,11 +202,11 @@
               ;; over). Also, developers can be given a warning (ala
               ;; pacman on Arch) to tell them to expect conflicts -
               ;; these can be resolved later
-              :dependencies
+              :library-dependencies
               (->>
                (for [asmbly assemblies
                      c (:components asmbly)
-                     dep (:dependencies c)]
+                     dep (:library-dependencies c)]
                  dep)
                sort distinct)
 
