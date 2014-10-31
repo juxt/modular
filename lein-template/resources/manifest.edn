@@ -202,7 +202,7 @@
   {:assembly :hello-world-website
    :components {:handler
                 {:constructor {{name}}.hello-world-website/new-handler}}
-   :dependency-map {[:http-listener :listener] {:request-handler :handler}}
+   :dependencies {[:http-listener :listener] {:request-handler :handler}}
    :files [{:template "hello_world_website.clj"
             :target "src/{{sanitized}}/hello_world_website.clj"}]}
 
@@ -211,9 +211,7 @@
                 {:component :modular.bidi/router
                  ;;:using [:website :webresources]
                  }}
-   ;; TODO rename to component-dependencies and dependencies above
-   ;; should be renamed to library-dependencies
-   :dependency-map {[:http-listener :listener] {:request-handler :webrouter}}}
+   :dependencies {[:http-listener :listener] {:request-handler :webrouter}}}
 
   {:assembly :simple-bidi-website
    :components {:website
