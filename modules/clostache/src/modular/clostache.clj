@@ -2,9 +2,8 @@
 
 (ns modular.clostache
   (:require
-   modular.template
-   [clostache.parser :as parser])
-  (:import (modular.template Templater)))
+   [modular.template :refer (Templater)]
+   [clostache.parser :as parser]))
 
 (defrecord ClostacheTemplater []
   Templater
