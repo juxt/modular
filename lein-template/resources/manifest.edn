@@ -13,6 +13,16 @@
    :constructor modular.bidi/new-router
    }
 
+  {:component :modular.template/aggregate-template-model
+   :library-dependencies [[juxt.modular/template "0.6.0-SNAPSHOT"]]
+   :constructor modular.template/new-aggregate-template-model
+   }
+
+  {:component :modular.clostache/templater
+   :library-dependencies [[juxt.modular/clostache "0.6.0-SNAPSHOT"]]
+   :constructor modular.clostache/new-clostache-templater
+   }
+
   #_{:component :modular.bidi/web-service
      :library-dependencies [[juxt.modular/bidi "0.5.2"]]
      :constructor modular.bidi/new-web-service}
@@ -220,10 +230,25 @@
    :files [{:template "simple_bidi_website.clj"
             :target "src/{{sanitized}}/simple_bidi_website.clj"}]}
 
+  {:assembly :aggregate-template-model
+   :components {:template-model
+                {:component :modular.template/aggregate-template-model
+                 }}}
+
+  {:assembly :clostache-templater
+   :components {:templater
+                {:component :modular.clostache/templater
+                 }}}
+
   {:assembly :templated-bidi-website
    :components {:website
-                {:constructor {{name}}.templated-bidi-website/new-website}}
-   :dependencies {[:modular-bidi-router :webrouter] [:website]}
+                {:constructor {{name}}.templated-bidi-website/new-website
+                 }}
+   :dependencies {[:modular-bidi-router :webrouter] [:website]
+                  :website {:template-model [:aggregate-template-model :template-model]
+                            :templater [:clostache-templater :templater]}
+                  ;;[:aggregate-template-model :template-model] [:example-data]
+                  }
    :files [{:template "templated_bidi_website.clj"
             :target "src/{{sanitized}}/templated_bidi_website.clj"}]}
 
@@ -284,9 +309,18 @@
      :dependency-map {}}]
 
  :application-templates
- {"hello-world-web" #{:http-listener :hello-world-website}
-  "bidi-hello-world" #{:http-listener :modular-bidi-router :simple-bidi-website}
-  "templated-bidi-website" #{:http-listener :modular-bidi-router :templated-bidi-website}
+ {"hello-world-web" #{:http-listener
+                      :hello-world-website}
+
+  "bidi-hello-world" #{:http-listener
+                       :modular-bidi-router
+                       :simple-bidi-website}
+
+  "templated-bidi-website" #{:http-listener
+                             :modular-bidi-router
+                             :templated-bidi-website
+                             :clostache-templater
+                             :aggregate-template-model}
   ;; TODO How about a nice template now?
 
   ;; TODO Let's add some example pages
