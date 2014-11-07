@@ -6,33 +6,28 @@
    [schema.core :as s]
    [clojure.tools.logging :refer :all]))
 
-;; Terminology: Any component can return template /data/, which is a
-;; simple map (or record). When multiple sources of template data are
-;; combined together, for the purposes of template rendering, we call it
-;; a template /model/.
+(defprotocol TemplateModel
+  (template-model [_ context]
+    "Returns a map of data, which can determined by the given context"))
 
-(defprotocol TemplateData
-  (template-data [_]
-    "Returns a map"))
+(defrecord StaticTemplateModel []
+  TemplateModel
+  (template-model [component context] component))
 
-(defrecord StaticTemplateData []
-  TemplateData
-  (template-data [this] this))
-
-(defn new-static-template-data
+(defn new-static-template-model
   "Construct a component that will provide the given k-v arguments as
   template data"
   [& {:as static}]
-  (map->StaticTemplateData static))
+  (map->StaticTemplateModel static))
 
-(defrecord TemplateModel [static]
-  TemplateData
-  (template-data [this]
+(defrecord AggregateTemplateModel [static]
+  TemplateModel
+  (template-model [component context]
     (merge static
            (apply merge
-                  (for [[k v] this
-                        :when (satisfies? TemplateData v)]
-                    {k (template-data v)})))))
+                  (for [[k v] component
+                        :when (satisfies? TemplateModel v)]
+                    {k (template-model v context)})))))
 
-(defn new-template-model [& {:as static}]
-  (->TemplateModel static))
+(defn new-aggregate-template-model [& {:as static}]
+  (->AggregateTemplateModel static))
