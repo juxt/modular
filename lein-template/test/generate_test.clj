@@ -63,6 +63,13 @@
     (testing "project file should exist"
       (is (.exists (io/file (get-tmp-dir) (str name "/project.clj")))))))
 
+(deftest templated-bidi-website-tests
+  (let [name "templated-bidi-website"]
+    (generate-project name "templated-bidi-website")
+
+    (testing "project file should exist"
+      (is (.exists (io/file (get-tmp-dir) (str name "/project.clj")))))))
+
 
 #_(deftest website-with-login-tests
   (generate-project "website-with-login" "hello-world-web" "+cylon/login")
