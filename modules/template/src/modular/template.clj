@@ -31,3 +31,6 @@
 
 (defn new-aggregate-template-model [& {:as static}]
   (->AggregateTemplateModel static))
+
+(defprotocol Templater
+  (render-template [_ template model]))
