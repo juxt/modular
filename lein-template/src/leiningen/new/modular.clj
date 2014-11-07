@@ -102,7 +102,6 @@
         (fn [{:keys [assembly]}]
           (when-let [includes
                      (conj (-> manifest :application-templates (get app-template #{})) :core)]
-            (infof "select asm? %s %s" includes assembly)
             (or (contains? augment-by assembly)
                 (and (includes assembly)
                      (not (contains? diminish-by assembly))))))
