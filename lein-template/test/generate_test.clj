@@ -49,11 +49,20 @@
 
 #_(use-fixtures :once project-fixture)
 
-(deftest website-tests
-  (generate-project "website" "hello-world-web")
+(deftest hello-world-web-tests
+  (let [name "hello-world-web"]
+    (generate-project name "hello-world-web")
 
-  (testing "project file should exist"
-    (is (.exists (io/file (get-tmp-dir) "website/project.clj")))))
+    (testing "project file should exist"
+      (is (.exists (io/file (get-tmp-dir) (str name "/project.clj")))))))
+
+(deftest bidi-hello-world-tests
+  (let [name "bidi-hello-world"]
+    (generate-project name "bidi-hello-world")
+
+    (testing "project file should exist"
+      (is (.exists (io/file (get-tmp-dir) (str name "/project.clj")))))))
+
 
 #_(deftest website-with-login-tests
   (generate-project "website-with-login" "hello-world-web" "+cylon/login")

@@ -170,7 +170,7 @@
   ;; lein new modular app +httpkit:port:80
 
   ;; lein new modular app full-featured-website
-  {:assembly :core
+  {:assembly :core ; :core is special, it's always selected
    :files [{:template "project.clj" :target "project.clj"}
            {:template "system.clj" :target "src/{{sanitized}}/system.clj" :close-parens? true}
            {:template "dev.clj" :target "dev/dev.clj"}
@@ -216,7 +216,7 @@
   {:assembly :simple-bidi-website
    :components {:website
                 {:constructor {{name}}.simple-bidi-website/new-website}}
-   :dependency-map {[:modular-bidi-routes :webrouter] [:website]}
+   :dependencies {[:modular-bidi-routes :webrouter] [:website]}
    :files [{:template "simple_bidi_website.clj"
             :target "src/{{sanitized}}/simple_bidi_website.clj"}]}
 
@@ -251,20 +251,19 @@
                  :template-model
                  :user-domain-seeder}
 
-   :dependency-map {:webrouter [:cylon/login-form
-                                ],
+   :dependency-map {:webrouter [:cylon/login-form]
                     :cylon/login-form
-                    {:session-store :cylon/session-store,
-                     :user-domain :cylon/user-domain,
+                    {:session-store :cylon/session-store
+                     :user-domain :cylon/user-domain
                      :renderer :cylon/login-form-bootstrap-renderer
-                     },
+                     }
                     :cylon/login-form-bootstrap-renderer
-                    {:boilerplate :boilerplate},
+                    {:boilerplate :boilerplate}
                     :boilerplate
-                    {:template-model :template-model},
+                    {:template-model :template-model}
                     :cylon/user-domain
                     {:password-hash-algo :cylon/password-hash-algo
-                     :user-store :cylon/user-store},
+                     :user-store :cylon/user-store}
                     :menu-index [:login-form-menu-items]}
    :doc {:main #markdown "cylon-login.md"}}
 
@@ -278,7 +277,16 @@
    :dependency-map {}}]
 
  :application-templates
- {"hello-world-web" #{:http-listener :hello-world-website}}
+ {"hello-world-web" #{:http-listener :hello-world-website}
+  "bidi-hello-world" #{:http-listener :modular-bidi-routes :simple-bidi-website}
+  ;; TODO How about a nice template now?
+
+  ;; TODO Let's add some example pages
+
+  ;; TODO Let's add some menu bars
+
+  ;; TODO Let's add some co-dependencies (needs checkout)
+  }
 
  }
 
