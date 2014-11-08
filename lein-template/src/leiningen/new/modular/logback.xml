@@ -11,7 +11,7 @@
 
   <!-- Just switch level to DEBUG on this and/or some of the loggers
        below -->
-  <logger name="{{name}}" level="INFO"/>
+  <logger name="{{name}}" level="DEBUG"/>
 
   <!-- TODO (modular) Automatically generate based on project options -->
   <logger name="cylon" level="INFO"/>

@@ -5,7 +5,7 @@
    [schema.core :as s]
    [modular.ring :refer (WebRequestHandler WebRequestBinding)]
    [com.stuartsierra.component :as component]
-   [bidi.bidi :as bidi :refer (match-route)]
+   [bidi.bidi :as bidi :refer (match-route ->ResourcesMaybe)]
    [clojure.tools.logging :refer :all]
    [plumbing.core :refer (?>)]))
 
@@ -43,6 +43,25 @@
        (merge {:uri-context ""} opts)
        (s/validate new-web-service-schema)
        map->WebServiceFromArguments))
+
+(defrecord StaticResourceService [uri-context resource-prefix]
+  component/Lifecycle
+  (start [component] (assoc component :keyword (keyword (gensym))))
+  (stop [component] component)
+  WebService
+  (request-handlers [component] {(:keyword component) (->ResourcesMaybe {:prefix resource-prefix})})
+  (routes [component] ["" (:keyword component)])
+  (uri-context [component] uri-context))
+
+(def new-static-resource-service-schema
+  {:uri-context s/Str
+   :resource-prefix s/Str})
+
+(defn new-static-resource-service [& {:as opts}]
+  (->> opts
+       (merge {})
+       (s/validate new-static-resource-service-schema)
+       (map->StaticResourceService)))
 
 ;; Production of a Ring handler from a single WebService component
 
