@@ -3,7 +3,10 @@
    [clojure.test :refer :all]
    [clojure.java.io :as io]
    [clojure.java.shell :refer (sh)]
-   [leiningen.new.modular :refer (modular)]))
+   [leiningen.new.modular :refer (modular)])
+  (:import
+   (java.nio.file Files)
+   (java.nio.file.attribute FileAttribute)))
 
 (defn delete-dir
   ;; Sometimes we don't want to delete the top-level directory because
@@ -13,6 +16,7 @@
      (when (.exists dir)
        (doseq [f (.listFiles dir)]
          (cond
+          (Files/isSymbolicLink (.toPath f)) (Files/delete (.toPath f))
           (.isDirectory f) (delete-dir f true)
           (.isFile f)
           (io/delete-file f)))
@@ -39,9 +43,13 @@
 (defn generate-checkout [name src project]
   (println "Generate checkout:" project)
   (let [dir (get-tmp-dir)
-        projectdir (io/file dir name)]
-    (.mkdirs (io/file projectdir "checkouts"))
-    (sh "ln" "-s" src (.getPath (io/file projectdir (str "checkouts/" project))))))
+        projectdir (io/file dir name)
+        checkouts (io/file projectdir "checkouts")]
+    (.mkdirs checkouts)
+    (Files/createSymbolicLink
+     (.resolve (.toPath checkouts) project)
+     (.toPath (io/file src))
+     (make-array FileAttribute 0))))
 
 #_(defn project-fixture [f]
   (generate-project "myapp" "hello-world-web")
@@ -68,6 +76,8 @@
     (generate-project name "templated-bidi-website")
     (generate-checkout name "/home/malcolm/Dropbox/src/modular/modules/template" "template")
     (generate-checkout name "/home/malcolm/Dropbox/src/modular/modules/clostache" "clostache")
+    (generate-checkout name "/home/malcolm/Dropbox/src/modular/modules/bidi" "modular.bidi")
+    ;;(generate-checkout name "/home/malcolm/Dropbox/src/bidi" "bidi")
 
     (testing "project file should exist"
       (is (.exists (io/file (get-tmp-dir) (str name "/project.clj")))))))
