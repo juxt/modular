@@ -45,13 +45,11 @@
        map->WebServiceFromArguments))
 
 (defrecord StaticResourceService [uri-context resource-prefix]
-  component/Lifecycle
-  (start [component] (assoc component :keyword (keyword (gensym))))
-  (stop [component] component)
   WebService
-  (request-handlers [component] {(:keyword component) (->ResourcesMaybe {:prefix resource-prefix})})
-  (routes [component] ["" (:keyword component)])
-  (uri-context [component] uri-context))
+  (request-handlers [_] {})
+  (routes [_]
+    [uri-context (->ResourcesMaybe {:prefix resource-prefix})])
+  (uri-context [_] ""))
 
 (def new-static-resource-service-schema
   {:uri-context s/Str
