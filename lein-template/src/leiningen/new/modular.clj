@@ -172,28 +172,6 @@
               :sanitized (name-to-path name)
               :snake-cased-name (clojure.string/replace name #"_" "-")
 
-              #_:requires
-              #_(reduce-kv
-                 (fn [a k v] (conj a {:namespace k
-                                      :refers (apply str (interpose " " (distinct (map (comp clojure.core/name) v))))}))
-                 []
-                 (->> components
-                      (filter (comp not :dev?))
-                      (mapcat (juxt :constructor :requires))
-                      (remove nil?)
-                      (group-by (comp symbol namespace))))
-
-              #_:dev-requires
-              #_(reduce-kv
-                 (fn [a k v] (conj a {:namespace k
-                                      :refers (apply str (interpose " " (distinct (map (comp clojure.core/name) v))))}))
-                 []
-                 (->> components
-                      (filter :dev?)
-                      (mapcat (juxt :constructor :requires))
-                      (remove nil?)
-                      (group-by (comp symbol namespace))))
-
               :assemblies assemblies
 
               ;; Probably need to be sorted and with some conflict
@@ -287,16 +265,6 @@
                      #_trim
                      #_(indent 2)
                      )}]
-
-    #_(println (->> assemblies
-                    (mapcat :dependencies)
-                    (group-by first)
-                    (reduce-kv (fn [acc k v]
-                                 (assoc acc k
-                                        (into {}
-                                              (mapcat
-                                               (comp ensure-map second) v))))
-                               {})))
 
     (main/info (format "Generating a new modular project named %s with options :-\n%s"
                        name
