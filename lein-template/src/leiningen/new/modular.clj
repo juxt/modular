@@ -124,6 +124,7 @@
                      (merge a
                             {:fname (when (:components a)
                                       (str (clojure.core/name (:assembly a)) "-components"))
+
                              :components
                              (when (:components a)
                                (for [[n {component-ref :component
@@ -151,7 +152,7 @@
                                   {:key (make-key (:assembly a) n)
                                    :refers (conj (:refers instance) constructor)
                                    :constructor (symbol (clojure.core/name constructor))
-                                   :args (map (partial zipmap [:k :v]) (partition 2 args))
+                                   :args args
 
                                    ;; Construct 'using' here, not in template
                                    ;; it could be a map, it could be a vector
@@ -204,7 +205,8 @@
               :library-dependencies
               (->>
                (for [asmbly assemblies
-                     c (:components asmbly)
+                     ;; this conj ensures assembly-level library dependencies are included
+                     c (conj (:components asmbly) asmbly)
                      dep (:library-dependencies c)]
                  dep)
                sort distinct)
@@ -304,8 +306,13 @@
                             (interpose "\n")
                             (apply str))))
 
-    (letfn [(proc-file [{:keys [target template close-parens?]}]
-              [target (cond-> (render template data) close-parens? close-parens)])]
+    (letfn [(proc-file [{:keys [target template close-parens? file]}]
+              (cond
+               template
+               [target (cond-> (render template data) close-parens? close-parens)]
+
+               file
+               [target (render file)]))]
       (apply ->files data (map proc-file (:files data))))
 
     #_(apply ->files data (process-files (:files data))

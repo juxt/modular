@@ -50,10 +50,7 @@
     {{#components}}
     {{key}}
     (using
-      (make {{constructor}} config
-{{#args}}
-       {{k}} {{{v}}}
-{{/args}})
+      (make {{constructor}} config{{#args}} {{{.}}}{{/args}})
       {{using}})
 {{/components}}))
 {{/fname}}
@@ -64,9 +61,8 @@
   (apply system-map
     (apply concat
       (-> {}
-          {{#assemblies}}
-          ({{fname}} config)
-          {{/assemblies}}
+          {{#assemblies}}{{#fname}}
+          ({{fname}} config){{/fname}}{{/assemblies}}
           ))))
 
 (defn new-dependency-map

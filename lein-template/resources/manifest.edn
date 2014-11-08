@@ -23,6 +23,11 @@
    :constructor modular.clostache/new-clostache-templater
    }
 
+  {:component :modular.template/static-template-model
+   :library-dependencies [[juxt.modular/template "0.6.0-SNAPSHOT"]]
+   :constructor modular.template/new-static-template-model
+   }
+
   #_{:component :modular.bidi/web-service
      :library-dependencies [[juxt.modular/bidi "0.5.2"]]
      :constructor modular.bidi/new-web-service}
@@ -235,6 +240,14 @@
                 {:component :modular.template/aggregate-template-model
                  }}}
 
+  {:assembly :logback-logging
+   :library-dependencies [[org.clojure/tools.logging "0.2.6"]
+                          [ch.qos.logback/logback-classic "1.0.7" :exclusions [org.slf4j/slf4j-api]]
+                          [org.slf4j/jul-to-slf4j "1.7.2"]
+                          [org.slf4j/jcl-over-slf4j "1.7.2"]
+                          [org.slf4j/log4j-over-slf4j "1.7.2"]]
+   :files [{:template "logback.xml" :target "resources/logback.xml"}]}
+
   {:assembly :clostache-templater
    :components {:templater
                 {:component :modular.clostache/templater
@@ -243,14 +256,21 @@
   {:assembly :templated-bidi-website
    :components {:website
                 {:constructor {{name}}.templated-bidi-website/new-website
-                 }}
+                 }
+                :example-data
+                {:component :modular.template/static-template-model
+                 :args [:a "\"ABC\""]}
+                }
    :dependencies {[:modular-bidi-router :webrouter] [:website]
-                  :website {:template-model [:aggregate-template-model :template-model]
+                  :website {:aggregate-template-model [:aggregate-template-model :template-model]
                             :templater [:clostache-templater :templater]}
-                  ;;[:aggregate-template-model :template-model] [:example-data]
+                  [:aggregate-template-model :template-model] [:example-data]
                   }
+   :library-dependencies [[hiccup "1.0.5"]]
    :files [{:template "templated_bidi_website.clj"
-            :target "src/{{sanitized}}/templated_bidi_website.clj"}]}
+            :target "src/{{sanitized}}/templated_bidi_website.clj"}
+           {:file "page.html.mustache"
+            :target "resources/templates/page.html.mustache"}]}
 
   #_{:assembly :example-pages
      :components #{:example-page-a
@@ -320,7 +340,8 @@
                              :modular-bidi-router
                              :templated-bidi-website
                              :clostache-templater
-                             :aggregate-template-model}
+                             :aggregate-template-model
+                             :logback-logging}
   ;; TODO How about a nice template now?
 
   ;; TODO Let's add some example pages
