@@ -3,7 +3,7 @@
 (ns modular.bidi-tests
   (:require
    [clojure.test :refer :all]
-   [modular.bidi :refer (WebService ring-handler-map uri-context routes ->ComponentAddressable ->Router)]
+   [modular.bidi :refer (WebService request-handlers uri-context routes ->ComponentAddressable ->Router)]
    [bidi.bidi :as bidi :refer (match-route path-for)]
    [com.stuartsierra.component :as component])
   )
@@ -11,7 +11,7 @@
 (deftest web-service-components
   (let [component-A
         (reify WebService
-          (ring-handler-map [_] {:a "Alpha"
+          (request-handlers [_] {:a "Alpha"
                                  :b "Beta"})
           (routes [_] ["/" {["a/" :docid] :a
                             "b" :b}])
@@ -19,7 +19,7 @@
 
         component-B
         (reify WebService
-          (ring-handler-map [_] {:a "Delta"
+          (request-handlers [_] {:a "Delta"
                                  :b "Gamma"})
           (routes [_] ["/" {"a" :a
                             "b" :b}])
@@ -108,7 +108,7 @@
 
       component-A
       (reify WebService
-        (ring-handler-map [_] {:a handler-a-a
+        (request-handlers [_] {:a handler-a-a
                                :b "Beta"})
         (routes [_] ["/" {["a/" :docid] :a
                           "b" :b}])
@@ -116,7 +116,7 @@
 
       component-B
       (reify WebService
-        (ring-handler-map [_] {:a "Delta"
+        (request-handlers [_] {:a "Delta"
                                :g handler-b-g})
         (routes [_] ["/" {"a" :a
                           "g" :g}])
@@ -124,7 +124,7 @@
 
       component-C
       (reify WebService
-        (ring-handler-map [_] {:a handler-c-a
+        (request-handlers [_] {:a handler-c-a
                                :z "Zigzag"})
 
         (routes [_] ["/" {"a" :a
@@ -139,7 +139,7 @@
       handlers (apply merge
                       (for [[k v] deps
                             :when (satisfies? WebService v)]
-                        {k (ring-handler-map v)}))
+                        {k (request-handlers v)}))
 
       this {:handlers handlers
             :routes ["" (vec (for [[k v] (sort deps)
