@@ -232,22 +232,21 @@
               ;; models and menus
 
               :dependencies
-              (pr-str
-               (->>
-                (for [a assemblies
-                      :let [mkey #(if (keyword? %) (make-key (:assembly a) %)
-                                      (apply make-key %))]
+              (->>
+               (for [a assemblies
+                     :let [mkey #(if (keyword? %) (make-key (:assembly a) %)
+                                     (apply make-key %))]
 
-                      [k v] (:dependencies a)
-                      [n v] (ensure-map v)
-                      ]
-                  [(mkey k) [n (mkey v)]])
-                ;; This call to 'first' should actually check to ensure
-                ;; there aren't multiple entries, if there are it means
-                ;; we have a conflict - more than one dependency is trying to bind
-                (gbf #(into {} (gbf first %)))
-                (into {})
-                ))
+                     [k v] (:dependencies a)
+                     [n v] (ensure-map v)
+                     ]
+                 [(mkey k) [n (mkey v)]])
+               ;; This call to 'first' should actually check to ensure
+               ;; there aren't multiple entries, if there are it means
+               ;; we have a conflict - more than one dependency is trying to bind
+               (gbf #(into {} (gbf first %)))
+               (into {})
+               )
 
               :files (mapcat :files assemblies)
 

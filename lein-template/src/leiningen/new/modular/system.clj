@@ -67,7 +67,10 @@
 
 (defn new-dependency-map
   []
-  {{dependencies}})
+  {{#dependencies}}
+  {{.}}
+
+  {{/dependencies}})
 
 (defn new-production-system
   "Create the production system"
