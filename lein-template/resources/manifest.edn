@@ -193,6 +193,7 @@
   {:assembly :core              ; :core is special, it's always selected
    :files [{:template "project.clj" :target "project.clj"}
            {:template "system.clj" :target "src/{{sanitized}}/system.clj" :close-parens? true}
+           {:template "main.clj" :target "src/{{sanitized}}/main.clj" :close-parens? true}
            {:template "dev.clj" :target "dev/dev.clj"}
            {:template "user.clj" :target "dev/user.clj"}]}
 
@@ -279,10 +280,8 @@
    :library-dependencies [[hiccup "1.0.5"]]
    :files [{:template "templated_bidi_website.clj"
             :target "src/{{sanitized}}/templated_bidi_website.clj"}
-           {:file "page.html.mustache"
-            :target "resources/templates/page.html.mustache"}
-           {:file "resources/theme.css"
-            :target "resources/public/theme.css"}]}
+           {:template "page.html.mustache" :target "resources/templates/page.html.mustache"}
+           {:file "resources/theme.css" :target "resources/public/theme.css"}]}
 
   {:assembly :twitter-bootstrap
    :library-dependencies [[org.webjars/bootstrap "3.3.0"]]

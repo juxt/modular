@@ -13,11 +13,13 @@
              (println "Starting {{name}}")
 
              (let [system (com.stuartsierra.component/start
-                           ({{name}}.system/new-production-system))
-                   url (format "http://localhost:%d/" (-> system :webserver :port))]
+                           ({{name}}.system/new-production-system))]
 
                (println "System started")
                (println "Ready...")
 
-               (println (format "Browsing at %s" url))
-               (clojure.java.browse/browse-url url)))))
+               {{!
+                 (let [url (format "http://localhost:%d/" (-> system :webserver :port))]
+                   (println (format "Browsing at %s" url))
+                   (clojure.java.browse/browse-url url)
+                   )}}))))

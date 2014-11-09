@@ -1,3 +1,4 @@
+{{=<< >>=}}
 <!DOCTYPE html>
 <html prefix="dc: http://purl.org/dc/elements/1.1/" lang="en">
   <head>
@@ -11,7 +12,7 @@
     <meta property="dc:title" content="{{webmeta.title}}"/>
     <meta property="dc:description" content="{{webmeta.description}}"/>
 
-    <title>{{webmeta.title}}</title>
+    <title> << name >> </title>
 
     <!-- Bootstrap core CSS -->
     <link href="/bootstrap/css/bootstrap.min.css" rel="stylesheet">
@@ -25,6 +26,7 @@
         <script src="/js/html5shiv.min.js"></script>
         <![endif]-->
 
+
   </head>
   <body role="document">
 
@@ -37,7 +39,7 @@
             <span class="icon-bar"></span>
             <span class="icon-bar"></span>
           </button>
-          <a class="navbar-brand" href="/">{{webmeta.title}}</a>
+          <a class="navbar-brand" href="/"> << name >> </a>
         </div>
         <!-- Collect the nav links, forms, and other content for toggling -->
         <div class="navbar-collapse collapse">
@@ -58,19 +60,14 @@
     <!-- Include all compiled plugins (below), or include individual files as needed -->
     <script src="/bootstrap/js/bootstrap.min.js"></script>
 
-
-<!--
-    <div id="ankha">
-    </div>
-    <script src="/js/react.js"></script>
--->
-
+<<!
     <!-- Javascripts that have been contributed by other modules -->
     {{#cljs-builder.javascripts}}
     <script src="{{{.}}}" type="text/javascript"></script>
     {{/cljs-builder.javascripts}}
 
     {{{cljs}}}
+>>
 
   </body>
 </html>
