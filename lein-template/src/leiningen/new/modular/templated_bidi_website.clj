@@ -14,16 +14,17 @@
     {::index (fn [req]
                (infof "Rendering template")
                (debugf "Debug")
+               #_(template-model aggregate-template-model req)
                {:status 200
                 :body
-                (let [model (template-model aggregate-template-model req)]
-                  (render-template templater
-                   "templates/page.html.mustache"
-                   (assoc model
-                     :content (html [:div.container
-                                     [:div.page-header
-                                      [:h1 "Test"]
-                                      [:p "Hello"]]]))))})})
+                (render-template
+                 templater
+                 "templates/page.html.mustache"
+                 {:content
+                  (html [:div.container
+                         [:div.page-header
+                          [:h1 "Welcome"]
+                          [:p "This text can be found in " [:code '{{name}}.templated-bidi-website]]]])})})})
 
   (routes [_] ["/" {"index.html" ::index
                     "" (->Redirect 307 ::index)}])

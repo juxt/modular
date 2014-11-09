@@ -193,6 +193,7 @@
   {:assembly :core              ; :core is special, it's always selected
    :files [{:template "project.clj" :target "project.clj"}
            {:template "system.clj" :target "src/{{sanitized}}/system.clj" :close-parens? true}
+           {:template "main.clj" :target "src/{{sanitized}}/main.clj" :close-parens? true}
            {:template "dev.clj" :target "dev/dev.clj"}
            {:template "user.clj" :target "dev/user.clj"}]}
 
@@ -267,22 +268,26 @@
                 {:component :modular.bidi/static-resource-service
                  :args [:uri-context "\"/static\"" :resource-prefix "\"public\""]}
 
-                :example-data
-                {:component :modular.template/static-template-model
-                 :args [:a "\"ABC\""]}
+                #_:example-data
+                #_{:component :modular.template/static-template-model
+                   :args [:a "\"ABC\""]}
                 }
    :dependencies {[:modular-bidi-router :webrouter] [:website :public-resources]
-                  :website {:aggregate-template-model [:aggregate-template-model :template-model]
+                  :website {#_:aggregate-template-model #_[:aggregate-template-model :template-model]
                             :templater [:clostache-templater :templater]}
-                  [:aggregate-template-model :template-model] [:example-data]
+                  ;; [:aggregate-template-model :template-model] [:example-data]
                   }
    :library-dependencies [[hiccup "1.0.5"]]
    :files [{:template "templated_bidi_website.clj"
-            :target "src/{{sanitized}}/templated_bidi_website.clj"}
-           {:file "page.html.mustache"
-            :target "resources/templates/page.html.mustache"}
-           {:file "resources/theme.css"
-            :target "resources/public/theme.css"}]}
+            :target "src/{{sanitized}}/templated_bidi_website.clj"}]}
+
+  {:assembly :bootstrap-theme
+   :files [{:template "page.html.mustache" :target "resources/templates/page.html.mustache"}
+           {:file "resources/theme.css" :target "resources/public/theme.css"}]}
+
+  {:assembly :bootstrap-cover
+   :files [{:template "cover/page.html.mustache" :target "resources/templates/page.html.mustache"}
+           {:file "resources/cover.css" :target "resources/public/cover.css"}]}
 
   {:assembly :twitter-bootstrap
    :library-dependencies [[org.webjars/bootstrap "3.3.0"]]
@@ -370,10 +375,20 @@
                              :modular-bidi-router
                              :templated-bidi-website
                              :clostache-templater
-                             :aggregate-template-model
+                             #_:aggregate-template-model
+                             :bootstrap-theme
                              :logback-logging
                              :twitter-bootstrap
                              :jquery}
+
+  "bootstrap-cover" #{:logback-logging
+                      :http-listener
+                      :modular-bidi-router
+                      :templated-bidi-website
+                      :clostache-templater
+                      :twitter-bootstrap
+                      :jquery
+                      :bootstrap-cover}
 
   ;; TODO Let's add some example pages
 

@@ -82,6 +82,17 @@
     (testing "project file should exist"
       (is (.exists (io/file (get-tmp-dir) (str name "/project.clj")))))))
 
+(deftest bootstrap-cover-tests
+  (let [name "bootstrap-cover"]
+    (generate-project name "bootstrap-cover")
+    (generate-checkout name "/home/malcolm/Dropbox/src/modular/modules/template" "template")
+    (generate-checkout name "/home/malcolm/Dropbox/src/modular/modules/clostache" "clostache")
+    (generate-checkout name "/home/malcolm/Dropbox/src/modular/modules/bidi" "modular.bidi")
+    ;;(generate-checkout name "/home/malcolm/Dropbox/src/bidi" "bidi")
+
+    (testing "project file should exist"
+      (is (.exists (io/file (get-tmp-dir) (str name "/project.clj")))))))
+
 #_(deftest website-with-login-tests
   (generate-project "website-with-login" "hello-world-web" "+cylon/login")
   (testing "project file exists"

@@ -189,7 +189,6 @@
                  dep)
                sort distinct)
 
-
               :refers
               (->>
                (for [asmbly assemblies
@@ -201,31 +200,7 @@
                (reduce-kv
                 (fn [a k v] (conj a {:namespace k
                                      :refers (apply str (interpose " " (distinct (map (comp clojure.core/name) v))))}))
-                []
-                )
-               )
-
-              #_:components
-              #_(->>
-                 (for [c components
-                       :when (not (:dev? c))
-                       :let [ctr (:constructor c)]]
-                   {:component (or (:key c) (:component c))
-                    :constructor (symbol (clojure.core/name ctr))
-                    :args (if (empty? (:args c)) ""
-                              (str " " (apply pr-str (:args c))))})
-                 (sort-by :component))
-
-              #_:dev-components
-              #_(->>
-                 (for [c components
-                       :when (:dev? c)
-                       :let [ctr (:constructor c)]]
-                   {:component (or (:key c) (:component c))
-                    :constructor (symbol (clojure.core/name ctr))
-                    :args (if (empty? (:args c)) ""
-                              (str " " (apply pr-str (:args c))))})
-                 (sort-by :component))
+                []))
 
               ;; Dependency maps will be useful for adding dependencies
               ;; to components that already exist, such as template
@@ -250,20 +225,7 @@
 
               :files (mapcat :files assemblies)
 
-              #_(->> assemblies
-                     (mapcat :dependencies)
-                     (group-by first)
-                     (reduce-kv (fn [acc k v]
-                                  (assoc acc k
-                                         (into {}
-                                               (mapcat
-                                                (comp ensure-map second) v))))
-                                {})
-                     #_pprint
-                     #_with-out-str
-                     #_trim
-                     #_(indent 2)
-                     )}]
+              }]
 
     (main/info (format "Generating a new modular project named %s with options :-\n%s"
                        name
@@ -308,23 +270,5 @@
 
              #_["src-cljs/{{sanitized}}/main.cljs" (render "main.cljs" data)]
 
-             ;; Log configuration
-             #_["resources/logback.xml" (render "logback.xml" data)]
-
-             ;; HTML
-             #_["resources/templates/page.html.mustache" (render "page.html.mustache")]
-             #_["resources/templates/home.html.mustache" (render "home.html.mustache")]
-
-             ;; CSS
-             #_["resources/public/css/bootstrap.min.css" (render "resources/bootstrap.min.css")]
-             #_["resources/public/css/bootstrap-theme.min.css" (render "resources/bootstrap-theme.min.css")]
-
-             #_["resources/public/css/theme.css" (render "resources/theme.css")]
-
-             ;; JS
-             #_["resources/public/js/bootstrap.min.js" (render "resources/bootstrap.min.js")]
-             #_["resources/public/js/jquery.min.js" (render "resources/jquery-2.1.1.min.js")]
-             #_["resources/public/js/jquery.min.map" (render "resources/jquery-2.1.1.min.map")]
-             #_["resources/public/js/react.js" (render "resources/react-0.9.0.js")]
 
              )))
