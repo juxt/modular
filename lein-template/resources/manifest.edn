@@ -262,11 +262,16 @@
    :components {:website
                 {:constructor {{name}}.templated-bidi-website/new-website
                  }
+
+                :public-resources
+                {:component :modular.bidi/static-resource-service
+                 :args [:uri-context "\"/static\"" :resource-prefix "\"public\""]}
+
                 :example-data
                 {:component :modular.template/static-template-model
                  :args [:a "\"ABC\""]}
                 }
-   :dependencies {[:modular-bidi-router :webrouter] [:website]
+   :dependencies {[:modular-bidi-router :webrouter] [:website :public-resources]
                   :website {:aggregate-template-model [:aggregate-template-model :template-model]
                             :templater [:clostache-templater :templater]}
                   [:aggregate-template-model :template-model] [:example-data]
@@ -275,17 +280,27 @@
    :files [{:template "templated_bidi_website.clj"
             :target "src/{{sanitized}}/templated_bidi_website.clj"}
            {:file "page.html.mustache"
-            :target "resources/templates/page.html.mustache"}]}
+            :target "resources/templates/page.html.mustache"}
+           {:file "resources/theme.css"
+            :target "resources/public/theme.css"}]}
 
   {:assembly :twitter-bootstrap
-   :library-dependencies [[org.webjars/bootstrap "3.3.0"]
-                          ;; temp
-                          [compojure "1.1.6"]
-                          [ring-mock "0.1.5"]]
-   :components {:twitter-bootstrap
+   :library-dependencies [[org.webjars/bootstrap "3.3.0"]]
+   :components {:service
                 {:component :modular.bidi/static-resource-service
                  :args [:uri-context "\"/bootstrap\"" :resource-prefix "\"META-INF/resources/webjars/bootstrap/3.3.0\""]}}
-   :dependencies {[:modular-bidi-router :webrouter] [:twitter-bootstrap]}}
+   :dependencies {[:modular-bidi-router :webrouter] {:twitter-bootstrap :service}}}
+
+  {:assembly :jquery
+   :library-dependencies [[org.webjars/jquery "2.1.0"]]
+   :components {:service
+                {:component :modular.bidi/static-resource-service
+                 :args [:uri-context "\"/jquery\"" :resource-prefix "\"META-INF/resources/webjars/jquery/2.1.0\""]}}
+   :dependencies {[:modular-bidi-router :webrouter] {:jquery :service}}}
+
+  ;; TODO Add support for general webjars.org support in modular
+  ;; How to?
+  ;;
 
   #_{:assembly :example-pages
      :components #{:example-page-a
@@ -357,7 +372,8 @@
                              :clostache-templater
                              :aggregate-template-model
                              :logback-logging
-                             :twitter-bootstrap}
+                             :twitter-bootstrap
+                             :jquery}
 
   ;; TODO Let's add some example pages
 
