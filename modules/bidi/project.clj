@@ -6,7 +6,7 @@
   :license {:name "The MIT License"
             :url "http://opensource.org/licenses/MIT"}
   :dependencies [[com.stuartsierra/component "0.2.1"]
-                 [bidi "1.10.3"]
+                 [bidi "1.11.0"]
                  [juxt.modular/ring "0.5.1"]
                  [prismatic/schema "0.2.1"]
                  [prismatic/plumbing "0.2.2"]]
