@@ -88,8 +88,16 @@
     (generate-checkout name "/home/malcolm/Dropbox/src/modular/modules/template" "template")
     (generate-checkout name "/home/malcolm/Dropbox/src/modular/modules/clostache" "clostache")
     (generate-checkout name "/home/malcolm/Dropbox/src/modular/modules/bidi" "modular.bidi")
-    ;;(generate-checkout name "/home/malcolm/Dropbox/src/bidi" "bidi")
+    (generate-checkout name "/home/malcolm/src/co-dependency" "co-dependency")
+    (generate-checkout name "/home/malcolm/Dropbox/src/bidi" "bidi")
 
+    (testing "project file should exist"
+      (is (.exists (io/file (get-tmp-dir) (str name "/project.clj")))))))
+
+(deftest rig-tests
+  (let [name "rig"]
+    (generate-project name "rig")
+    (generate-checkout name "/home/malcolm/src/component" "component")
     (testing "project file should exist"
       (is (.exists (io/file (get-tmp-dir) (str name "/project.clj")))))))
 

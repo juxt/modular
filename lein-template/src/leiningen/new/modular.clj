@@ -129,6 +129,7 @@
                              (when (:components a)
                                (for [[n {component-ref :component
                                          using :using
+                                         co-using :co-using
                                          library-dependencies :library-dependencies
                                          args :args :as instance
                                          }]
@@ -160,7 +161,8 @@
                                    :using (pr-str
                                            (or (:using instance) []))
 
-
+                                   :co-using (pr-str
+                                              (or (:co-using instance) []))
 
                                    :pad10 (apply str (repeat (+ 10 (count (str n))) \space))
                                    :pad18 (apply str (repeat (+ 18 (count (str n))) \space))
@@ -202,7 +204,7 @@
                                      :refers (apply str (interpose " " (distinct (map (comp clojure.core/name) v))))}))
                 []))
 
-              ;; Dependency maps will be useful for adding dependencies
+              ;; Dependency maps are be useful for adding dependencies
               ;; to components that already exist, such as template
               ;; models and menus
 
@@ -213,6 +215,23 @@
                                      (apply make-key %))]
 
                      [k v] (:dependencies a)
+                     [n v] (ensure-map v)
+                     ]
+                 [(mkey k) [n (mkey v)]])
+               ;; This call to 'first' should actually check to ensure
+               ;; there aren't multiple entries, if there are it means
+               ;; we have a conflict - more than one dependency is trying to bind
+               (gbf #(into {} (gbf first %)))
+               (into {})
+               )
+
+              :co-dependencies
+              (->>
+               (for [a assemblies
+                     :let [mkey #(if (keyword? %) (make-key (:assembly a) %)
+                                     (apply make-key %))]
+
+                     [k v] (:co-dependencies a)
                      [n v] (ensure-map v)
                      ]
                  [(mkey k) [n (mkey v)]])

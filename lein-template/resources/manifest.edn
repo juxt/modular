@@ -9,7 +9,7 @@
    }
 
   {:component :modular.bidi/router
-   :library-dependencies [[juxt.modular/bidi "0.5.2"]]
+   :library-dependencies [[juxt.modular/bidi "0.5.3"]]
    :constructor modular.bidi/new-router
    }
 
@@ -29,16 +29,16 @@
    }
 
   {:component :modular.bidi/static-resource-service
-   :library-dependencies [[juxt.modular/bidi "0.5.2"]]
+   :library-dependencies [[juxt.modular/bidi "0.5.3"]]
    :constructor modular.bidi/new-static-resource-service
    }
 
   #_{:component :modular.bidi/web-service
-     :library-dependencies [[juxt.modular/bidi "0.5.2"]]
+     :library-dependencies [[juxt.modular/bidi "0.5.3"]]
      :constructor modular.bidi/new-web-service}
 
   #_{:component :webresources
-     :library-dependencies [[juxt.modular/bidi "0.5.2"]]
+     :library-dependencies [[juxt.modular/bidi "0.5.3"]]
      :constructor modular.bidi/new-web-service
      :refers [bidi.bidi/->ResourcesMaybe]
      ;; TODO The args should belong to the instance
@@ -47,7 +47,7 @@
                           "css/" (->ResourcesMaybe {:prefix "public/css/"})}]]}
 
   #_{:component :webmeta
-     :library-dependencies [[juxt.modular/bidi "0.5.2"]]
+     :library-dependencies [[juxt.modular/bidi "0.5.3"]]
      :constructor modular.template/new-static-template-data
      ;; TODO The args should belong to the instance
      :args [:title "{{name}}"]
@@ -143,7 +143,7 @@
   ;; Project-local components
   {:component :website
    :library-dependencies [[hiccup "1.0.5"]
-                          [juxt.modular/bidi "0.5.2"]]
+                          [juxt.modular/bidi "0.5.3"]]
    :constructor {{name}}.website/new-website
    :using [:template-model]}
 
@@ -183,7 +183,7 @@
      :constructor {{name}}.restricted-page/new-restricted-page}
   ]
 
- :assemblies
+ :assemblies ; rename to modules?
  [
   ;; lein new modular app +httpkit
   ;; lein new modular app +httpkit:80 ; because there's only one possible option in this case
@@ -191,11 +191,22 @@
 
   ;; lein new modular app full-featured-website
   {:assembly :core              ; :core is special, it's always selected
+
+   ;; temporary, while bidi is in checkouts, to allow for (reset)
+   :library-dependencies [[ring-mock "0.1.5"]
+                          [compojure "1.1.8"]]
+
    :files [{:template "project.clj" :target "project.clj"}
            {:template "system.clj" :target "src/{{sanitized}}/system.clj" :close-parens? true}
            {:template "main.clj" :target "src/{{sanitized}}/main.clj" :close-parens? true}
            {:template "dev.clj" :target "dev/dev.clj"}
            {:template "user.clj" :target "dev/user.clj"}]}
+
+  {:assembly :component
+   :library-dependencies [[com.stuartsierra/component "0.2.2"]]}
+
+  {:assembly :co-dependency
+   :library-dependencies [[tangrammer/co-dependency "0.1.4"]]}
 
   {:assembly :http-listener
    :components
@@ -205,7 +216,7 @@
 
     #_:website #_{:component :website
                   :library-dependencies [[hiccup "1.0.5"]
-                                         [juxt.modular/bidi "0.5.2"]]
+                                         [juxt.modular/bidi "0.5.3"]]
                   :using {:template-model :template-model}}
 
     #_:webresources
@@ -259,20 +270,22 @@
                 {:component :modular.clostache/templater
                  }}}
 
+  {:assembly :public-resources
+   :components {:public-resources
+                {:component :modular.bidi/static-resource-service
+                 :args [:uri-context "\"/static\"" :resource-prefix "\"public\""]}}
+   :dependencies {[:modular-bidi-router :webrouter] [:public-resources]}}
+
   {:assembly :templated-bidi-website
    :components {:website
                 {:constructor {{name}}.templated-bidi-website/new-website
                  }
 
-                :public-resources
-                {:component :modular.bidi/static-resource-service
-                 :args [:uri-context "\"/static\"" :resource-prefix "\"public\""]}
-
                 #_:example-data
                 #_{:component :modular.template/static-template-model
                    :args [:a "\"ABC\""]}
                 }
-   :dependencies {[:modular-bidi-router :webrouter] [:website :public-resources]
+   :dependencies {[:modular-bidi-router :webrouter] [:website]
                   :website {#_:aggregate-template-model #_[:aggregate-template-model :template-model]
                             :templater [:clostache-templater :templater]}
                   ;; [:aggregate-template-model :template-model] [:example-data]
@@ -280,6 +293,16 @@
    :library-dependencies [[hiccup "1.0.5"]]
    :files [{:template "templated_bidi_website.clj"
             :target "src/{{sanitized}}/templated_bidi_website.clj"}]}
+
+  {:assembly :cover-website
+   :components {:website
+                {:constructor {{name}}.website/new-website}}
+   :dependencies {[:modular-bidi-router :webrouter] [:website]
+                  :website {:templater [:clostache-templater :templater]}}
+   :co-dependencies {:website {:router [:modular-bidi-router :webrouter]}}
+   :library-dependencies [[hiccup "1.0.5"]]
+   :files [{:template "cover/website.clj"
+            :target "src/{{sanitized}}/website.clj"}]}
 
   {:assembly :bootstrap-theme
    :files [{:template "page.html.mustache" :target "resources/templates/page.html.mustache"}
@@ -364,15 +387,19 @@
      :dependency-map {}}]
 
  :application-templates
- {"hello-world-web" #{:http-listener
+ {"hello-world-web" #{:component
+                      :http-listener
                       :hello-world-website}
 
-  "bidi-hello-world" #{:http-listener
+  "bidi-hello-world" #{:component
+                       :http-listener
                        :modular-bidi-router
                        :simple-bidi-website}
 
-  "templated-bidi-website" #{:http-listener
+  "templated-bidi-website" #{:component
+                             :http-listener
                              :modular-bidi-router
+                             :public-resources
                              :templated-bidi-website
                              :clostache-templater
                              #_:aggregate-template-model
@@ -381,10 +408,13 @@
                              :twitter-bootstrap
                              :jquery}
 
-  "bootstrap-cover" #{:logback-logging
+  "bootstrap-cover" #{:component
+                      :co-dependency
+                      :logback-logging
                       :http-listener
                       :modular-bidi-router
-                      :templated-bidi-website
+                      :public-resources
+                      :cover-website
                       :clostache-templater
                       :twitter-bootstrap
                       :jquery
