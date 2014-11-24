@@ -5,7 +5,8 @@
    [schema.core :as s]
    [modular.ring :refer (WebRequestHandler WebRequestBinding)]
    [com.stuartsierra.component :as component]
-   [bidi.bidi :as bidi :refer (match-route ->ResourcesMaybe)]
+   [bidi.bidi :as bidi :refer (match-route resolve-handler)]
+   [bidi.ring :refer (resources-maybe make-handler)]
    [clojure.tools.logging :refer :all]
    [plumbing.core :refer (?>)]))
 
@@ -48,7 +49,7 @@
   WebService
   (request-handlers [_] {})
   (routes [_]
-    [uri-context (->ResourcesMaybe {:prefix resource-prefix})])
+    [uri-context (resources-maybe {:prefix resource-prefix})])
   (uri-context [_] ""))
 
 (def new-static-resource-service-schema
@@ -66,7 +67,7 @@
 (defrecord KeywordToHandler [matched handlers]
   bidi/Matched
   (resolve-handler [this m]
-    (when-let [{:keys [handler] :as res} (bidi/resolve-handler matched m)]
+    (when-let [{:keys [handler] :as res} (resolve-handler matched m)]
       (if (keyword? handler)
         (assoc res :handler (get handlers handler))
         res)))
@@ -89,7 +90,7 @@
         joined-routes [(or (uri-context service) "")
                        (->KeywordToHandler [routes] handlers)]]
     (wrap-info
-     (bidi/make-handler joined-routes)
+     (make-handler joined-routes)
      {::routes joined-routes
       ::handlers handlers})))
 
