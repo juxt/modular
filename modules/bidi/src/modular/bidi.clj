@@ -93,39 +93,6 @@
      {::routes joined-routes
       ::handlers handlers})))
 
-;; Production of a Ring handler from multiple WebService components
-
-;; The ComponentPreference record modifies a bidi route structure to
-;; preference a given component when forming a URI from a
-;; keyword. Without ComponentPreference, components using identical
-;; keywords in their request-handlers map could inadvertantly get in the
-;; way of path-for calls from another component.
-
-(defrecord ComponentPreference [matched component]
-  bidi/Matched
-  (resolve-handler [this m]
-    (bidi/resolve-handler matched m))
-  (unresolve-handler [this m]
-    (if (keyword? (:handler m))
-      (or
-       ;; In case there's another component using the same key in a handler-map,
-       ;; preference a path to an 'internal' handler first.
-       (bidi/unresolve-handler matched (assoc m :handler [component (:handler m)]))
-       (bidi/unresolve-handler matched m))
-      (bidi/unresolve-handler matched m))))
-
-(defn wrap-component-preference
-  "Augment the routes entry bound to a request with data indicating the
-  component owner of the handler. This information is used to modify the
-  behaviour of the path-for function on those routes, such that the
-  component owner is preferenced in the case where multiple handlers
-  use identical keywords."
-  [h component]
-  (if (fn? h)
-    (fn [req]
-      (h (update-in req [::routes] (fn [r] ["" (->ComponentPreference [r] component)]))))
-    h))
-
 ;; We use ComponentAddressable to allow the formation of URIs using
 ;; korks in addition to direct reference to handlers, which may be
 ;; difficult to obtain in modular applications.
@@ -160,7 +127,6 @@
     (when-let [{:keys [handler] :as res} (bidi/resolve-handler matched m)]
       (if (keyword? handler)
         (assoc res :handler (-> (get-in handlers [ckey handler])
-                                (wrap-component-preference ckey)
                                 (wrap-capture-component-on-error :component ckey :handler handler)))
         res)))
 
