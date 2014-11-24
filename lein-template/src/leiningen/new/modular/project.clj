@@ -2,12 +2,13 @@
   :description "A modular project created with lein new modular"
   :url "http://github.com/USER/{{name}}"
 
+  :exclusions [com.stuartsierra/component]
+
   :dependencies
   [
    [org.clojure/clojure "1.6.0"]
    [org.clojure/tools.reader "0.8.3"]
    [org.clojure/tools.logging "0.2.6"]
-   [com.stuartsierra/component "0.2.2"]
    [prismatic/schema "0.2.1"]
    [prismatic/plumbing "0.2.2"]
 
@@ -24,6 +25,6 @@
   :repl-options {:init-ns user
                  :welcome (println "Type (dev) to start")}
 
-  :profiles {:dev {:dependencies [[org.clojure/tools.namespace "0.2.4"]]
+  :profiles {:dev {:dependencies [[org.clojure/tools.namespace "0.2.5"]]
                    :source-paths ["dev"
                                   ]}})
