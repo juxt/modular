@@ -33,6 +33,14 @@
    :constructor modular.bidi/new-static-resource-service
    }
 
+  {:component :modular.cljs/module
+   :library-dependencies [[juxt.modular/cljs "0.5.3"]]
+   :constructor modular.cljs/new-cljs-module}
+
+  {:component :modular.cljs/builder
+   :library-dependencies [[juxt.modular/cljs "0.5.3"]]
+   :constructor modular.cljs/new-cljs-builder}
+
   #_{:component :modular.bidi/web-service
      :library-dependencies [[juxt.modular/bidi "0.5.4"]]
      :constructor modular.bidi/new-web-service}
@@ -53,19 +61,7 @@
      :args [:title "{{name}}"]
      }
 
-  #_{:component :cljs-builder
-     :library-dependencies [[juxt.modular/cljs "0.4.0"]]
-     :constructor modular.cljs/new-cljs-builder
-     ;; TODO The args should belong to the instance
-     :args [:id :default :source-path "src-cljs"]
-     }
 
-  #_{:component :cljs-core
-     :library-dependencies [[juxt.modular/cljs "0.5.0"]]
-     :constructor modular.cljs/new-cljs-module
-     ;; TODO The args should belong to the instance
-     :args [:name :cljs-core :mains ['cljs.core] :dependencies #{}]
-     }
 
   ;; Menus
   #_{:component :modular.menu/menu-index
@@ -148,7 +144,7 @@
    :using [:template-model]}
 
   #_{:component :{{name}}-cljs
-     :library-dependencies [[juxt.modular/cljs "0.5.0"]]
+     :library-dependencies [[juxt.modular/cljs "0.5.3"]]
      :constructor modular.cljs/new-cljs-module
      ;; TODO The args should belong to the instance
      :args [:name :{{name}} :mains ['{{name}}.main] :dependencies #{:cljs-core}]
@@ -193,8 +189,12 @@
   {:module :core                ; :core is special, it's always selected
 
    ;; temporary, while bidi is in checkouts, to allow for (reset)
-   :library-dependencies [[ring-mock "0.1.5"]
-                          [compojure "1.1.8"]]
+   :library-dependencies [[org.clojure/clojure "1.6.0"]
+                          [org.clojure/tools.reader "0.8.9"]
+                          [prismatic/schema "0.2.1"]
+                          [prismatic/plumbing "0.2.2"]
+                          [juxt.modular/maker "0.5.0"]
+                          [juxt.modular/wire-up "0.5.0"]]
 
    :files [{:template "project.clj" :target "project.clj"}
            {:template "system.clj" :target "src/{{sanitized}}/system.clj" :close-parens? true}
@@ -308,16 +308,29 @@
                 {:component :modular.bidi/static-resource-service
                  :args [:uri-context "\"\"" :resource-prefix "\"public\""]}
                 }
-   :dependencies {[:modular-bidi-router :webrouter] {:dist-service :dist-service
-                                                     :static-service :static-service}}
-   :files [{:template "bootstrap-dashboard/dashboard.html.mustache" :target "resources/templates/dashboard.html.mustache"}
-           {:file "bootstrap-dashboard/dashboard.css" :target "resources/public/dashboard.css"}]}
+   :dependencies {[:modular-bidi-router :webrouter] [:dist-service :static-service]}
+   :files [{:template "bootstrap-dashboard/dashboard.html.mustache"
+            :target "resources/templates/dashboard.html.mustache"}
+           {:file "bootstrap-dashboard/dashboard.css"
+            :target "resources/public/dashboard.css"}]}
+
+  {:module :single-cljs-module
+   :components {:cljs-core {:component :modular.cljs/module
+                            :args [:name :cljs-core :mains ['cljs.core] :dependencies #{}]}
+                :cljs-app {:component :modular.cljs/module
+                           :args [:name :default :mains ['{{name}}.core] :dependencies #{:cljs-core}]}
+                :cljs-builder {:component :modular.cljs/builder
+                               :args [:source-path "\"src-cljs\""]
+                               :using [:single-cljs-module-cljs-core :single-cljs-module-cljs-app]}}
+   :files [{:template "bootstrap-dashboard/core.cljs"
+            :target "src-cljs/{{sanitized}}/core.cljs"}]
+   :dependencies {[:modular-bidi-router :webrouter] [:cljs-builder]}}
 
   {:module :bootstrap-dashboard-website
-   :components {:website
-                {:constructor {{name}}.website/new-website}}
+   :components {:website {:constructor {{name}}.website/new-website}}
    :dependencies {[:modular-bidi-router :webrouter] [:website]
-                  :website {:templater [:clostache-templater :templater]}}
+                  :website {:templater [:clostache-templater :templater]
+                            :cljs-builder [:single-cljs-module :cljs-builder]}}
    :co-dependencies {:website {:router [:modular-bidi-router :webrouter]}}
    :library-dependencies [[hiccup "1.0.5"]]
    :files [{:template "bootstrap-dashboard/website.clj" :target "src/{{sanitized}}/website.clj"}
@@ -327,10 +340,17 @@
 
   {:module :jquery
    :library-dependencies [[org.webjars/jquery "2.1.0"]]
-   :components {:service
+   :components {:resources
                 {:component :modular.bidi/static-resource-service
                  :args [:uri-context "\"/jquery\"" :resource-prefix "\"META-INF/resources/webjars/jquery/2.1.0\""]}}
-   :dependencies {[:modular-bidi-router :webrouter] {:jquery :service}}}
+   :dependencies {[:modular-bidi-router :webrouter] {:jquery :resources}}}
+
+  {:module :reactjs
+   :library-dependencies [[org.webjars/react "0.12.1"]]
+   :components {:resources
+                {:component :modular.bidi/static-resource-service
+                 :args [:uri-context "\"/reactjs\"" :resource-prefix "\"META-INF/resources/webjars/react/0.12.1\""]}}
+   :dependencies {[:modular-bidi-router :webrouter] {:reactjs :resources}}}
 
   ;; TODO Add support for general webjars.org support in modular
   ;; How to?
@@ -350,10 +370,6 @@
   #_{:module :webmeta
      :components #{:webmeta}
      :dependency-map {:template-model [:webmeta]}}
-
-  #_{:module :cljs
-     :components #{:cljs-builder :cljs-core :{{name}}-cljs}
-     :dependency-map {:cljs-builder [:cljs-core :{{name}}-cljs]}}
 
   #_{:module :cylon/login
      :components #{:cylon/login-form
@@ -433,8 +449,10 @@
                           :modular-bidi-router
                           :bootstrap-dashboard-resources
                           :jquery
+                          :reactjs
                           :clostache-templater
-                          :bootstrap-dashboard-website}
+                          :bootstrap-dashboard-website
+                          :single-cljs-module}
 
   ;; TODO Let's add some example pages
 
