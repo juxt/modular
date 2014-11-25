@@ -4,7 +4,7 @@
   (:require
    [com.stuartsierra.component :as component]
    [modular.bidi :refer (WebService)]
-   [modular.template :refer (TemplateData)]
+   [modular.template :refer (TemplateModel)]
    [bidi.bidi :refer (->Files)]
    [shadow.cljs.build :as cljs]
    [clojure.java.io :as io]
@@ -119,8 +119,8 @@
   JavaScripts
   (get-javascript-paths [this] (:javascripts this))
 
-  TemplateData
-  (template-data [this] {:javascripts (get-javascript-paths this)}))
+  TemplateModel
+  (template-model [this _] {:javascripts (get-javascript-paths this)}))
 
 (defn new-cljs-builder [& {:as opts}]
   (->> opts
