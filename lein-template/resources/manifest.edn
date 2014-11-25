@@ -9,36 +9,36 @@
    }
 
   {:component :modular.bidi/router
-   :library-dependencies [[juxt.modular/bidi "0.5.3"]]
+   :library-dependencies [[juxt.modular/bidi "0.5.4"]]
    :constructor modular.bidi/new-router
    }
 
   {:component :modular.template/aggregate-template-model
-   :library-dependencies [[juxt.modular/template "0.6.0-SNAPSHOT"]]
+   :library-dependencies [[juxt.modular/template "0.6.0"]]
    :constructor modular.template/new-aggregate-template-model
    }
 
   {:component :modular.clostache/templater
-   :library-dependencies [[juxt.modular/clostache "0.6.0-SNAPSHOT"]]
+   :library-dependencies [[juxt.modular/clostache "0.6.0"]]
    :constructor modular.clostache/new-clostache-templater
    }
 
   {:component :modular.template/static-template-model
-   :library-dependencies [[juxt.modular/template "0.6.0-SNAPSHOT"]]
+   :library-dependencies [[juxt.modular/template "0.6.0"]]
    :constructor modular.template/new-static-template-model
    }
 
   {:component :modular.bidi/static-resource-service
-   :library-dependencies [[juxt.modular/bidi "0.5.3"]]
+   :library-dependencies [[juxt.modular/bidi "0.5.4"]]
    :constructor modular.bidi/new-static-resource-service
    }
 
   #_{:component :modular.bidi/web-service
-     :library-dependencies [[juxt.modular/bidi "0.5.3"]]
+     :library-dependencies [[juxt.modular/bidi "0.5.4"]]
      :constructor modular.bidi/new-web-service}
 
   #_{:component :webresources
-     :library-dependencies [[juxt.modular/bidi "0.5.3"]]
+     :library-dependencies [[juxt.modular/bidi "0.5.4"]]
      :constructor modular.bidi/new-web-service
      :refers [bidi.bidi/->ResourcesMaybe]
      ;; TODO The args should belong to the instance
@@ -47,7 +47,7 @@
                           "css/" (->ResourcesMaybe {:prefix "public/css/"})}]]}
 
   #_{:component :webmeta
-     :library-dependencies [[juxt.modular/bidi "0.5.3"]]
+     :library-dependencies [[juxt.modular/bidi "0.5.4"]]
      :constructor modular.template/new-static-template-data
      ;; TODO The args should belong to the instance
      :args [:title "{{name}}"]
@@ -135,7 +135,7 @@
      }
 
   #_{:component :modular.web-template/dependency-dynamic-template-model
-     :library-dependencies [[juxt.modular/template "0.6.0-SNAPSHOT"]
+     :library-dependencies [[juxt.modular/template "0.6.0"]
                             [de.ubercode.clostache/clostache "1.3.1"]]
      :constructor modular.web-template/new-dependency-dynamic-template-model
      }
@@ -143,7 +143,7 @@
   ;; Project-local components
   {:component :website
    :library-dependencies [[hiccup "1.0.5"]
-                          [juxt.modular/bidi "0.5.3"]]
+                          [juxt.modular/bidi "0.5.4"]]
    :constructor {{name}}.website/new-website
    :using [:template-model]}
 
@@ -206,7 +206,7 @@
    :library-dependencies [[com.stuartsierra/component "0.2.2"]]}
 
   {:assembly :co-dependency
-   :library-dependencies [[tangrammer/co-dependency "0.1.4"]]}
+   :library-dependencies [[malcolmsparks/co-dependency "0.1.5"]]}
 
   {:assembly :http-listener
    :components
@@ -216,7 +216,7 @@
 
     #_:website #_{:component :website
                   :library-dependencies [[hiccup "1.0.5"]
-                                         [juxt.modular/bidi "0.5.3"]]
+                                         [juxt.modular/bidi "0.5.4"]]
                   :using {:template-model :template-model}}
 
     #_:webresources

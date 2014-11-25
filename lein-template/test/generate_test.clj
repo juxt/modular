@@ -88,7 +88,7 @@
     #_(generate-checkout name "/home/malcolm/Dropbox/src/modular/modules/template" "template")
     #_(generate-checkout name "/home/malcolm/Dropbox/src/modular/modules/clostache" "clostache")
     #_(generate-checkout name "/home/malcolm/Dropbox/src/modular/modules/bidi" "modular.bidi")
-    (generate-checkout name "/home/malcolm/src/co-dependency" "co-dependency")
+    #_(generate-checkout name "/home/malcolm/src/co-dependency" "co-dependency")
     #_(generate-checkout name "/home/malcolm/Dropbox/src/bidi" "bidi")
 
     (testing "project file should exist"
