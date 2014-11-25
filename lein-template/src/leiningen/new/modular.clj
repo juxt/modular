@@ -22,7 +22,7 @@
 (def KEY-TYPE :keyword)
 ;; An attempt is made to ensure keywords are unique by lengthening
 ;; them. But keyword pairs can be just as effective, and more useful
-;; since they code the assembly keyword in a data-structure rather than
+;; since they code the module keyword in a data-structure rather than
 ;; encoding as a string
 #_(def KEY-TYPE :vector)
 
@@ -96,16 +96,16 @@
                     :dev-password (format "\"%s\"" (generate-password))
                     :sanitized (name-to-path name)}))
 
-        select-assembly?
-        (fn [{:keys [assembly]}]
+        select-module?
+        (fn [{:keys [module]}]
           (when-let [includes
                      (conj (-> manifest :application-templates (get app-template #{})) :core)]
-            (or (contains? augment-by assembly)
-                (and (includes assembly)
-                     (not (contains? diminish-by assembly))))))
+            (or (contains? augment-by module)
+                (and (includes module)
+                     (not (contains? diminish-by module))))))
 
-        component-keys (->> manifest :assemblies
-                            (filter select-assembly?)
+        component-keys (->> manifest :modules
+                            (filter select-module?)
                             (mapcat :components) vals set)
 
         components (->> manifest
@@ -117,55 +117,55 @@
                               (map (juxt :component identity))
                               (into {}))
 
-        assemblies (for [a (->> manifest :assemblies (filter select-assembly?))]
-                     (merge a
-                            {:fname (when (:components a)
-                                      (str (clojure.core/name (:assembly a)) "-components"))
+        modules (for [a (->> manifest :modules (filter select-module?))]
+                  (merge a
+                         {:fname (when (:components a)
+                                   (str (clojure.core/name (:module a)) "-components"))
 
-                             :components
-                             (when (:components a)
-                               (for [[n {component-ref :component
-                                         using :using
-                                         co-using :co-using
-                                         library-dependencies :library-dependencies
-                                         args :args :as instance
-                                         }]
-                                     (:components a)
-                                     :let [component (when component-ref
-                                                       (get components-by-id component-ref))
-                                           constructor (if component
-                                                         (:constructor component)
-                                                         (:constructor instance))]]
-                                 (merge
-                                  (when component
-                                    {:component component})
+                          :components
+                          (when (:components a)
+                            (for [[n {component-ref :component
+                                      using :using
+                                      co-using :co-using
+                                      library-dependencies :library-dependencies
+                                      args :args :as instance
+                                      }]
+                                  (:components a)
+                                  :let [component (when component-ref
+                                                    (get components-by-id component-ref))
+                                        constructor (if component
+                                                      (:constructor component)
+                                                      (:constructor instance))]]
+                              (merge
+                               (when component
+                                 {:component component})
 
-                                  {:library-dependencies
-                                   (if component
-                                     (concat
-                                      (:library-dependencies (get components-by-id component-ref))
-                                      library-dependencies)
-                                     library-dependencies)}
+                               {:library-dependencies
+                                (if component
+                                  (concat
+                                   (:library-dependencies (get components-by-id component-ref))
+                                   library-dependencies)
+                                  library-dependencies)}
 
-                                  {:key (make-key (:assembly a) n)
-                                   :refers (conj (:refers instance) constructor)
-                                   :constructor (symbol (clojure.core/name constructor))
-                                   :args args
+                               {:key (make-key (:module a) n)
+                                :refers (conj (:refers instance) constructor)
+                                :constructor (symbol (clojure.core/name constructor))
+                                :args args
 
-                                   ;; Construct 'using' here, not in template
-                                   ;; it could be a map, it could be a vector
+                                ;; Construct 'using' here, not in template
+                                ;; it could be a map, it could be a vector
 
-                                   :using (pr-str
-                                           (or (:using instance) []))
+                                :using (pr-str
+                                        (or (:using instance) []))
 
-                                   :co-using (pr-str
-                                              (or (:co-using instance) []))
+                                :co-using (pr-str
+                                           (or (:co-using instance) []))
 
-                                   :pad10 (apply str (repeat (+ 10 (count (str n))) \space))
-                                   :pad18 (apply str (repeat (+ 18 (count (str n))) \space))
-                                   })))
+                                :pad10 (apply str (repeat (+ 10 (count (str n))) \space))
+                                :pad18 (apply str (repeat (+ 18 (count (str n))) \space))
+                                })))
 
-                             }))
+                          }))
 
         settings (let [f (io/file (System/getProperty "user.home") ".lein/modular.edn")]
                    (when (.exists f)
@@ -178,7 +178,7 @@
               :sanitized (name-to-path name)
               :snake-cased-name (clojure.string/replace name #"_" "-")
 
-              :assemblies assemblies
+              :modules modules
 
               ;; Probably need to be sorted and with some conflict
               ;; resolution warnings. Design decision is to generate
@@ -188,17 +188,17 @@
               ;; these can be resolved later
               :library-dependencies
               (->>
-               (for [asmbly assemblies
-                     ;; this conj ensures assembly-level library dependencies are included
-                     c (conj (:components asmbly) asmbly)
+               (for [module modules
+                     ;; this conj ensures module-level library dependencies are included
+                     c (conj (:components module) module)
                      dep (:library-dependencies c)]
                  dep)
                sort distinct)
 
               :refers
               (->>
-               (for [asmbly assemblies
-                     c (:components asmbly)
+               (for [module modules
+                     c (:components module)
                      refer (:refers c)]
                  refer)
                sort distinct
@@ -214,11 +214,11 @@
 
               :dependencies
               (->>
-               (for [a assemblies
-                     :let [mkey #(if (keyword? %) (make-key (:assembly a) %)
+               (for [m modules
+                     :let [mkey #(if (keyword? %) (make-key (:module m) %)
                                      (apply make-key %))]
 
-                     [k v] (:dependencies a)
+                     [k v] (:dependencies m)
                      [n v] (ensure-map v)
                      ]
                  [(mkey k) [n (mkey v)]])
@@ -231,11 +231,11 @@
 
               :co-dependencies
               (->>
-               (for [a assemblies
-                     :let [mkey #(if (keyword? %) (make-key (:assembly a) %)
+               (for [m modules
+                     :let [mkey #(if (keyword? %) (make-key (:module m) %)
                                      (apply make-key %))]
 
-                     [k v] (:co-dependencies a)
+                     [k v] (:co-dependencies m)
                      [n v] (ensure-map v)
                      ]
                  [(mkey k) [n (mkey v)]])
@@ -246,15 +246,15 @@
                (into {})
                )
 
-              :files (mapcat :files assemblies)
+              :files (mapcat :files modules)
 
               }]
 
     (main/info (format "Generating a new modular project named %s with modules :-\n%s"
                        name
-                       (->> manifest :assemblies
-                            (filter select-assembly?)
-                            (map (comp clojure.core/name :assembly))
+                       (->> manifest :modules
+                            (filter select-module?)
+                            (map (comp clojure.core/name :module))
                             (interpose ", ")
                             (apply str))))
 

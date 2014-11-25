@@ -44,7 +44,7 @@
   []
   (merge (config-from-classpath)
          (user-config)))
-{{#assemblies}}
+{{#modules}}
 {{#fname}}
 (defn {{fname}} [system config]
   (assoc system
@@ -57,14 +57,14 @@
 {{/components}}))
 {{/fname}}
 
-{{/assemblies}}
+{{/modules}}
 (defn new-system-map
   [config]
   (apply system-map
     (apply concat
       (-> {}
-          {{#assemblies}}{{#fname}}
-          ({{fname}} config){{/fname}}{{/assemblies}}
+          {{#modules}}{{#fname}}
+          ({{fname}} config){{/fname}}{{/modules}}
           ))))
 
 (defn new-dependency-map

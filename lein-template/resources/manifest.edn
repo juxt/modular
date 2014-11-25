@@ -183,14 +183,14 @@
      :constructor {{name}}.restricted-page/new-restricted-page}
   ]
 
- :assemblies ; rename to modules?
+ :modules
  [
   ;; lein new modular app +httpkit
   ;; lein new modular app +httpkit:80 ; because there's only one possible option in this case
   ;; lein new modular app +httpkit:port:80
 
   ;; lein new modular app full-featured-website
-  {:assembly :core              ; :core is special, it's always selected
+  {:module :core              ; :core is special, it's always selected
 
    ;; temporary, while bidi is in checkouts, to allow for (reset)
    :library-dependencies [[ring-mock "0.1.5"]
@@ -202,40 +202,40 @@
            {:template "dev.clj" :target "dev/dev.clj"}
            {:template "user.clj" :target "dev/user.clj"}]}
 
-  {:assembly :component
+  {:module :component
    :library-dependencies [[com.stuartsierra/component "0.2.2"]]}
 
-  {:assembly :co-dependency
+  {:module :co-dependency
    :library-dependencies [[malcolmsparks/co-dependency "0.1.5"]]}
 
-  {:assembly :http-listener
+  {:module :http-listener
    :components
    {:listener {:component :modular.http-kit/webserver}}}
 
-  {:assembly :hello-world-website
+  {:module :hello-world-website
    :components {:handler
                 {:constructor {{name}}.hello-world-website/new-handler}}
    :dependencies {[:http-listener :listener] {:request-handler :handler}}
    :files [{:template "hello_world_website.clj"
             :target "src/{{sanitized}}/hello_world_website.clj"}]}
 
-  {:assembly :modular-bidi-router
+  {:module :modular-bidi-router
    :components {:webrouter
                 {:component :modular.bidi/router}}
    :dependencies {[:http-listener :listener] {:request-handler :webrouter}}}
 
-  {:assembly :simple-bidi-website
+  {:module :simple-bidi-website
    :components {:website
                 {:constructor {{name}}.simple-bidi-website/new-website}}
    :dependencies {[:modular-bidi-router :webrouter] [:website]}
    :files [{:template "simple_bidi_website.clj"
             :target "src/{{sanitized}}/simple_bidi_website.clj"}]}
 
-  {:assembly :aggregate-template-model
+  {:module :aggregate-template-model
    :components {:template-model
                 {:component :modular.template/aggregate-template-model}}}
 
-  {:assembly :logback-logging
+  {:module :logback-logging
    :library-dependencies [[org.clojure/tools.logging "0.2.6"]
                           [ch.qos.logback/logback-classic "1.0.7" :exclusions [org.slf4j/slf4j-api]]
                           [org.slf4j/jul-to-slf4j "1.7.2"]
@@ -243,18 +243,18 @@
                           [org.slf4j/log4j-over-slf4j "1.7.2"]]
    :files [{:template "logback.xml" :target "resources/logback.xml"}]}
 
-  {:assembly :clostache-templater
+  {:module :clostache-templater
    :components {:templater
                 {:component :modular.clostache/templater
                  }}}
 
-  {:assembly :public-resources
+  {:module :public-resources
    :components {:public-resources
                 {:component :modular.bidi/static-resource-service
                  :args [:uri-context "\"/static\"" :resource-prefix "\"public\""]}}
    :dependencies {[:modular-bidi-router :webrouter] [:public-resources]}}
 
-  {:assembly :templated-bidi-website
+  {:module :templated-bidi-website
    :components {:website
                 {:constructor {{name}}.templated-bidi-website/new-website
                  }
@@ -272,7 +272,7 @@
    :files [{:template "templated_bidi_website.clj"
             :target "src/{{sanitized}}/templated_bidi_website.clj"}]}
 
-  {:assembly :cover-website
+  {:module :cover-website
    :components {:website
                 {:constructor {{name}}.website/new-website}}
    :dependencies {[:modular-bidi-router :webrouter] [:website]
@@ -282,23 +282,23 @@
    :files [{:template "cover/website.clj"
             :target "src/{{sanitized}}/website.clj"}]}
 
-  {:assembly :bootstrap-theme
+  {:module :bootstrap-theme
    :files [{:template "page.html.mustache" :target "resources/templates/page.html.mustache"}
            {:file "resources/theme.css" :target "resources/public/theme.css"}]}
 
-  {:assembly :bootstrap-cover
+  {:module :bootstrap-cover
    :files [{:template "cover/page.html.mustache" :target "resources/templates/page.html.mustache"}
            {:template "cover/README.md" :target "README.md"}
            {:file "resources/cover.css" :target "resources/public/cover.css"}]}
 
-  {:assembly :twitter-bootstrap
+  {:module :twitter-bootstrap
    :library-dependencies [[org.webjars/bootstrap "3.3.0"]]
    :components {:service
                 {:component :modular.bidi/static-resource-service
                  :args [:uri-context "\"/bootstrap\"" :resource-prefix "\"META-INF/resources/webjars/bootstrap/3.3.0\""]}}
    :dependencies {[:modular-bidi-router :webrouter] {:twitter-bootstrap :service}}}
 
-  {:assembly :jquery
+  {:module :jquery
    :library-dependencies [[org.webjars/jquery "2.1.0"]]
    :components {:service
                 {:component :modular.bidi/static-resource-service
@@ -309,7 +309,7 @@
   ;; How to?
   ;;
 
-  #_{:assembly :example-pages
+  #_{:module :example-pages
      :components #{:example-page-a
                    :example-page-a-menu-items
                    :example-page-b
@@ -320,15 +320,15 @@
                       :menu-index [:example-page-a-menu-items
                                    :example-page-b-menu-items]}}
 
-  #_{:assembly :webmeta
+  #_{:module :webmeta
      :components #{:webmeta}
      :dependency-map {:template-model [:webmeta]}}
 
-  #_{:assembly :cljs
+  #_{:module :cljs
      :components #{:cljs-builder :cljs-core :{{name}}-cljs}
      :dependency-map {:cljs-builder [:cljs-core :{{name}}-cljs]}}
 
-  #_{:assembly :cylon/login
+  #_{:module :cylon/login
      :components #{:cylon/login-form
                    :login-form-menu-items
                    :cylon/login-form-bootstrap-renderer
@@ -356,12 +356,12 @@
                       :menu-index [:login-form-menu-items]}
      :doc {:main #markdown "cylon-login.md"}}
 
-  #_{:assembly :bootstrap
+  #_{:module :bootstrap
      :components #{:bootstrap-menu}
      :dependency-map {:bootstrap-menu {:menu-index :menu-index}
                       :template-model {:menu :bootstrap-menu}}}
 
-  #_{:assembly :dev-browser
+  #_{:module :dev-browser
      :components #{}
      :dependency-map {}}]
 
