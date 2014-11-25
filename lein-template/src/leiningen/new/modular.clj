@@ -167,11 +167,11 @@
 
                              }))
 
-        settings (when-let [f (io/file (System/getProperty "user.home")
-                                       ".lein/modular.edn")]
-                   (read
-                    (indexing-push-back-reader
-                     (java.io.PushbackReader. (io/reader f)))))
+        settings (let [f (io/file (System/getProperty "user.home") ".lein/modular.edn")]
+                   (when (.exists f)
+                     (read
+                      (indexing-push-back-reader
+                       (java.io.PushbackReader. (io/reader f))))))
 
         data {:name name
               :year (str (.get (java.util.Calendar/getInstance) java.util.Calendar/YEAR))
