@@ -5,10 +5,6 @@
    [clojure.repl :refer (apropos dir doc find-doc pst source)]
    [clojure.tools.namespace.repl :refer (refresh refresh-all)]
    [com.stuartsierra.component :as component]
-
-;;   {{module?}}
-;;   {{#module?.co-dependency}}YES!{{/module?.co-dependency}}
-
    {{#module?.co-dependency}}
    [tangrammer.component.co-dependency :as co-dependency]
    {{/module?.co-dependency}}
@@ -34,9 +30,9 @@
                  ))]
     (-> s-map
         (component/system-using (new-dependency-map))
-        {{#modules?.co-dependency}}
+        {{#module?.co-dependency}}
         (co-dependency/system-co-using (new-co-dependency-map))
-        {{/modules?.co-dependency}}
+        {{/module?.co-dependency}}
         )))
 
 (defn init

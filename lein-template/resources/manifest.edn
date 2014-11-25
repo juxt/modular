@@ -190,7 +190,7 @@
   ;; lein new modular app +httpkit:port:80
 
   ;; lein new modular app full-featured-website
-  {:module :core              ; :core is special, it's always selected
+  {:module :core                ; :core is special, it's always selected
 
    ;; temporary, while bidi is in checkouts, to allow for (reset)
    :library-dependencies [[ring-mock "0.1.5"]
@@ -272,24 +272,21 @@
    :files [{:template "templated_bidi_website.clj"
             :target "src/{{sanitized}}/templated_bidi_website.clj"}]}
 
-  {:module :cover-website
+  {:module :bootstrap-cover-website
    :components {:website
                 {:constructor {{name}}.website/new-website}}
    :dependencies {[:modular-bidi-router :webrouter] [:website]
                   :website {:templater [:clostache-templater :templater]}}
    :co-dependencies {:website {:router [:modular-bidi-router :webrouter]}}
    :library-dependencies [[hiccup "1.0.5"]]
-   :files [{:template "cover/website.clj"
-            :target "src/{{sanitized}}/website.clj"}]}
+   :files [{:template "bootstrap-cover/website.clj" :target "src/{{sanitized}}/website.clj"}
+           ;; TODO: Potentially we'd like this to be in the template
+           ;; declaration, not this module
+           {:template "bootstrap-cover/README.md" :target "README.md"}]}
 
   {:module :bootstrap-theme
    :files [{:template "page.html.mustache" :target "resources/templates/page.html.mustache"}
            {:file "resources/theme.css" :target "resources/public/theme.css"}]}
-
-  {:module :bootstrap-cover
-   :files [{:template "cover/page.html.mustache" :target "resources/templates/page.html.mustache"}
-           {:template "cover/README.md" :target "README.md"}
-           {:file "resources/cover.css" :target "resources/public/cover.css"}]}
 
   {:module :twitter-bootstrap
    :library-dependencies [[org.webjars/bootstrap "3.3.0"]]
@@ -297,6 +294,10 @@
                 {:component :modular.bidi/static-resource-service
                  :args [:uri-context "\"/bootstrap\"" :resource-prefix "\"META-INF/resources/webjars/bootstrap/3.3.0\""]}}
    :dependencies {[:modular-bidi-router :webrouter] {:twitter-bootstrap :service}}}
+
+  {:module :bootstrap-cover-resources
+   :files [{:template "bootstrap-cover/page.html.mustache" :target "resources/templates/page.html.mustache"}
+           {:file "resources/cover.css" :target "resources/public/cover.css"}]}
 
   {:module :jquery
    :library-dependencies [[org.webjars/jquery "2.1.0"]]
@@ -393,11 +394,23 @@
                       :http-listener
                       :modular-bidi-router
                       :public-resources
-                      :cover-website
-                      :clostache-templater
                       :twitter-bootstrap
                       :jquery
-                      :bootstrap-cover}
+                      :clostache-templater
+                      :bootstrap-cover-resources
+                      :bootstrap-cover-website}
+
+  "bootstrap-dashboard" #{:component
+                          :co-dependency
+                          :logback-logging
+                          :http-listener
+                          :modular-bidi-router
+                          :public-resources
+                          :twitter-bootstrap
+                          :bootstrap-dashboard-resources
+                          :jquery
+                          :clostache-templater
+                          :bootstrap-dashboard-website}
 
   ;; TODO Let's add some example pages
 
