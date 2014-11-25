@@ -299,6 +299,32 @@
    :files [{:template "bootstrap-cover/page.html.mustache" :target "resources/templates/page.html.mustache"}
            {:file "resources/cover.css" :target "resources/public/cover.css"}]}
 
+  {:module :bootstrap-dashboard-resources
+   :library-dependencies [[org.webjars/bootstrap "3.3.0"]]
+   :components {:dist-service
+                {:component :modular.bidi/static-resource-service
+                 :args [:uri-context "\"/dist\"" :resource-prefix "\"META-INF/resources/webjars/bootstrap/3.3.0\""]}
+                :static-service
+                {:component :modular.bidi/static-resource-service
+                 :args [:uri-context "\"\"" :resource-prefix "\"public\""]}
+                }
+   :dependencies {[:modular-bidi-router :webrouter] {:dist-service :dist-service
+                                                     :static-service :static-service}}
+   :files [{:template "bootstrap-dashboard/dashboard.html.mustache" :target "resources/templates/dashboard.html.mustache"}
+           {:file "bootstrap-dashboard/dashboard.css" :target "resources/public/dashboard.css"}]}
+
+  {:module :bootstrap-dashboard-website
+   :components {:website
+                {:constructor {{name}}.website/new-website}}
+   :dependencies {[:modular-bidi-router :webrouter] [:website]
+                  :website {:templater [:clostache-templater :templater]}}
+   :co-dependencies {:website {:router [:modular-bidi-router :webrouter]}}
+   :library-dependencies [[hiccup "1.0.5"]]
+   :files [{:template "bootstrap-dashboard/website.clj" :target "src/{{sanitized}}/website.clj"}
+           ;; TODO: Potentially we'd like this to be in the template
+           ;; declaration, not this module
+           {:template "bootstrap-dashboard/README.md" :target "README.md"}]}
+
   {:module :jquery
    :library-dependencies [[org.webjars/jquery "2.1.0"]]
    :components {:service
@@ -405,8 +431,6 @@
                           :logback-logging
                           :http-listener
                           :modular-bidi-router
-                          :public-resources
-                          :twitter-bootstrap
                           :bootstrap-dashboard-resources
                           :jquery
                           :clostache-templater

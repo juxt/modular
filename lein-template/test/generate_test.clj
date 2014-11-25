@@ -89,6 +89,13 @@
     (testing "project file should exist"
       (is (.exists (io/file (get-tmp-dir) (str name "/project.clj")))))))
 
+(deftest bootstrap-dashboard-tests
+  (let [name "bootstrap-dashboard-example"]
+    (generate-project name "bootstrap-dashboard")
+
+    (testing "project file should exist"
+      (is (.exists (io/file (get-tmp-dir) (str name "/project.clj")))))))
+
 #_(deftest website-with-login-tests
   (generate-project "website-with-login" "hello-world-web" "+cylon/login")
   (testing "project file exists"
