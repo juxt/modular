@@ -181,7 +181,7 @@
 
               :modules modules
 
-              :module? (set (map :module modules))
+              :module? (zipmap (set (map :module modules)) (repeat true))
 
               :template app-template
 

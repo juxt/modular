@@ -5,6 +5,10 @@
    [clojure.repl :refer (apropos dir doc find-doc pst source)]
    [clojure.tools.namespace.repl :refer (refresh refresh-all)]
    [com.stuartsierra.component :as component]
+
+;;   {{module?}}
+;;   {{#module?.co-dependency}}YES!{{/module?.co-dependency}}
+
    {{#module?.co-dependency}}
    [tangrammer.component.co-dependency :as co-dependency]
    {{/module?.co-dependency}}
