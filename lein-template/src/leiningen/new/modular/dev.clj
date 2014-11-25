@@ -5,7 +5,9 @@
    [clojure.repl :refer (apropos dir doc find-doc pst source)]
    [clojure.tools.namespace.repl :refer (refresh refresh-all)]
    [com.stuartsierra.component :as component]
+   {{#module?.co-dependency}}
    [tangrammer.component.co-dependency :as co-dependency]
+   {{/module?.co-dependency}}
    [{{name}}.system :refer (config new-system-map new-dependency-map new-co-dependency-map)]
    [modular.maker :refer (make)]
    {{#dev-requires}}
@@ -28,7 +30,10 @@
                  ))]
     (-> s-map
         (component/system-using (new-dependency-map))
-        (co-dependency/system-co-using (new-co-dependency-map)))))
+        {{#modules?.co-dependency}}
+        (co-dependency/system-co-using (new-co-dependency-map))
+        {{/modules?.co-dependency}}
+        )))
 
 (defn init
   "Constructs the current development system."
@@ -41,7 +46,13 @@
   []
   (alter-var-root
    #'system
-   co-dependency/start-system))
+   {{#module?.co-dependency}}
+   co-dependency/start-system
+   {{/module?.co-dependency}}
+   {{^module?.co-dependency}}
+   component/start
+   {{/module?.co-dependency}}
+))
 
 (defn stop
   "Shuts down and destroys the current development system."

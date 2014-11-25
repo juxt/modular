@@ -1,6 +1,6 @@
 (defproject {{name}} "0.1.0-SNAPSHOT"
-  :description "A modular project created with lein new modular"
-  :url "http://github.com/USER/{{name}}"
+  :description "A modular project created with lein new modular {{template}}"
+  :url "http://github.com/{{user}}/{{name}}"
 
   :exclusions [com.stuartsierra/component]
 

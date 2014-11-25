@@ -7,7 +7,9 @@
    [clojure.string :as str]
    [clojure.tools.reader.reader-types :refer (indexing-push-back-reader)]
    [com.stuartsierra.component :refer (system-map system-using using)]
+   {{#module?.co-dependency}}
    [tangrammer.component.co-dependency :refer (co-using system-co-using)]
+   {{/module?.co-dependency}}
    [modular.maker :refer (make)]
    {{#refers}}
    [{{namespace}} :refer ({{{refers}}})]
@@ -53,7 +55,10 @@
     (->
       (make {{constructor}} config{{#args}} {{{.}}}{{/args}})
       (using {{using}})
-      (co-using {{co-using}}))
+      {{#module?.co-dependency}}
+      (co-using {{co-using}})
+      {{/module?.co-dependency}}
+      )
 {{/components}}))
 {{/fname}}
 
@@ -86,4 +91,7 @@
   []
   (-> (new-system-map (config))
       (system-using (new-dependency-map))
-      (system-co-using (new-co-dependency-map))))
+      {{#module?.co-dependency}}
+      (system-co-using (new-co-dependency-map))
+      {{/module?.co-dependency}}
+      ))

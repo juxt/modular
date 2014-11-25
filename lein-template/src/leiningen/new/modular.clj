@@ -174,11 +174,16 @@
                        (java.io.PushbackReader. (io/reader f))))))
 
         data {:name name
+              :user (or (-> settings :github :user) (System/getenv "USER"))
               :year (str (.get (java.util.Calendar/getInstance) java.util.Calendar/YEAR))
               :sanitized (name-to-path name)
               :snake-cased-name (clojure.string/replace name #"_" "-")
 
               :modules modules
+
+              :module? (set (map :module modules))
+
+              :template app-template
 
               ;; Probably need to be sorted and with some conflict
               ;; resolution warnings. Design decision is to generate

@@ -65,7 +65,7 @@
       (is (.exists (io/file (get-tmp-dir) (str name "/project.clj")))))))
 
 (deftest bidi-hello-world-tests
-  (let [name "bidi-hello-world"]
+  (let [name "bidi-hello-world-example"]
     (generate-project name "bidi-hello-world")
 
     (testing "project file should exist"

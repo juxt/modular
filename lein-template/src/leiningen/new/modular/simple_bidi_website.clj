@@ -3,7 +3,8 @@
    [clojure.pprint :refer (pprint)]
    [modular.ring :refer (WebRequestHandler)]
    [modular.bidi :refer (WebService as-request-handler)]
-   [bidi.bidi :refer (path-for ->Redirect)]))
+   [bidi.bidi :refer (path-for)]
+   [bidi.ring :refer (redirect)]))
 
 (defrecord Website []
   WebService
@@ -11,7 +12,7 @@
     {::index (fn [req] {:status 200 :body "Hello, world!"})})
 
   (routes [_] ["/" {"index.html" ::index
-                    "" (->Redirect 307 ::index)}])
+                    "" (redirect ::index)}])
 
   (uri-context [_] "")
 
