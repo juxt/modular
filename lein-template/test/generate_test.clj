@@ -83,7 +83,7 @@
       (is (.exists (io/file (get-tmp-dir) (str name "/project.clj")))))))
 
 (deftest bootstrap-cover-tests
-  (let [name "bootstrap-cover"]
+  (let [name "bootstrap-cover-example"]
     (generate-project name "bootstrap-cover")
     (generate-checkout name "/home/malcolm/Dropbox/src/modular/modules/template" "template")
     (generate-checkout name "/home/malcolm/Dropbox/src/modular/modules/clostache" "clostache")
