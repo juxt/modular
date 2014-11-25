@@ -5,7 +5,7 @@
    [com.stuartsierra.component :as component]
    [modular.bidi :refer (WebService)]
    [modular.template :refer (TemplateModel)]
-   [bidi.bidi :refer (->Files)]
+   [bidi.ring :refer (files)]
    [shadow.cljs.build :as cljs]
    [clojure.java.io :as io]
    [schema.core :as s]
@@ -112,8 +112,8 @@
 
   WebService
   (request-handlers [this] {})
-  (routes [this] ["" (->Files {:dir (:target-dir this)
-                               :mime-types {"map" "application/javascript"}})])
+  (routes [this] ["" (files {:dir (:target-dir this)
+                             :mime-types {"map" "application/javascript"}})])
   (uri-context [this] (:context this))
 
   JavaScripts

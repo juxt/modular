@@ -1,6 +1,6 @@
 ;; Copyright © 2014 JUXT LTD.
 
-(defproject juxt.modular/cljs "0.5.1"
+(defproject juxt.modular/cljs "0.5.3"
   :description "A modular extension that provides support for ClojureScript building and Javascript serving"
   :url "https://github.com/juxt/modular/tree/master/modules/cljs"
   :license {:name "The MIT License"
