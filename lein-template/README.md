@@ -1,3 +1,5 @@
+# Modular templates
+
 Modular provides a number of templates to generate Clojure project skeletons with the aim of getting you up-and-running quickly with your own projects.
 
 The command line arguments are
