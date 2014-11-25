@@ -89,8 +89,6 @@
                          (map (partial apply keyword))
                          set)
 
-
-
         manifest (load-edn-string
                   (stencil/render-string
                    (slurp (io/resource "manifest.edn"))
@@ -169,7 +167,14 @@
 
                              }))
 
+        settings (when-let [f (io/file (System/getProperty "user.home")
+                                       ".lein/modular.edn")]
+                   (read
+                    (indexing-push-back-reader
+                     (java.io.PushbackReader. (io/reader f)))))
+
         data {:name name
+              :year (str (.get (java.util.Calendar/getInstance) java.util.Calendar/YEAR))
               :sanitized (name-to-path name)
               :snake-cased-name (clojure.string/replace name #"_" "-")
 
@@ -256,7 +261,7 @@
     (letfn [(proc-file [{:keys [target template close-parens? file]}]
               (cond
                template
-               [target (cond-> (render template data) close-parens? close-parens)]
+               [target (cond-> (render template (merge settings data)) close-parens? close-parens)]
 
                file
                [target (render file)]))]

@@ -310,6 +310,7 @@
 
   {:assembly :bootstrap-cover
    :files [{:template "cover/page.html.mustache" :target "resources/templates/page.html.mustache"}
+           {:template "cover/README.md" :target "README.md"}
            {:file "resources/cover.css" :target "resources/public/cover.css"}]}
 
   {:assembly :twitter-bootstrap

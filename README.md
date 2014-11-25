@@ -22,8 +22,11 @@ Benefits include :-
 ## Usage
 
 ```clojure
-lein new modular website
+lein new modular my-website bootstrap-cover
 ```
+
+See [lein-template](lein-template/README.md) for further details on
+project generation.
 
 ## Copyright & License
 
