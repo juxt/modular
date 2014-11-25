@@ -94,13 +94,6 @@
     (testing "project file should exist"
       (is (.exists (io/file (get-tmp-dir) (str name "/project.clj")))))))
 
-(deftest rig-tests
-  (let [name "rig"]
-    (generate-project name "rig")
-    (generate-checkout name "/home/malcolm/src/component" "component")
-    (testing "project file should exist"
-      (is (.exists (io/file (get-tmp-dir) (str name "/project.clj")))))))
-
 #_(deftest website-with-login-tests
   (generate-project "website-with-login" "hello-world-web" "+cylon/login")
   (testing "project file exists"

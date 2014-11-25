@@ -210,26 +210,7 @@
 
   {:assembly :http-listener
    :components
-   {
-    #_:template-model
-    #_{:component :modular.web-template/dependency-dynamic-template-model}
-
-    #_:website #_{:component :website
-                  :library-dependencies [[hiccup "1.0.5"]
-                                         [juxt.modular/bidi "0.5.4"]]
-                  :using {:template-model :template-model}}
-
-    #_:webresources
-    #_{:component :modular.bidi/web-service
-       :refers [bidi.bidi/->ResourcesMaybe]
-       :args [:request-handlers {}
-              :routes ["/" {"js/" (->ResourcesMaybe {:prefix "public/js/"})
-                            "css/" (->ResourcesMaybe {:prefix "public/css/"})}]]}
-
-    :listener {:component :modular.http-kit/webserver}
-    ;;                :menu-index :menu-index
-    }
-   }
+   {:listener {:component :modular.http-kit/webserver}}}
 
   {:assembly :hello-world-website
    :components {:handler
@@ -240,9 +221,7 @@
 
   {:assembly :modular-bidi-router
    :components {:webrouter
-                {:component :modular.bidi/router
-                 ;;:using [:website :webresources]
-                 }}
+                {:component :modular.bidi/router}}
    :dependencies {[:http-listener :listener] {:request-handler :webrouter}}}
 
   {:assembly :simple-bidi-website
@@ -254,8 +233,7 @@
 
   {:assembly :aggregate-template-model
    :components {:template-model
-                {:component :modular.template/aggregate-template-model
-                 }}}
+                {:component :modular.template/aggregate-template-model}}}
 
   {:assembly :logback-logging
    :library-dependencies [[org.clojure/tools.logging "0.2.6"]
