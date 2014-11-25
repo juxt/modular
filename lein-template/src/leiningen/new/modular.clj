@@ -119,8 +119,7 @@
                               (map (juxt :component identity))
                               (into {}))
 
-        assemblies (for [a (->> manifest :assemblies (filter select-assembly?))
-                         :let [_ (infof "a is %s" a)]]
+        assemblies (for [a (->> manifest :assemblies (filter select-assembly?))]
                      (merge a
                             {:fname (when (:components a)
                                       (str (clojure.core/name (:assembly a)) "-components"))
