@@ -250,12 +250,12 @@
 
               }]
 
-    (main/info (format "Generating a new modular project named %s with options :-\n%s"
+    (main/info (format "Generating a new modular project named %s with modules :-\n%s"
                        name
                        (->> manifest :assemblies
                             (filter select-assembly?)
-                            (map :assembly)
-                            (interpose "\n")
+                            (map (comp clojure.core/name :assembly))
+                            (interpose ", ")
                             (apply str))))
 
     (letfn [(proc-file [{:keys [target template close-parens? file]}]
