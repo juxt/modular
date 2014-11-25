@@ -7,7 +7,7 @@
    [clojure.string :as str]
    [clojure.tools.reader.reader-types :refer (indexing-push-back-reader)]
    [com.stuartsierra.component :refer (system-map system-using using)]
-   [tangrammer.component.co-dependency :refer (co-using)]
+   [tangrammer.component.co-dependency :refer (co-using system-co-using)]
    [modular.maker :refer (make)]
    {{#refers}}
    [{{namespace}} :refer ({{{refers}}})]
@@ -85,4 +85,5 @@
   "Create the production system"
   []
   (-> (new-system-map (config))
-      (system-using (new-dependency-map))))
+      (system-using (new-dependency-map))
+      (system-co-using (new-co-dependency-map))))
