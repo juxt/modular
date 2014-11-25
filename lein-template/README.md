@@ -60,3 +60,11 @@ handlers. While these handlers are also defined within the ```Website```
 component, routes can be constructed in this way to any known handler in
 the system, using its keyword and any required arguments. See
 [bidi](https://github.com/juxt/bidi) for more details.
+
+### ```bootstrap-dashboard```
+
+Similar to bootstrap-cover above, but uses the bootstrap dashboard example.
+
+This template adds a [ClojureScript](https://github.com/clojure/clojurescript) compiler component which recompiles the source modifications in the included ```src-cljs``` on every reset.
+
+The application demonstrates client-side routing, using the cljs version of bidi.
