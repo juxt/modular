@@ -1,6 +1,6 @@
 ;; Copyright © 2014 JUXT LTD.
 
-(defproject juxt.modular/async "0.5.2-SNAPSHOT"
+(defproject juxt.modular/async "0.5.2"
   :description "A modular extension that provides support core.async"
   :url "https://github.com/juxt/modular/tree/master/modules/http-kit"
   :license {:name "The MIT License"
@@ -8,5 +8,6 @@
   :dependencies [
                  [prismatic/schema "0.2.1"]
                  #_[org.clojure/core.async "0.1.267.0-0d7780-alpha"]
-                 [org.clojure/core.async "0.1.303.0-886421-alpha"]
+                 #_[org.clojure/core.async "0.1.303.0-886421-alpha"]
+                 [org.clojure/core.async "0.1.346.0-17112a-alpha"]
                  ])
