@@ -99,8 +99,8 @@
 (deftest sse-tests
   (let [name "sse-example"]
     (generate-project name "sse")
-    (generate-checkout name "/home/malcolm/Dropbox/src/modular/modules/async" "modular.async")
-    (generate-checkout name "/home/malcolm/Dropbox/src/modular/modules/http-kit-events" "modular.http-kit-events")
+    #_(generate-checkout name "/home/malcolm/Dropbox/src/modular/modules/async" "modular.async")
+    #_(generate-checkout name "/home/malcolm/Dropbox/src/modular/modules/http-kit-events" "modular.http-kit-events")
     (testing "project file should exist"
       (is (.exists (io/file (get-tmp-dir) (str name "/project.clj")))))))
 

@@ -360,7 +360,7 @@
                  :args [:uri-context "\"/reactjs\"" :resource-prefix "\"META-INF/resources/webjars/react/0.12.1\""]}}
    :dependencies {[:modular-bidi-router :webrouter] {:reactjs :resources}}}
 
-  {:module :sse-demo-mult-channel
+  #_{:module :sse-demo-mult-channel
    :components {:channel {:component :modular.async/channel
                           :args [:size 32]}
                 :mult {:component :modular.async/mult
@@ -369,7 +369,7 @@
 
   {:module :sse-demo-website
    :components {:website {:constructor {{name}}.website/new-website}}
-   :dependencies {[:modular-bidi-router :webrouter] [:website #_:events]}
+   :dependencies {[:modular-bidi-router :webrouter] [:website]}
    :library-dependencies [[hiccup "1.0.5"]
                           [org.clojure/core.async "0.1.346.0-17112a-alpha"]]
    :files [{:template "sse-demo/website.clj" :target "src/{{sanitized}}/website.clj"}
@@ -377,10 +377,13 @@
            ;; declaration, not this module
            {:template "sse-demo/README.md" :target "README.md"}]}
 
-  #_{:module :sse-demo-events
-   :components {:events {:component :modular.http-kit-events/event-service}}
-   :dependencies {[:modular-bidi-router :webrouter] [:events]
-                  :events {:channel-provider [:sse-demo-website :channel]}}}
+  {:module :sse-demo-events
+   :components {:events {:constructor {{name}}.events/new-events-website}}
+   :dependencies {[:modular-bidi-router :webrouter] [:events]}
+   :library-dependencies [[hiccup "1.0.5"]
+                          [org.clojure/core.async "0.1.346.0-17112a-alpha"]]
+   :files [{:template "sse-demo/events.clj" :target "src/{{sanitized}}/events.clj"}
+           {:file "sse-demo/events.js" :target "resources/events.js"}]}
 
   ;; TODO Add support for general webjars.org support in modular
   ;; How to?
@@ -490,7 +493,8 @@
           :http-listener
           :modular-bidi-router
           :sse-demo-website
-          #_:sse-demo-events
+          :sse-demo-events
+          :jquery
           }
 
   ;; TODO Let's add some example pages
