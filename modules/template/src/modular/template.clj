@@ -23,11 +23,10 @@
 (defrecord AggregateTemplateModel [static]
   TemplateModel
   (template-model [component context]
-    (remove nil?
-            (reduce conj [static]
-                    (for [[_ v] component
-                          :when (satisfies? TemplateModel v)]
-                      (template-model v context))))))
+    (reduce merge static
+            (for [[_ v] component
+                  :when (satisfies? TemplateModel v)]
+              (template-model v context)))))
 
 (defn new-aggregate-template-model [& {:as static}]
   (->AggregateTemplateModel static))
