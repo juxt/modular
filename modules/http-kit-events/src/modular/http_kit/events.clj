@@ -15,6 +15,8 @@
   (str "data: " data "\r\n\r\n"))
 
 (defn server-event-source [ch]
+  ;; Adding a mult here is dangerous because it bleeds the underlying
+  ;; channel dry. We should provide the mult via modular.async
   (let [m (async/mult ch)]
     (fn [req]
       (let [ch (async/chan 16)]
@@ -26,12 +28,13 @@
           (send! net-ch {:headers headers} false)
           (go-loop []
             (when-let [data (<! ch)]
+              (println "Got data! " data)
               (send! net-ch (->message data) false)
               (recur))))))))
 
 (defrecord EventService [channel-provider]
   WebService
-  (request-handlers [this] {::events (server-event-source (-> this :channel :channel))})
+  (request-handlers [this] {::events (server-event-source (channel channel-provider))})
   (routes [_] ["" ::events])
   (uri-context [_] "/events"))
 

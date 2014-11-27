@@ -15,6 +15,8 @@
      :body (hiccup/html
             [:h1 "HTTP Asynchronous Services Demo"]
             [:p "System: " [:pre (hiccup/h (with-out-str (pprint @(find-var 'dev/system))))]]
+            [:p "Channel type: " (type ch)]
+            [:p "Buffer type: " (.-buf ch)]
             [:p "Channel value: " (pr-str (.-buf (.-buf ch)))])}))
 
 ;; Components are defined using defrecord.
@@ -22,8 +24,9 @@
 (defrecord Website [channel]
   Lifecycle
   (start [component]
-    ;; Let's load the channel up with some random data
-    (go (dotimes [_ 10] (>! (:channel channel) (rand-int 20))))
+    (let [ch (modular.async/channel channel)]
+      ;; Let's load the channel up with some random data
+      (go (dotimes [_ 20] (>! ch (rand-int 20)))))
     component)
   (stop [component] component)
 

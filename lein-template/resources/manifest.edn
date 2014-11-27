@@ -45,6 +45,10 @@
    :library-dependencies [[juxt.modular/async "0.5.2"]]
    :constructor modular.async/new-channel}
 
+  {:component :modular.http-kit-events/event-service
+   :library-dependencies [[juxt.modular/http-kit-events "0.5.2"]]
+   :constructor modular.http-kit.events/new-event-service}
+
 #_{:component :modular.bidi/web-service
      :library-dependencies [[juxt.modular/bidi "0.5.4"]]
      :constructor modular.bidi/new-web-service}
@@ -356,17 +360,31 @@
                  :args [:uri-context "\"/reactjs\"" :resource-prefix "\"META-INF/resources/webjars/react/0.12.1\""]}}
    :dependencies {[:modular-bidi-router :webrouter] {:reactjs :resources}}}
 
+  {:module :sse-demo-simple-channel
+   :components {:channel {:component :modular.async/channel
+                          :args [:size 32]}}}
+
+  #_{:module :sse-demo-mult-channel
+   :components {:channel {:component :modular.async/channel
+                          :args [:size 32]}
+                :mult {:component :modular.async/mult}}
+   :dependencies {:mult {:channel-provider :channel}}}
+
   {:module :sse-demo-website
-   :components {:website {:constructor {{name}}.website/new-website}
-                :channel {:component :modular.async/channel
-                          :args [:size 32]}}
-   :dependencies {[:modular-bidi-router :webrouter] [:website]
-                  :website {:channel :channel}}
+   :components {:website {:constructor {{name}}.website/new-website}}
+   :dependencies {[:modular-bidi-router :webrouter] [:website #_:events]
+                  :website {:channel [:sse-demo-simple-channel :channel]}}
+
    :library-dependencies [[hiccup "1.0.5"]]
    :files [{:template "sse-demo/website.clj" :target "src/{{sanitized}}/website.clj"}
            ;; TODO: Potentially we'd like this to be in the template
            ;; declaration, not this module
            {:template "sse-demo/README.md" :target "README.md"}]}
+
+  #_{:module :sse-demo-events
+   :components {:events {:component :modular.http-kit-events/event-service}}
+   :dependencies {[:modular-bidi-router :webrouter] [:events]
+                  :events {:channel-provider [:sse-demo-website :channel]}}}
 
   ;; TODO Add support for general webjars.org support in modular
   ;; How to?
@@ -476,7 +494,9 @@
           :logback-logging
           :http-listener
           :modular-bidi-router
+          :sse-demo-simple-channel
           :sse-demo-website
+          #_:sse-demo-events
           }
 
   ;; TODO Let's add some example pages

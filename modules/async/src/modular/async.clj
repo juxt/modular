@@ -4,7 +4,7 @@
   "Make a core.async channel available as a component, so that
   channels can be named and wired up in the system configuration."
   (:require
-   [com.stuartsierra.component :as component :refer (Lifecycle)]
+   [com.stuartsierra.component :as component :refer (Lifecycle using)]
    [clojure.core.async :refer (chan mult tap)]
    [clojure.core.async.impl.protocols :as aimpl]
    [schema.core :as s]))
@@ -31,24 +31,27 @@
 ;; A Mult accepts a mult and optionally takes a :tap-channel-provider
 ;; dependency which will provide channels that can be used with tap.
 
-(defrecord Mult [mult-ch tap-channel-provider]
+(defrecord Mult [channel-provider tap-channel-provider]
   Lifecycle
   (start [component]
-    (s/validate {:tap-channel-provider (s/maybe (s/protocol ChannelProvider))}
-                {:tap-channel-provider tap-channel-provider})
-    component)
+    (s/validate
+     {:channel-provider (s/protocol ChannelProvider)
+      :tap-channel-provider (s/maybe (s/protocol ChannelProvider))}
+     {:channel-provider channel-provider
+      :tap-channel-provider tap-channel-provider})
+    (assoc component :mult (mult (channel channel-provider))))
   (stop [component] component)
   ChannelProvider
   (channel [component]
     (tap
-     mult-ch
+     (:mult component)
      (if tap-channel-provider
        (channel tap-channel-provider)
        (chan)))))
 
-(def new-mult-schema {:channel (s/protocol aimpl/Channel)})
-
-(defn new-mult [& {:keys [channel] :or {channel (chan)} :as opts}]
-  (s/validate new-mult-schema opts)
-  (let [mult-ch (mult channel)]
-    (map->Mult {:mult-ch mult-ch})))
+(defn new-mult [& {:as opts}]
+  (->
+   (->> opts
+        (s/validate {})
+        map->Mult)
+   (using [:channel-provider])))
