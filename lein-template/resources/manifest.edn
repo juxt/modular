@@ -352,6 +352,15 @@
                  :args [:uri-context "\"/reactjs\"" :resource-prefix "\"META-INF/resources/webjars/react/0.12.1\""]}}
    :dependencies {[:modular-bidi-router :webrouter] {:reactjs :resources}}}
 
+  {:module :sse-demo-website
+   :components {:website {:constructor {{name}}.website/new-website}}
+   :dependencies {[:modular-bidi-router :webrouter] [:website]}
+   :library-dependencies [[hiccup "1.0.5"]]
+   :files [{:template "sse-demo/website.clj" :target "src/{{sanitized}}/website.clj"}
+           ;; TODO: Potentially we'd like this to be in the template
+           ;; declaration, not this module
+           {:template "sse-demo/README.md" :target "README.md"}]}
+
   ;; TODO Add support for general webjars.org support in modular
   ;; How to?
   ;;
@@ -454,6 +463,14 @@
                           :clostache-templater
                           :bootstrap-dashboard-website
                           :single-cljs-module}
+
+  "sse" #{:component
+          :co-dependency
+          :logback-logging
+          :http-listener
+          :modular-bidi-router
+          :sse-demo-website
+          }
 
   ;; TODO Let's add some example pages
 
