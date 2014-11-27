@@ -189,7 +189,7 @@
   {:module :core                ; :core is special, it's always selected
 
    ;; temporary, while bidi is in checkouts, to allow for (reset)
-   :library-dependencies [[org.clojure/clojure "1.6.0"]
+   :library-dependencies [[org.clojure/clojure "1.7.0-alpha4"]
                           [org.clojure/tools.reader "0.8.9"]
                           [prismatic/schema "0.2.1"]
                           [prismatic/plumbing "0.2.2"]
