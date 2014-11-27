@@ -415,6 +415,7 @@
 
   "bidi-hello-world" #{:component
                        :http-listener
+                       :logback-logging ; temp needed until modular.ring re-released
                        :modular-bidi-router
                        :simple-bidi-website}
 
