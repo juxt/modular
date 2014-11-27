@@ -1,6 +1,6 @@
 (ns {{name}}.website
   (:require
-   [clojure.core.async :refer (go >! <! buffer chan)]
+   [clojure.core.async :refer (go >! <! buffer dropping-buffer sliding-buffer chan take!)]
    [clojure.pprint :refer (pprint)]
    [clojure.tools.logging :refer :all]
    [bidi.bidi :refer (path-for)]
@@ -8,7 +8,7 @@
    [com.stuartsierra.component :refer (Lifecycle using)]
    [hiccup.core :as hiccup]
    [modular.bidi :refer (WebService)]
-   [ring.util.response :refer (response)]))
+   [ring.util.response :refer (response redirect-after-post)]))
 
 (defn index [req]
   {:status 200
@@ -16,7 +16,8 @@
           [:body
            [:h1 "HTTP Async"]
            [:p [:a {:href "/system.html"} "System"]]
-           [:p [:a {:href "/channel.html"} "Channel"]]])})
+           [:p [:a {:href "/channel.html"} "Channel"]]
+           ])})
 
 (defn show-system []
   (fn [req]
@@ -34,16 +35,24 @@
              [:h2 "Channel"]
              [:p "Channel type: " (type ch)]
              [:p "Buffer type: " (.-buf ch)]
-             [:p "Channel value: " (pr-str (.-buf (.-buf ch)))]])}))
+             [:p "Channel count: " (count (.-buf ch))]
+             [:p "Channel value: " (pr-str (.-buf (.-buf ch)))]
+             [:form {:action "/drop" :method :post}
+            [:input {:type :submit :value "Drop"}]]])}))
+
+(defn drop-from-channel [ch]
+  (fn [req]
+    (go (<! ch))
+    (redirect-after-post "/channel.html")))
 
 ;; Components are defined using defrecord.
 
 (defrecord Website []
   Lifecycle
   (start [component]
-    (let [ch (chan 10)]
+    (let [ch (chan (buffer 10))]
       ;; Let's load the channel up with some random data
-      (go (dotimes [_ 20] (>! ch (rand-int 20))))
+      (go (dotimes [n 26] (>! ch (char (+ (int \A) n)))))
       (assoc component :channel ch)))
   (stop [component] component)
 
@@ -55,7 +64,8 @@
     ;; handlers
     {::index index
      ::show-system (show-system)
-     ::show-channel (show-channel (:channel component))})
+     ::show-channel (show-channel (:channel component))
+     ::drop (drop-from-channel (:channel component) )})
 
   ;; Return a bidi route structure, mapping routes to keywords defined
   ;; above. This additional level of indirection means we can generate
@@ -63,7 +73,8 @@
   (routes [_] ["/" {"index.html" ::index
                     "" (redirect ::index)
                     "system.html" ::show-system
-                    "channel.html" ::show-channel}])
+                    "channel.html" ::show-channel
+                    "drop" ::drop}])
 
   ;; A WebService can be 'mounted' underneath a common uri context
   (uri-context [_] ""))
