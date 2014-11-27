@@ -360,22 +360,18 @@
                  :args [:uri-context "\"/reactjs\"" :resource-prefix "\"META-INF/resources/webjars/react/0.12.1\""]}}
    :dependencies {[:modular-bidi-router :webrouter] {:reactjs :resources}}}
 
-  {:module :sse-demo-simple-channel
-   :components {:channel {:component :modular.async/channel
-                          :args [:size 32]}}}
-
-  #_{:module :sse-demo-mult-channel
+  {:module :sse-demo-mult-channel
    :components {:channel {:component :modular.async/channel
                           :args [:size 32]}
-                :mult {:component :modular.async/mult}}
+                :mult {:component :modular.async/mult
+                       :size 32}}
    :dependencies {:mult {:channel-provider :channel}}}
 
   {:module :sse-demo-website
    :components {:website {:constructor {{name}}.website/new-website}}
-   :dependencies {[:modular-bidi-router :webrouter] [:website #_:events]
-                  :website {:channel [:sse-demo-simple-channel :channel]}}
-
-   :library-dependencies [[hiccup "1.0.5"]]
+   :dependencies {[:modular-bidi-router :webrouter] [:website #_:events]}
+   :library-dependencies [[hiccup "1.0.5"]
+                          [org.clojure/core.async "0.1.346.0-17112a-alpha"]]
    :files [{:template "sse-demo/website.clj" :target "src/{{sanitized}}/website.clj"}
            ;; TODO: Potentially we'd like this to be in the template
            ;; declaration, not this module
@@ -490,11 +486,9 @@
                           :single-cljs-module}
 
   "sse" #{:component
-          :co-dependency
           :logback-logging
           :http-listener
           :modular-bidi-router
-          :sse-demo-simple-channel
           :sse-demo-website
           #_:sse-demo-events
           }

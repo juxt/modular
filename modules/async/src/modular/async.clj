@@ -31,7 +31,7 @@
 ;; A Mult accepts a mult and optionally takes a :tap-channel-provider
 ;; dependency which will provide channels that can be used with tap.
 
-(defrecord Mult [channel-provider tap-channel-provider]
+(defrecord Mult [size channel-provider tap-channel-provider]
   Lifecycle
   (start [component]
     (s/validate
@@ -47,11 +47,13 @@
      (:mult component)
      (if tap-channel-provider
        (channel tap-channel-provider)
-       (chan)))))
+       (if size
+         (chan size)
+         (chan))))))
 
 (defn new-mult [& {:as opts}]
   (->
    (->> opts
-        (s/validate {})
+        (s/validate {(s/optional-key :size) s/Int})
         map->Mult)
    (using [:channel-provider])))

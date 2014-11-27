@@ -1,33 +1,50 @@
 (ns {{name}}.website
   (:require
-   [clojure.core.async :refer (go >! <! buffer)]
+   [clojure.core.async :refer (go >! <! buffer chan)]
    [clojure.pprint :refer (pprint)]
    [clojure.tools.logging :refer :all]
+   [bidi.bidi :refer (path-for)]
    [bidi.ring :refer (redirect)]
    [com.stuartsierra.component :refer (Lifecycle using)]
    [hiccup.core :as hiccup]
    [modular.bidi :refer (WebService)]
    [ring.util.response :refer (response)]))
 
-(defn index [ch]
+(defn index [req]
+  {:status 200
+   :body (hiccup/html
+          [:body
+           [:h1 "HTTP Async"]
+           [:p [:a {:href "/system.html"} "System"]]
+           [:p [:a {:href "/channel.html"} "Channel"]]])})
+
+(defn show-system []
   (fn [req]
     {:status 200
      :body (hiccup/html
-            [:h1 "HTTP Asynchronous Services Demo"]
-            [:p "System: " [:pre (hiccup/h (with-out-str (pprint @(find-var 'dev/system))))]]
-            [:p "Channel type: " (type ch)]
-            [:p "Buffer type: " (.-buf ch)]
-            [:p "Channel value: " (pr-str (.-buf (.-buf ch)))])}))
+            [:body
+             [:h2 "System"]
+             [:pre (hiccup/h (with-out-str (pprint @(find-var 'dev/system))))]])}))
+
+(defn show-channel [ch]
+  (fn [req]
+    {:status 200
+     :body (hiccup/html
+            [:body
+             [:h2 "Channel"]
+             [:p "Channel type: " (type ch)]
+             [:p "Buffer type: " (.-buf ch)]
+             [:p "Channel value: " (pr-str (.-buf (.-buf ch)))]])}))
 
 ;; Components are defined using defrecord.
 
-(defrecord Website [channel]
+(defrecord Website []
   Lifecycle
   (start [component]
-    (let [ch (modular.async/channel channel)]
+    (let [ch (chan 10)]
       ;; Let's load the channel up with some random data
-      (go (dotimes [_ 20] (>! ch (rand-int 20)))))
-    component)
+      (go (dotimes [_ 20] (>! ch (rand-int 20))))
+      (assoc component :channel ch)))
   (stop [component] component)
 
   ; modular.bidi provides a router which dispatches to routes provided
@@ -36,14 +53,17 @@
   (request-handlers [component]
     ;; Return a map between some keywords and their associated Ring
     ;; handlers
-    {::index (index (:channel channel))})
-
+    {::index index
+     ::show-system (show-system)
+     ::show-channel (show-channel (:channel component))})
 
   ;; Return a bidi route structure, mapping routes to keywords defined
   ;; above. This additional level of indirection means we can generate
   ;; hyperlinks from known keywords.
   (routes [_] ["/" {"index.html" ::index
-                    "" (redirect ::index)}])
+                    "" (redirect ::index)
+                    "system.html" ::show-system
+                    "channel.html" ::show-channel}])
 
   ;; A WebService can be 'mounted' underneath a common uri context
   (uri-context [_] ""))
@@ -54,5 +74,4 @@
 ;; dependency relationships with other components.
 
 (defn new-website []
-  (-> (map->Website {})
-      (using [:channel])))
+  (-> (map->Website {})))
