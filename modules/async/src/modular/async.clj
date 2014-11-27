@@ -21,8 +21,11 @@
 
 (defn new-channel [& {:as opts}]
   (->> opts
-       (merge {:channel (chan)})
-       (s/validate {:channel (s/protocol aimpl/Channel)})
+       (s/validate {(s/optional-key :channel) (s/protocol aimpl/Channel)
+                    (s/optional-key :size) s/Int})
+       (merge {:channel (if-let [size (:size opts)]
+                          (chan size)
+                          (chan))})
        map->Channel))
 
 ;; A Mult accepts a mult and optionally takes a :tap-channel-provider

@@ -1,28 +1,39 @@
 (ns {{name}}.website
   (:require
-   [bidi.ring :refer (redirect)]
-   [modular.bidi :refer (WebService)]
+   [clojure.core.async :refer (go >! <! buffer)]
    [clojure.pprint :refer (pprint)]
    [clojure.tools.logging :refer :all]
-   [com.stuartsierra.component :refer (using)]
+   [bidi.ring :refer (redirect)]
+   [com.stuartsierra.component :refer (Lifecycle using)]
    [hiccup.core :as hiccup]
+   [modular.bidi :refer (WebService)]
    [ring.util.response :refer (response)]))
 
-(defn index [req]
-  {:status 200
-   :body (hiccup/html [:h1 "HTTP Asynchronous Services Demo"])})
+(defn index [ch]
+  (fn [req]
+    {:status 200
+     :body (hiccup/html
+            [:h1 "HTTP Asynchronous Services Demo"]
+            [:p "System: " [:pre (hiccup/h (with-out-str (pprint @(find-var 'dev/system))))]]
+            [:p "Channel value: " (pr-str (.-buf (.-buf ch)))])}))
 
 ;; Components are defined using defrecord.
 
-(defrecord Website []
+(defrecord Website [channel]
+  Lifecycle
+  (start [component]
+    ;; Let's load the channel up with some random data
+    (go (dotimes [_ 10] (>! (:channel channel) (rand-int 20))))
+    component)
+  (stop [component] component)
 
   ; modular.bidi provides a router which dispatches to routes provided
   ; by components that satisfy its WebService protocol
   WebService
-  (request-handlers [this]
+  (request-handlers [component]
     ;; Return a map between some keywords and their associated Ring
     ;; handlers
-    {::index index})
+    {::index (index (:channel channel))})
 
 
   ;; Return a bidi route structure, mapping routes to keywords defined
@@ -41,4 +52,4 @@
 
 (defn new-website []
   (-> (map->Website {})
-      (using [])))
+      (using [:channel])))

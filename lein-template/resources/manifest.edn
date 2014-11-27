@@ -41,7 +41,11 @@
    :library-dependencies [[juxt.modular/cljs "0.5.3"]]
    :constructor modular.cljs/new-cljs-builder}
 
-  #_{:component :modular.bidi/web-service
+  {:component :modular.async/channel
+   :library-dependencies [[juxt.modular/async "0.5.2"]]
+   :constructor modular.async/new-channel}
+
+#_{:component :modular.bidi/web-service
      :library-dependencies [[juxt.modular/bidi "0.5.4"]]
      :constructor modular.bidi/new-web-service}
 
@@ -353,8 +357,11 @@
    :dependencies {[:modular-bidi-router :webrouter] {:reactjs :resources}}}
 
   {:module :sse-demo-website
-   :components {:website {:constructor {{name}}.website/new-website}}
-   :dependencies {[:modular-bidi-router :webrouter] [:website]}
+   :components {:website {:constructor {{name}}.website/new-website}
+                :channel {:component :modular.async/channel
+                          :args [:size 32]}}
+   :dependencies {[:modular-bidi-router :webrouter] [:website]
+                  :website {:channel :channel}}
    :library-dependencies [[hiccup "1.0.5"]]
    :files [{:template "sse-demo/website.clj" :target "src/{{sanitized}}/website.clj"}
            ;; TODO: Potentially we'd like this to be in the template
