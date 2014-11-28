@@ -99,7 +99,7 @@
         select-module?
         (fn [{:keys [module]}]
           (when-let [includes
-                     (conj (-> manifest :application-templates (get app-template #{})) :core)]
+                     (conj (get-in manifest [:application-templates app-template :modules]) :core)]
             (or (contains? augment-by module)
                 (and (includes module)
                      (not (contains? diminish-by module))))))
@@ -251,7 +251,8 @@
                (into {})
                )
 
-              :files (mapcat :files modules)
+              :files (concat (get-in manifest [:application-templates app-template :files] [])
+                             (mapcat :files modules))
 
               }]
 

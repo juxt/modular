@@ -442,60 +442,66 @@
      :dependency-map {}}]
 
  :application-templates
- {"hello-world-web" #{:component
-                      :http-listener
-                      :hello-world-website}
+ {"hello-world-web"
+  {:modules #{:component
+              :http-listener
+              :hello-world-website}}
 
-  "bidi-hello-world" #{:component
-                       :http-listener
-                       :logback-logging ; temp needed until modular.ring re-released
-                       :modular-bidi-router
-                       :simple-bidi-website}
+  "bidi-hello-world"
+  {:modules #{:component
+              :http-listener
+              :logback-logging ; temp needed until modular.ring re-released
+              :modular-bidi-router
+              :simple-bidi-website}}
 
-  "templated-bidi-website" #{:component
-                             :http-listener
-                             :modular-bidi-router
-                             :public-resources
-                             :templated-bidi-website
-                             :clostache-templater
-                             #_:aggregate-template-model
-                             :bootstrap-theme
-                             :logback-logging
-                             :twitter-bootstrap
-                             :jquery}
+  "templated-bidi-website"
+  {:modules #{:component
+              :http-listener
+              :modular-bidi-router
+              :public-resources
+              :templated-bidi-website
+              :clostache-templater
+              #_:aggregate-template-model
+              :bootstrap-theme
+              :logback-logging
+              :twitter-bootstrap
+              :jquery}}
 
-  "bootstrap-cover" #{:component
-                      :co-dependency
-                      :logback-logging
-                      :http-listener
-                      :modular-bidi-router
-                      :public-resources
-                      :twitter-bootstrap
-                      :jquery
-                      :clostache-templater
-                      :bootstrap-cover-resources
-                      :bootstrap-cover-website}
+  "bootstrap-cover"
+  {:modules #{:component
+              :co-dependency
+              :logback-logging
+              :http-listener
+              :modular-bidi-router
+              :public-resources
+              :twitter-bootstrap
+              :jquery
+              :clostache-templater
+              :bootstrap-cover-resources
+              :bootstrap-cover-website}}
 
   ;; A course on highly-concurrent async HTTP for the BBC
-  "sse" #{:component
-          :logback-logging
-          :http-listener
-          :modular-bidi-router
-          :sse-demo-website
-          :sse-demo-events
-          :jquery}
+  "sse"
+  {:modules #{:component
+              :logback-logging
+              :http-listener
+              :modular-bidi-router
+              :sse-demo-website
+              :sse-demo-events
+              :jquery}}
 
-  "dashboard" #{:component
-                :co-dependency
-                :logback-logging
-                :http-listener
-                :modular-bidi-router
-                :dashboard-resources
-                :jquery
-                :reactjs
-                :clostache-templater
-                :dashboard-website
-                :single-cljs-module}
+  "dashboard"
+  {:modules #{:component
+              :co-dependency
+              :logback-logging
+              :http-listener
+              :modular-bidi-router
+              :dashboard-resources
+              :jquery
+              :reactjs
+              :clostache-templater
+              :dashboard-website
+              :single-cljs-module}}
 
   ;; TODO Let's add some example pages
 
