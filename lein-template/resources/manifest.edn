@@ -49,7 +49,7 @@
    :library-dependencies [[juxt.modular/http-kit-events "0.5.2"]]
    :constructor modular.http-kit.events/new-event-service}
 
-#_{:component :modular.bidi/web-service
+  #_{:component :modular.bidi/web-service
      :library-dependencies [[juxt.modular/bidi "0.5.4"]]
      :constructor modular.bidi/new-web-service}
 
@@ -307,7 +307,7 @@
    :files [{:template "bootstrap-cover/page.html.mustache" :target "resources/templates/page.html.mustache"}
            {:file "resources/cover.css" :target "resources/public/cover.css"}]}
 
-  {:module :bootstrap-dashboard-resources
+  {:module :dashboard-resources
    :library-dependencies [[org.webjars/bootstrap "3.3.0"]]
    :components {:dist-service
                 {:component :modular.bidi/static-resource-service
@@ -317,9 +317,9 @@
                  :args [:uri-context "\"\"" :resource-prefix "\"public\""]}
                 }
    :dependencies {[:modular-bidi-router :webrouter] [:dist-service :static-service]}
-   :files [{:template "bootstrap-dashboard/dashboard.html.mustache"
+   :files [{:template "dashboard/dashboard.html.mustache"
             :target "resources/templates/dashboard.html.mustache"}
-           {:file "bootstrap-dashboard/dashboard.css"
+           {:file "dashboard/dashboard.css"
             :target "resources/public/dashboard.css"}]}
 
   {:module :single-cljs-module
@@ -330,21 +330,21 @@
                 :cljs-builder {:component :modular.cljs/builder
                                :args [:source-path "\"src-cljs\""]
                                :using [:single-cljs-module-cljs-core :single-cljs-module-cljs-app]}}
-   :files [{:template "bootstrap-dashboard/core.cljs"
+   :files [{:template "core.cljs"
             :target "src-cljs/{{sanitized}}/core.cljs"}]
    :dependencies {[:modular-bidi-router :webrouter] [:cljs-builder]}}
 
-  {:module :bootstrap-dashboard-website
+  {:module :dashboard-website
    :components {:website {:constructor {{name}}.website/new-website}}
    :dependencies {[:modular-bidi-router :webrouter] [:website]
                   :website {:templater [:clostache-templater :templater]
                             :cljs-builder [:single-cljs-module :cljs-builder]}}
    :co-dependencies {:website {:router [:modular-bidi-router :webrouter]}}
    :library-dependencies [[hiccup "1.0.5"]]
-   :files [{:template "bootstrap-dashboard/website.clj" :target "src/{{sanitized}}/website.clj"}
+   :files [{:template "dashboard/website.clj" :target "src/{{sanitized}}/website.clj"}
            ;; TODO: Potentially we'd like this to be in the template
            ;; declaration, not this module
-           {:template "bootstrap-dashboard/README.md" :target "README.md"}]}
+           {:template "dashboard/README.md" :target "README.md"}]}
 
   {:module :jquery
    :library-dependencies [[org.webjars/jquery "2.1.0"]]
@@ -361,11 +361,11 @@
    :dependencies {[:modular-bidi-router :webrouter] {:reactjs :resources}}}
 
   #_{:module :sse-demo-mult-channel
-   :components {:channel {:component :modular.async/channel
-                          :args [:size 32]}
-                :mult {:component :modular.async/mult
-                       :size 32}}
-   :dependencies {:mult {:channel-provider :channel}}}
+     :components {:channel {:component :modular.async/channel
+                            :args [:size 32]}
+                  :mult {:component :modular.async/mult
+                         :size 32}}
+     :dependencies {:mult {:channel-provider :channel}}}
 
   {:module :sse-demo-website
    :components {:website {:constructor {{name}}.website/new-website}}
@@ -476,26 +476,26 @@
                       :bootstrap-cover-resources
                       :bootstrap-cover-website}
 
-  "bootstrap-dashboard" #{:component
-                          :co-dependency
-                          :logback-logging
-                          :http-listener
-                          :modular-bidi-router
-                          :bootstrap-dashboard-resources
-                          :jquery
-                          :reactjs
-                          :clostache-templater
-                          :bootstrap-dashboard-website
-                          :single-cljs-module}
-
+  ;; A course on highly-concurrent async HTTP for the BBC
   "sse" #{:component
           :logback-logging
           :http-listener
           :modular-bidi-router
           :sse-demo-website
           :sse-demo-events
-          :jquery
-          }
+          :jquery}
+
+  "dashboard" #{:component
+                :co-dependency
+                :logback-logging
+                :http-listener
+                :modular-bidi-router
+                :dashboard-resources
+                :jquery
+                :reactjs
+                :clostache-templater
+                :dashboard-website
+                :single-cljs-module}
 
   ;; TODO Let's add some example pages
 

@@ -89,10 +89,11 @@
     (testing "project file should exist"
       (is (.exists (io/file (get-tmp-dir) (str name "/project.clj")))))))
 
-(deftest bootstrap-dashboard-tests
-  (let [name "bootstrap-dashboard-example"]
-    (generate-project name "bootstrap-dashboard")
-
+(deftest dashboard-tests
+  (let [name "dash"]
+    (generate-project name "dashboard")
+    (generate-checkout name "/home/malcolm/Dropbox/src/modular/modules/bidi" "modular.bidi")
+    (generate-checkout name "/home/malcolm/Dropbox/src/bidi" "bidi")
     (testing "project file should exist"
       (is (.exists (io/file (get-tmp-dir) (str name "/project.clj")))))))
 
