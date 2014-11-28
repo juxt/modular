@@ -9,7 +9,7 @@
    [com.stuartsierra.component :refer (Lifecycle using)]
    [hiccup.core :as hiccup]
    [modular.bidi :refer (WebService)]
-   [org.httpkit.server :refer (with-channel send! on-close)]
+   [org.httpkit.server :as httpkit]
    [ring.util.response :refer (response redirect-after-post)]
    [ring.middleware.params :refer (params-request)]))
 
@@ -53,7 +53,7 @@
     (let [msg (-> req params-request :form-params (get "message"))]
       (swap! messages conj msg)
       (put! channel msg))
-    (redirect-after-post "/events/chat.html")))
+    {:status 200 :body "Thank you"}))
 
 (defn server-event-source
   "Take a mult and return a handler that will produce HTML5 server-sent
@@ -62,14 +62,14 @@
   (fn [req]
     (let [ch (chan 16)]
       (tap mlt ch)
-      (with-channel req net-ch
-        (on-close net-ch (fn [_]
-                           (async/untap mlt ch)
-                           (async/close! ch)))
-        (send! net-ch {:headers {"Content-Type" "text/event-stream"}} false)
+      (httpkit/with-channel req net-ch
+        (httpkit/on-close net-ch (fn [_]
+                                   (async/untap mlt ch)
+                                   (async/close! ch)))
+        (httpkit/send! net-ch {:headers {"Content-Type" "text/event-stream"}} false)
         (go-loop []
           (when-let [data (<! ch)]
-            (send! net-ch (str "data: " data "\r\n\r\n") false)
+            (httpkit/send! net-ch (str "data: " data "\r\n\r\n") false)
             (recur)))))))
 
 ;; Components are defined using defrecord.

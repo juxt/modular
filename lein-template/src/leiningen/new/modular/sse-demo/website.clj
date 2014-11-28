@@ -38,7 +38,7 @@
              [:p "Channel count: " (count (.-buf ch))]
              [:p "Channel value: " (pr-str (.-buf (.-buf ch)))]
              [:form {:action "/drop" :method :post}
-            [:input {:type :submit :value "Drop"}]]])}))
+              [:input {:type :submit :value "Drop"}]]])}))
 
 (defn drop-from-channel [ch]
   (fn [req]
@@ -51,7 +51,7 @@
   Lifecycle
   (start [component]
     (let [ch (chan (buffer 10))]
-      ;; Let's load the channel up with some random data
+      ;; Let's load the channel up with some data
       (go (dotimes [n 26] (>! ch (char (+ (int \A) n)))))
       (assoc component :channel ch)))
   (stop [component] component)
