@@ -287,10 +287,7 @@
                   :website {:templater [:clostache-templater :templater]}}
    :co-dependencies {:website {:router [:modular-bidi-router :webrouter]}}
    :library-dependencies [[hiccup "1.0.5"]]
-   :files [{:template "bootstrap-cover/website.clj" :target "src/{{sanitized}}/website.clj"}
-           ;; TODO: Potentially we'd like this to be in the template
-           ;; declaration, not this module
-           {:template "bootstrap-cover/README.md" :target "README.md"}]}
+   :files [{:template "bootstrap-cover/website.clj" :target "src/{{sanitized}}/website.clj"}]}
 
   {:module :bootstrap-theme
    :files [{:template "page.html.mustache" :target "resources/templates/page.html.mustache"}
@@ -342,9 +339,7 @@
    :co-dependencies {:website {:router [:modular-bidi-router :webrouter]}}
    :library-dependencies [[hiccup "1.0.5"]]
    :files [{:template "dashboard/website.clj" :target "src/{{sanitized}}/website.clj"}
-           ;; TODO: Potentially we'd like this to be in the template
-           ;; declaration, not this module
-           {:template "dashboard/README.md" :target "README.md"}]}
+           ]}
 
   {:module :jquery
    :library-dependencies [[org.webjars/jquery "2.1.0"]]
@@ -372,10 +367,7 @@
    :dependencies {[:modular-bidi-router :webrouter] [:website]}
    :library-dependencies [[hiccup "1.0.5"]
                           [org.clojure/core.async "0.1.346.0-17112a-alpha"]]
-   :files [{:template "sse-demo/website.clj" :target "src/{{sanitized}}/website.clj"}
-           ;; TODO: Potentially we'd like this to be in the template
-           ;; declaration, not this module
-           {:template "sse-demo/README.md" :target "README.md"}]}
+   :files [{:template "sse-demo/website.clj" :target "src/{{sanitized}}/website.clj"}]}
 
   {:module :sse-demo-events
    :components {:events {:constructor {{name}}.events/new-events-website}}
@@ -432,15 +424,12 @@
                       :menu-index [:login-form-menu-items]}
      :doc {:main #markdown "cylon-login.md"}}
 
-  #_{:module :bootstrap
-     :components #{:bootstrap-menu}
-     :dependency-map {:bootstrap-menu {:menu-index :menu-index}
-                      :template-model {:menu :bootstrap-menu}}}
-
   #_{:module :dev-browser
      :components #{}
      :dependency-map {}}]
 
+ ;; These are the templates that the user chooses as the <app-template> argument in
+ ;; lein new modular <project-name> <app-template>
  :application-templates
  {"hello-world-web"
   {:modules #{:component
@@ -467,6 +456,7 @@
               :twitter-bootstrap
               :jquery}}
 
+  ;; A clean and simple website for homepages, etc.
   "bootstrap-cover"
   {:modules #{:component
               :co-dependency
@@ -478,7 +468,8 @@
               :jquery
               :clostache-templater
               :bootstrap-cover-resources
-              :bootstrap-cover-website}}
+              :bootstrap-cover-website}
+   :files [{:template "bootstrap-cover/README.md" :target "README.md"}]}
 
   ;; A course on highly-concurrent async HTTP for the BBC
   "sse"
@@ -488,7 +479,8 @@
               :modular-bidi-router
               :sse-demo-website
               :sse-demo-events
-              :jquery}}
+              :jquery}
+   :files [{:template "sse-demo/README.md" :target "README.md"}]}
 
   "dashboard"
   {:modules #{:component
@@ -501,7 +493,8 @@
               :reactjs
               :clostache-templater
               :dashboard-website
-              :single-cljs-module}}
+              :single-cljs-module}
+   :files [{:template "dashboard/README.md" :target "README.md"}]}
 
   ;; TODO Let's add some example pages
 
