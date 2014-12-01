@@ -230,7 +230,8 @@
   {:module :modular-bidi-router
    :components {:webrouter
                 {:component :modular.bidi/router}}
-   :dependencies {[:http-listener :listener] {:request-handler :webrouter}}}
+   :dependencies {[:http-listener :listener] {:request-handler :webrouter}}
+   :dev-refers [bidi.bidi/match-route bidi.bidi/path-for]}
 
   {:module :simple-bidi-website
    :components {:website

@@ -10,9 +10,9 @@
    {{/module?.co-dependency}}
    [{{name}}.system :refer (config new-system-map new-dependency-map new-co-dependency-map)]
    [modular.maker :refer (make)]
-   {{#dev-requires}}
+   {{#dev-refers}}
    [{{namespace}} :refer ({{{refers}}})]
-   {{/dev-requires}}
+   {{/dev-refers}}
    [modular.wire-up :refer (normalize-dependency-map)]))
 
 (def system nil)

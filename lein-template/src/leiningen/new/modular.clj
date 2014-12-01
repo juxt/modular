@@ -128,8 +128,8 @@
                                       using :using
                                       co-using :co-using
                                       library-dependencies :library-dependencies
-                                      args :args :as instance
-                                      }]
+                                      args :args
+                                      :as instance}]
                                   (:components a)
                                   :let [component (when component-ref
                                                     (get components-by-id component-ref))
@@ -163,9 +163,7 @@
 
                                 :pad10 (apply str (repeat (+ 10 (count (str n))) \space))
                                 :pad18 (apply str (repeat (+ 18 (count (str n))) \space))
-                                })))
-
-                          }))
+                                })))}))
 
         settings (let [f (io/file (System/getProperty "user.home") ".lein/modular.edn")]
                    (when (.exists f)
@@ -205,6 +203,18 @@
                (for [module modules
                      c (:components module)
                      refer (:refers c)]
+                 refer)
+               sort distinct
+               (group-by (comp symbol namespace))
+               (reduce-kv
+                (fn [a k v] (conj a {:namespace k
+                                     :refers (apply str (interpose " " (distinct (map (comp clojure.core/name) v))))}))
+                []))
+
+              :dev-refers
+              (->>
+               (for [module modules
+                     refer (:dev-refers module)]
                  refer)
                sort distinct
                (group-by (comp symbol namespace))
@@ -263,6 +273,8 @@
                             (map (comp clojure.core/name :module))
                             (interpose ", ")
                             (apply str))))
+
+    (println "DEV -REFERS are " (:dev-refers data))
 
     (letfn [(proc-file [{:keys [target template close-parens? file]}]
               (cond
