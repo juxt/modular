@@ -9,5 +9,5 @@
   (testing " start compilation"
     (start (new-less-compilation :engine :javascript
                   :less-config {:project-root "resources"
-                                :source-paths ["less"]
-                                :target-path "css"}))))
+                                :source-path "your-less-file.less"
+                                :target-path "your-css-file.css"}))))
