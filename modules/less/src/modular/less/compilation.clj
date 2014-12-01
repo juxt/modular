@@ -16,6 +16,6 @@
        (merge {:engine :javascript})
        (s/validate {:engine (s/enum :javascript :rhino :nashorn)
                     :less-config {:project-root s/Str
-                                  :source-paths [s/Str]
+                                  :source-path s/Str
                                   :target-path s/Str}})
        map->LessCompilation))
