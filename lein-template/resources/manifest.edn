@@ -9,7 +9,7 @@
    }
 
   {:component :modular.bidi/router
-   :library-dependencies [[juxt.modular/bidi "0.6.0"]]
+   :library-dependencies [[juxt.modular/bidi "0.6.1"]]
    :constructor modular.bidi/new-router
    }
 
@@ -29,7 +29,7 @@
    }
 
   {:component :modular.bidi/static-resource-service
-   :library-dependencies [[juxt.modular/bidi "0.6.0"]]
+   :library-dependencies [[juxt.modular/bidi "0.6.1"]]
    :constructor modular.bidi/new-static-resource-service
    }
 
@@ -49,12 +49,16 @@
    :library-dependencies [[juxt.modular/http-kit-events "0.5.2"]]
    :constructor modular.http-kit.events/new-event-service}
 
+  #_{:component :sablono
+   :library-dependencies [[sablono "0.2.22" :exclusions [com.facebook/react]]]
+   }
+
   #_{:component :modular.bidi/web-service
-     :library-dependencies [[juxt.modular/bidi "0.6.0"]]
+     :library-dependencies [[juxt.modular/bidi "0.6.1"]]
      :constructor modular.bidi/new-web-service}
 
   #_{:component :webresources
-     :library-dependencies [[juxt.modular/bidi "0.6.0"]]
+     :library-dependencies [[juxt.modular/bidi "0.6.1"]]
      :constructor modular.bidi/new-web-service
      :refers [bidi.bidi/->ResourcesMaybe]
      ;; TODO The args should belong to the instance
@@ -63,7 +67,7 @@
                           "css/" (->ResourcesMaybe {:prefix "public/css/"})}]]}
 
   #_{:component :webmeta
-     :library-dependencies [[juxt.modular/bidi "0.6.0"]]
+     :library-dependencies [[juxt.modular/bidi "0.6.1"]]
      :constructor modular.template/new-static-template-data
      ;; TODO The args should belong to the instance
      :args [:title "{{name}}"]
@@ -147,7 +151,7 @@
   ;; Project-local components
   {:component :website
    :library-dependencies [[hiccup "1.0.5"]
-                          [juxt.modular/bidi "0.6.0"]]
+                          [juxt.modular/bidi "0.6.1"]]
    :constructor {{name}}.website/new-website
    :using [:template-model]}
 
@@ -308,14 +312,14 @@
 
   {:module :dashboard-resources
    :library-dependencies [[org.webjars/bootstrap "3.3.0"]]
-   :components {:dist-service
+   :components {:bootstrap
                 {:component :modular.bidi/static-resource-service
-                 :args [:uri-context "\"/dist\"" :resource-prefix "\"META-INF/resources/webjars/bootstrap/3.3.0\""]}
-                :static-service
+                 :args [:uri-context "\"/bootstrap\"" :resource-prefix "\"META-INF/resources/webjars/bootstrap/3.3.0\""]}
+                :static
                 {:component :modular.bidi/static-resource-service
                  :args [:uri-context "\"\"" :resource-prefix "\"public\""]}
                 }
-   :dependencies {[:modular-bidi-router :webrouter] [:dist-service :static-service]}
+   :dependencies {[:modular-bidi-router :webrouter] [:bootstrap :static]}
    :files [{:template "dashboard/dashboard.html.mustache"
             :target "resources/templates/dashboard.html.mustache"}
            {:file "dashboard/dashboard.css"
@@ -339,7 +343,10 @@
                   :website {:templater [:clostache-templater :templater]
                             :cljs-builder [:single-cljs-module :cljs-builder]}}
    :co-dependencies {:website {:router [:modular-bidi-router :webrouter]}}
-   :library-dependencies [[hiccup "1.0.5"]]
+   :library-dependencies [[hiccup "1.0.5"]
+                          ;; Not sure what to do with 'cljs components', there's no component model
+                          [om "0.8.0-alpha2"]
+                          [sablono "0.2.22" :exclusions [com.facebook/react]]]
    :files [{:template "dashboard/website.clj" :target "src/{{sanitized}}/website.clj"}
            ]}
 
@@ -351,10 +358,10 @@
    :dependencies {[:modular-bidi-router :webrouter] {:jquery :resources}}}
 
   {:module :reactjs
-   :library-dependencies [[org.webjars/react "0.12.1"]]
+   :library-dependencies [[org.webjars/react "0.11.1"]]
    :components {:resources
                 {:component :modular.bidi/static-resource-service
-                 :args [:uri-context "\"/reactjs\"" :resource-prefix "\"META-INF/resources/webjars/react/0.12.1\""]}}
+                 :args [:uri-context "\"/reactjs\"" :resource-prefix "\"META-INF/resources/webjars/react/0.11.1\""]}}
    :dependencies {[:modular-bidi-router :webrouter] {:reactjs :resources}}}
 
   #_{:module :sse-demo-mult-channel

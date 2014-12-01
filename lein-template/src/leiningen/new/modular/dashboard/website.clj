@@ -33,7 +33,7 @@
     {::dashboard (fn [req] (page this req))})
 
   ;; All paths lead to the dashboard
-  (routes [_] ["/" [[["dashboard" [#".*" :path]] ::dashboard]
+  (routes [_] ["/" [[["dashboard/" [#".*" :path]] ::dashboard]
                     ["" (redirect ::dashboard)]]])
 
   ;; A WebService can be 'mounted' underneath a common uri context
