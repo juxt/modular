@@ -223,6 +223,12 @@
                                      :refers (apply str (interpose " " (distinct (map (comp clojure.core/name) v))))}))
                 []))
 
+              :dev-snippets
+              (apply str
+                     (interpose "\newline\newline"
+                                (for [snippet (mapcat :dev-snippets modules)]
+                                  (slurp (render (:template snippet))))))
+
               ;; Dependency maps are be useful for adding dependencies
               ;; to components that already exist, such as template
               ;; models and menus
@@ -273,8 +279,6 @@
                             (map (comp clojure.core/name :module))
                             (interpose ", ")
                             (apply str))))
-
-    (println "DEV -REFERS are " (:dev-refers data))
 
     (letfn [(proc-file [{:keys [target template close-parens? file]}]
               (cond

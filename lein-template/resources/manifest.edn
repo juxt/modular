@@ -231,7 +231,8 @@
    :components {:webrouter
                 {:component :modular.bidi/router}}
    :dependencies {[:http-listener :listener] {:request-handler :webrouter}}
-   :dev-refers [bidi.bidi/match-route bidi.bidi/path-for]}
+   :dev-refers [bidi.bidi/match-route bidi.bidi/path-for]
+   :dev-snippets [{:template "dev/routes.clj"}]}
 
   {:module :simple-bidi-website
    :components {:website
