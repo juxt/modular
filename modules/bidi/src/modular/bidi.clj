@@ -75,9 +75,6 @@
   (unresolve-handler [this m]
     (bidi/unresolve-handler matched m)))
 
-(defn- wrap-info [h m]
-  (fn [req] (h (merge m req))))
-
 ;; TODO Support route compilation
 (defn as-request-handler
   "Take a WebService component and return a Ring handler."
@@ -89,25 +86,9 @@
         ;; still allow URI formation via keywords.
         joined-routes [(or (uri-context service) "")
                        (->KeywordToHandler [routes] handlers)]]
-    (wrap-info
-     (make-handler joined-routes)
-     {::routes joined-routes
-      ::handlers handlers})))
+    (make-handler joined-routes)))
 
-;; We use ComponentAddressable to allow the formation of URIs using
-;; korks in addition to direct reference to handlers, which may be
-;; difficult to obtain in modular applications.
-
-;; If a keyword is used, e.g. (bidi/path-for routes :foo) then we try
-;; the request-handlers of the calling component first, and if there is
-;; no handler entry for that keyword, all other components'
-;; request-handler maps are tried (in an undefined order). This is what
-;; is meant by a component 'preference'.
-
-;; If a keyword sequence is used, e.g. (bidi/path-for routes [:foo
-;; :bar]) then :foo is interpreted as a dependency of the router
-;; (usually a router is shared between multiple components) and :bar
-;; is a handler in the request-handlers of :foo.
+;; -----------------------------------------------------------------------
 
 (defn wrap-capture-component-on-error
   "Wrap handler in a try/catch that will capture the component and
@@ -127,35 +108,24 @@
   (resolve-handler [this m]
     (when-let [{:keys [handler] :as res} (bidi/resolve-handler matched m)]
       (if (keyword? handler)
-        (assoc res :handler (-> (get-in handlers [ckey handler])
-                                (wrap-capture-component-on-error :component ckey :handler handler)))
+        (assoc res
+          :handler (cond-> (get-in handlers [ckey handler])
+                           ;; This should be based on given settings
+                           false (wrap-capture-component-on-error :component ckey :handler handler)))
         res)))
 
   (unresolve-handler [this m]
-    (cond (coll? (:handler m))
-          (when (= ckey (first (:handler m)))
-            (bidi/unresolve-handler matched (update-in m [:handler] second)))
-          :otherwise (bidi/unresolve-handler matched m))))
-
-(defmacro logf-result [level msg form]
-  `(let [res# ~form]
-     (logf ~level ~msg (pr-str res#))
-     res#))
+    (bidi/unresolve-handler matched m)))
 
 (defrecord Router []
   component/Lifecycle
   (start [this]
     (let [handlers
-          ;; Handlers is a two-level map from dependency key to the
-          ;; dependency's handler map.
-          (logf-result
-           :debug "Bidi router determines handlers as %s"
-           (apply merge
-                  (for [[k v] this
-                        :when (satisfies? WebService v)]
-                    (try
-                      {k (request-handlers v)}
-                      (catch Throwable e (throw (ex-info "Failed to call request-handlers" {:k k :v v} e)))))))]
+          (apply merge
+                 (for [[k v] this :when (satisfies? WebService v)]
+                   (try
+                     {k (request-handlers v)}
+                     (catch Throwable e (throw (ex-info "Failed to call request-handlers" {:k k :v v} e))))))]
 
       (assoc this
         :handlers handlers
@@ -187,12 +157,6 @@
        (merge {:uri-context ""})
        (s/validate new-router-schema)
        map->Router))
-
-(defn path-for
-  "A convenience function to form uris"
-  [req target & args]
-  (apply bidi/path-for (::routes req) target args))
-
 
 ;; ------  TODO Router needs to display all possible routes available,
 ;; ------  as debug data, so that people can see easily which routes are
