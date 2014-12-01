@@ -9,7 +9,7 @@
    }
 
   {:component :modular.bidi/router
-   :library-dependencies [[juxt.modular/bidi "0.5.4"]]
+   :library-dependencies [[juxt.modular/bidi "0.6.0"]]
    :constructor modular.bidi/new-router
    }
 
@@ -29,7 +29,7 @@
    }
 
   {:component :modular.bidi/static-resource-service
-   :library-dependencies [[juxt.modular/bidi "0.5.4"]]
+   :library-dependencies [[juxt.modular/bidi "0.6.0"]]
    :constructor modular.bidi/new-static-resource-service
    }
 
@@ -50,11 +50,11 @@
    :constructor modular.http-kit.events/new-event-service}
 
   #_{:component :modular.bidi/web-service
-     :library-dependencies [[juxt.modular/bidi "0.5.4"]]
+     :library-dependencies [[juxt.modular/bidi "0.6.0"]]
      :constructor modular.bidi/new-web-service}
 
   #_{:component :webresources
-     :library-dependencies [[juxt.modular/bidi "0.5.4"]]
+     :library-dependencies [[juxt.modular/bidi "0.6.0"]]
      :constructor modular.bidi/new-web-service
      :refers [bidi.bidi/->ResourcesMaybe]
      ;; TODO The args should belong to the instance
@@ -63,7 +63,7 @@
                           "css/" (->ResourcesMaybe {:prefix "public/css/"})}]]}
 
   #_{:component :webmeta
-     :library-dependencies [[juxt.modular/bidi "0.5.4"]]
+     :library-dependencies [[juxt.modular/bidi "0.6.0"]]
      :constructor modular.template/new-static-template-data
      ;; TODO The args should belong to the instance
      :args [:title "{{name}}"]
@@ -147,7 +147,7 @@
   ;; Project-local components
   {:component :website
    :library-dependencies [[hiccup "1.0.5"]
-                          [juxt.modular/bidi "0.5.4"]]
+                          [juxt.modular/bidi "0.6.0"]]
    :constructor {{name}}.website/new-website
    :using [:template-model]}
 
@@ -439,7 +439,6 @@
   "bidi-hello-world"
   {:modules #{:component
               :http-listener
-              :logback-logging ; temp needed until modular.ring re-released
               :modular-bidi-router
               :simple-bidi-website}}
 
