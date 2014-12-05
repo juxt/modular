@@ -1,37 +1,38 @@
 {
+ ;; Components declared here are the external reusable building blocks
+ ;; of modules.
+ ;; TODO: Component versioning.
  :components
  [
   {:component :modular.http-kit/webserver
    :library-dependencies [[juxt.modular/http-kit "0.5.1"]]
    :constructor modular.http-kit/new-webserver
    :options [:port]
-   :using [:request-handler]
-   }
+   :using [:request-handler]}
 
   {:component :modular.bidi/router
    :library-dependencies [[juxt.modular/bidi "0.6.1"]]
-   :constructor modular.bidi/new-router
-   }
+   :constructor modular.bidi/new-router}
 
   {:component :modular.template/aggregate-template-model
    :library-dependencies [[juxt.modular/template "0.6.0"]]
-   :constructor modular.template/new-aggregate-template-model
-   }
+   :constructor modular.template/new-aggregate-template-model}
 
   {:component :modular.clostache/templater
    :library-dependencies [[juxt.modular/clostache "0.6.0"]]
-   :constructor modular.clostache/new-clostache-templater
-   }
+   :constructor modular.clostache/new-clostache-templater}
 
   {:component :modular.template/static-template-model
    :library-dependencies [[juxt.modular/template "0.6.0"]]
-   :constructor modular.template/new-static-template-model
-   }
+   :constructor modular.template/new-static-template-model}
 
   {:component :modular.bidi/static-resource-service
    :library-dependencies [[juxt.modular/bidi "0.6.1"]]
-   :constructor modular.bidi/new-static-resource-service
-   }
+   :constructor modular.bidi/new-static-resource-service}
+
+  {:component :modular.less/compiler
+   :library-dependencies [[juxt.modular/less "0.1.0"]]
+   :constructor modular.bidi/new-less-compiler}
 
   {:component :modular.cljs/module
    :library-dependencies [[juxt.modular/cljs "0.5.3"]]
@@ -188,9 +189,12 @@
             :target :example-page-b]}
 
   #_{:component :restricted-page
-     :constructor {{name}}.restricted-page/new-restricted-page}
-  ]
+     :constructor {{name}}.restricted-page/new-restricted-page}]
 
+ ;; Modules can define collections of instances of components. The same
+ ;; component may be referenced by multiple modules, different modules
+ ;; may provide different arguments. Modules are the building blocks of
+ ;; templates.
  :modules
  [
   ;; lein new modular app +httpkit
@@ -386,6 +390,10 @@
    :files [{:template "sse-demo/events.clj" :target "src/{{sanitized}}/events.clj"}
            {:file "sse-demo/events.js" :target "resources/events.js"}]}
 
+  {:module :less-compiler
+   :components {:compiler {:component :modular.less/compiler
+                           :args []}}}
+
   ;; TODO Add support for general webjars.org support in modular
   ;; How to?
   ;;
@@ -501,14 +509,14 @@
               :reactjs
               :clostache-templater
               :dashboard-website
-              :single-cljs-module}
+              :single-cljs-module
+              :less-compiler}
    :files [{:template "dashboard/README.md" :target "README.md"}]}
 
   ;; TODO Let's add some example pages
 
   ;; TODO Let's add some menu bars
 
-  ;; TODO Let's add some co-dependencies (needs checkout)
   }
 
  }
