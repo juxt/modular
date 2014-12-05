@@ -1,7 +1,7 @@
 ;; Copyright © 2014 JUXT LTD.
 
-(defproject juxt.modular/less "0.5.3"
-  :description "A modular extension that lets you compile less files into css."
+(defproject juxt.modular/less "0.1.0"
+  :description "A modular extension that lets you compile Less files into CSS"
   :url "https://github.com/juxt/modular/tree/master/modules/less"
   :license {:name "The MIT License"
             :url "http://opensource.org/licenses/MIT"}
