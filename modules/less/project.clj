@@ -5,7 +5,13 @@
   :url "https://github.com/juxt/modular/tree/master/modules/less"
   :license {:name "The MIT License"
             :url "http://opensource.org/licenses/MIT"}
-  :dependencies [[org.clojure/clojure "1.6.0"]
+  :dependencies [
                  [prismatic/schema "0.3.3"]
                  [com.stuartsierra/component "0.2.2"]
-                 [malcolmsparks/lein-less "1.7.3"]])
+                 [malcolmsparks/clj-less "1.7.3"]]
+
+  :profiles {:dev {:dependencies
+                   [[org.clojure/clojure "1.6.0"]
+                    [org.webjars/bootstrap "3.3.0"]
+                    [juxt.modular/test "0.1.0"]]}
+             })

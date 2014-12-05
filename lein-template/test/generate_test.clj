@@ -93,6 +93,7 @@
   (let [name "dash"]
     (generate-project name "dashboard")
     (generate-checkout name "/home/malcolm/Dropbox/src/modular/modules/cljs" "modular.cljs")
+    (generate-checkout name "/home/malcolm/Dropbox/src/modular/modules/less" "modular.less")
     #_(generate-checkout name "/home/malcolm/Dropbox/src/modular/modules/bidi" "modular.bidi")
     #_(generate-checkout name "/home/malcolm/Dropbox/src/bidi" "bidi")
     (testing "project file should exist"
