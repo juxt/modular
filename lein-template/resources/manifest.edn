@@ -59,8 +59,8 @@
    :constructor modular.http-kit.events/new-event-service}
 
   #_{:component :sablono
-   :library-dependencies [[sablono "0.2.22" :exclusions [com.facebook/react]]]
-   }
+     :library-dependencies [[sablono "0.2.22" :exclusions [com.facebook/react]]]
+     }
 
   #_{:component :modular.bidi/web-service
      :library-dependencies [[juxt.modular/bidi "0.6.1"]]
@@ -323,14 +323,14 @@
            {:file "resources/cover.css" :target "resources/public/cover.css"}]}
 
   {:module :dashboard-resources
-   :components {#_:bootstrap
-                #_{:component :modular.bidi/static-resource-service
+   :components {:bootstrap
+                {:component :modular.bidi/static-resource-service
                  :args [:uri-context "\"/bootstrap\"" :resource-prefix "\"META-INF/resources/webjars/bootstrap/3.3.0\""]}
                 :static
                 {:component :modular.bidi/static-resource-service
                  :args [:uri-context "\"\"" :resource-prefix "\"public\""]}
                 }
-   :dependencies {[:modular-bidi-router :webrouter] [#_:bootstrap :static]}
+   :dependencies {[:modular-bidi-router :webrouter] [:bootstrap :static]}
    :files [{:template "dashboard/dashboard.html.mustache"
             :target "resources/templates/dashboard.html.mustache"}
            {:file "dashboard/dashboard.css"
@@ -405,6 +405,7 @@
    :components {:compiler {:component :modular.less/bootstrap-compiler
                            :args []}}
    :library-dependencies [[org.webjars/bootstrap "3.3.0"]]
+   :dependencies {[:modular-bidi-router :webrouter] [:compiler]}
    }
 
   ;; TODO Add support for general webjars.org support in modular
@@ -524,7 +525,14 @@
               :dashboard-website
               :single-cljs-module
               :bootstrap-less-compiler}
-   :files [{:template "dashboard/README.md" :target "README.md"}]}
+   :files [{:template "dashboard/README.md" :target "README.md"}
+           {:file "custom-less/custom-bootstrap.less"
+            :target "resources/less/custom-bootstrap.less"}
+           {:file "custom-less/custom-variables.less"
+            :target "resources/less/custom-variables.less"}
+           {:file "custom-less/custom-other.less"
+            :target "resources/less/custom-other.less"}
+           ]}
 
   ;; TODO Let's add some example pages
 

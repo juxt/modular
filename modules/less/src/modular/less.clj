@@ -5,7 +5,9 @@
    [com.stuartsierra.component :refer (Lifecycle)]
    [schema.core :as s]
    [clj-less.less :refer (run-compiler)]
-   [clojure.java.io :as io]))
+   [clojure.java.io :as io]
+   [modular.bidi :refer (WebService)]
+   [ring.util.response :refer (file-response)]))
 
 (defrecord LessCompiler []
   Lifecycle
@@ -24,12 +26,12 @@
                     :target-path s/Str})
        map->LessCompiler))
 
-(defrecord CustomBootstrapLessCompiler [version resource-dir]
+(defrecord CustomBootstrapLessCompiler [version resource-dir target-path]
   Lifecycle
   (start [this]
+    (io/file resource-dir)
     (let [custom (let [fl (io/file resource-dir "custom-bootstrap.less")]
                    (when (and (.exists fl) (.isFile fl))
-                     (println "custom bootstrap exists")
                      fl))
           this
           (cond->
@@ -45,9 +47,23 @@
                          (let [res-path (format "META-INF/resources/webjars/bootstrap/%s/%s" version bootstrap-path)]
                            (io/resource res-path))
                          x)))))]
-      (run-compiler this)
+      (if (>
+           (apply max (conj (map #(.lastModified %) (.listFiles (io/file resource-dir))) 1))
+           (.lastModified (io/file target-path)))
+        (do
+          (println "Compiling bootstrap less files")
+          (run-compiler this))
+        (println "No bootstrap less compilation necessary"))
       this))
-  (stop [this] this))
+  (stop [this] this)
+
+  WebService
+  (request-handlers [_]
+    {::css (fn [_] (file-response target-path))})
+  (routes [_]
+    ["/" {"css/bootstrap.css" ::css}])
+  (uri-context [_]
+    "/custom-bootstrap"))
 
 (defn new-bootstrap-less-compiler
   "A constructor returning a configured Less compiler for Twitter Bootstrap resources"
@@ -59,7 +75,7 @@
        (merge {:engine :nashorn
                :resource-dir "resources/less"
                :version version
-               :target-path "target/less/bootstrap.less"})
+               :target-path "target/css/bootstrap.css"})
        (s/validate {:engine (s/enum :javascript :rhino :nashorn)
                     :resource-dir s/Str
                     :version s/Str

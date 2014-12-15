@@ -12,10 +12,17 @@
     <title><< name >></title>
 
     <!-- Bootstrap core CSS -->
+    <<#module?.bootstrap-less-compiler>>
+    <link href="/custom-bootstrap/css/bootstrap.css" rel="stylesheet">
+    <</module?.bootstrap-less-compiler>>
+    <<^module?.bootstrap-less-compiler>>
     <link href="/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <</module?.bootstrap-less-compiler>>
 
     <!-- Custom styles for this template -->
+    <<^module?.bootstrap-less-compiler>>
     <link href="/dashboard.css" rel="stylesheet">
+    <</module?.bootstrap-less-compiler>>
 
     <!-- Just for debugging purposes. Don't actually copy these 2 lines! -->
     <!--[if lt IE 9]><script src="../../assets/js/ie8-responsive-file-warning.js"></script><![endif]-->

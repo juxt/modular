@@ -92,10 +92,8 @@
 (deftest dashboard-tests
   (let [name "dash"]
     (generate-project name "dashboard")
-    (generate-checkout name "/home/malcolm/Dropbox/src/modular/modules/cljs" "modular.cljs")
-    (generate-checkout name "/home/malcolm/Dropbox/src/modular/modules/less" "modular.less")
-    #_(generate-checkout name "/home/malcolm/Dropbox/src/modular/modules/bidi" "modular.bidi")
-    #_(generate-checkout name "/home/malcolm/Dropbox/src/bidi" "bidi")
+    #_(generate-checkout name "/home/malcolm/Dropbox/src/modular/modules/cljs" "modular.cljs")
+    #_(generate-checkout name "/home/malcolm/Dropbox/src/modular/modules/less" "modular.less")
     (testing "project file should exist"
       (is (.exists (io/file (get-tmp-dir) (str name "/project.clj")))))))
 

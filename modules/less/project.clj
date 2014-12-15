@@ -8,7 +8,8 @@
   :dependencies [
                  [prismatic/schema "0.3.3"]
                  [com.stuartsierra/component "0.2.2"]
-                 [malcolmsparks/clj-less "1.7.3"]]
+                 [malcolmsparks/clj-less "1.7.3"]
+                 [juxt.modular/bidi "0.6.1"]]
 
   :profiles {:dev {:dependencies
                    [[org.clojure/clojure "1.6.0"]
