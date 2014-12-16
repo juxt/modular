@@ -68,6 +68,14 @@
            []
            (group-by first seq)))
 
+(defn load-manifest [f name]
+  (load-edn-string
+   (stencil/render-string
+    (slurp f)
+    {:name name
+     :dev-password (format "\"%s\"" (generate-password))
+     :sanitized (name-to-path name)})))
+
 (defn modular
   "Create a new modular project - TODO documentation show go here which
   will be shown on 'lein new :show modular' , but will only appear when
@@ -89,12 +97,7 @@
                          (map (partial apply keyword))
                          set)
 
-        manifest (load-edn-string
-                  (stencil/render-string
-                   (slurp (io/resource "manifest.edn"))
-                   {:name name
-                    :dev-password (format "\"%s\"" (generate-password))
-                    :sanitized (name-to-path name)}))
+        manifest (load-manifest (io/resource "manifest.edn") name)
 
         select-module?
         (fn [{:keys [module]}]
