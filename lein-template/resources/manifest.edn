@@ -5,7 +5,7 @@
  :components
  [
   {:component :modular.http-kit/webserver
-   :library-dependencies [[juxt.modular/http-kit "0.5.1"]]
+   :library-dependencies [[juxt.modular/http-kit "0.5.3"]]
    :constructor modular.http-kit/new-webserver
    :options [:port]
    :using [:request-handler]}
@@ -55,7 +55,7 @@
    :constructor modular.async/new-channel}
 
   {:component :modular.http-kit-events/event-service
-   :library-dependencies [[juxt.modular/http-kit-events "0.5.2"]]
+   :library-dependencies [[juxt.modular/http-kit-events "0.5.3"]]
    :constructor modular.http-kit.events/new-event-service}
 
   #_{:component :sablono
