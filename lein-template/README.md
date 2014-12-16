@@ -61,7 +61,7 @@ component, routes can be constructed in this way to any known handler in
 the system, using its keyword and any required arguments. See
 [bidi](https://github.com/juxt/bidi) for more details.
 
-### ```bootstrap-dashboard```
+### ```dashboard```
 
 Similar to bootstrap-cover above, but uses the bootstrap dashboard example.
 
