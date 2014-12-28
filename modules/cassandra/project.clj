@@ -5,5 +5,5 @@
   :url "https://github.com/juxt/modular/tree/master/modules/cassandra"
   :license {:name "The MIT License"
             :url "http://opensource.org/licenses/MIT"}
-  :dependencies [[clojurewerkz/cassaforte "2.0.0-beta1"]
+  :dependencies [[clojurewerkz/cassaforte "2.0.0"]
                  [prismatic/schema "0.2.1"]])
