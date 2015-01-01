@@ -3,7 +3,7 @@
 (ns modular.bidi
   (:require
    [schema.core :as s]
-   [modular.ring :refer (WebRequestHandler WebRequestBinding)]
+   [modular.ring :refer (WebRequestHandler)]
    [com.stuartsierra.component :as component]
    [bidi.bidi :as bidi :refer (match-route resolve-handler)]
    [bidi.ring :refer (resources-maybe make-handler)]
