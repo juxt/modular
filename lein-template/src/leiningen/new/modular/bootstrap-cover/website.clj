@@ -60,7 +60,7 @@
            [:div
             [:h1.cover-heading "Features"]
             [:p.lead "bootstrap-cover exhibits the following :-"]
-            [:ul.lead
+            [:ul.list-unstyled.lead
              [:li "A working Clojure-powered website using Stuart Sierra's 'reloaded' workflow and component library"]
              [:li "A fully-commented route-contributing website component"]
              [:li [:a {:href "https://github.com/juxt/bidi"} "Bidi"] " routing"]
