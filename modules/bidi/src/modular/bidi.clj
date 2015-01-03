@@ -6,9 +6,12 @@
    [modular.ring :refer (WebRequestHandler)]
    [com.stuartsierra.component :as component]
    [bidi.bidi :as bidi :refer (match-route resolve-handler)]
+   bidi.swagger
    [bidi.ring :refer (resources-maybe make-handler)]
    [clojure.tools.logging :refer :all]
-   [plumbing.core :refer (?>)]))
+   [plumbing.core :refer (?>)])
+  (:import
+   (bidi.swagger SwaggerOperation)))
 
 ;; I've thought hard about a less enterprisy name for this protocol, but
 ;; components that satisfy it fit most definitions of web
@@ -75,18 +78,17 @@
   (unresolve-handler [this m]
     (bidi/unresolve-handler matched m)))
 
-;; TODO Support route compilation
+;; TODO Support bidi route compilation
 (defn as-request-handler
   "Take a WebService component and return a Ring handler."
-  [service]
+  [service not-found-handler]
   (assert (satisfies? WebService service))
-  (let [routes (routes service)
-        handlers (request-handlers service)
-        ;; Create a route structure which can dispatch to handlers but
-        ;; still allow URI formation via keywords.
-        joined-routes [(or (uri-context service) "")
-                       (->KeywordToHandler [routes] handlers)]]
-    (make-handler joined-routes)))
+  (some-fn
+   (make-handler
+    [(or (uri-context service) "")
+     (->KeywordToHandler [(routes service)]
+                         (request-handlers service))])
+   not-found-handler))
 
 ;; -----------------------------------------------------------------------
 
@@ -107,17 +109,22 @@
   bidi/Matched
   (resolve-handler [this m]
     (when-let [{:keys [handler] :as res} (bidi/resolve-handler matched m)]
-      (if (keyword? handler)
+      (if
+          ;; Special handler type, actual Ring handler is indirectly
+          ;; resolvable through the handlers map.
+          (or (keyword? handler)
+              (instance? SwaggerOperation handler))
         (assoc res
-          :handler (cond-> (get-in handlers [ckey handler])
-                           ;; This should be based on given settings
-                           false (wrap-capture-component-on-error :component ckey :handler handler)))
+               :handler (cond-> (get-in handlers [ckey handler])
+                          ;; This should be based on given settings
+                          false (wrap-capture-component-on-error :component ckey :handler handler)))
+        ;; Otherwise continue to return the original result
         res)))
 
   (unresolve-handler [this m]
     (bidi/unresolve-handler matched m)))
 
-(defrecord Router []
+(defrecord Router [not-found-handler]
   component/Lifecycle
   (start [this]
     (let [handlers
@@ -144,17 +151,22 @@
   (uri-context [this] (:uri-context this))
 
   WebRequestHandler
-  (request-handler [this] (as-request-handler this)))
+  (request-handler [this] (as-request-handler this not-found-handler)))
 
 (def new-router-schema
-  {:uri-context s/Str})
+  {:uri-context s/Str
+   :not-found-handler (s/=>* {:status s/Int
+                              s/Keyword s/Any}
+                             [{:uri s/Str
+                                s/Keyword s/Any}])})
 
 (defn new-router
   "Constructor for a ring handler that collates all bidi routes
   provided by its dependencies."
   [& {:as opts}]
   (->> opts
-       (merge {:uri-context ""})
+    (merge {:uri-context ""
+            :not-found-handler (constantly {:status 404 :body "Not found"})})
        (s/validate new-router-schema)
        map->Router))
 
