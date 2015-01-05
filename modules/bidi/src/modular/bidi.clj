@@ -108,7 +108,7 @@
 ;; up the actual handler using the keyword and the handlers map. The
 ;; keyword can then be used as the target in a call to
 ;; bidi.bidi/path-for, rather than the handler itself.
-(defrecord KeywordIndirection [matched ckey handlers]
+(defrecord KeywordIndirection [matched ckey handlers add-exception-context?]
   bidi/Matched
   (resolve-handler [this m]
     (when-let [{:keys [handler] :as res} (bidi/resolve-handler matched m)]
@@ -119,14 +119,14 @@
         (assoc res
                :handler (cond-> (get-in handlers [ckey handler])
                           ;; This should be based on given settings
-                          false (wrap-capture-component-on-error :component ckey :handler handler)))
+                          add-exception-context? (wrap-capture-component-on-error :component ckey :handler handler)))
         ;; Otherwise continue to return the original result
         res)))
 
   (unresolve-handler [this m]
     (bidi/unresolve-handler matched m)))
 
-(defrecord Router [not-found-handler]
+(defrecord Router [not-found-handler add-exception-context?]
   component/Lifecycle
   (start [this]
     (let [handlers
@@ -144,7 +144,7 @@
                             ;; We wrap in some bidi middleware which
                             ;; allows us to form URIs via a
                             ;; keyword-path: [component-key handler-key]
-                            (->KeywordIndirection [(routes v)] ckey handlers)]))])))
+                            (->KeywordIndirection [(routes v)] ckey handlers add-exception-context?)]))])))
   (stop [this] this)
 
   WebService
@@ -157,6 +157,7 @@
 
 (def new-router-schema
   {:uri-context s/Str
+   :add-exception-context? s/Bool
    :not-found-handler (s/=>* {:status s/Int
                               s/Keyword s/Any}
                              [{:uri s/Str
@@ -168,6 +169,7 @@
   [& {:as opts}]
   (->> opts
     (merge {:uri-context ""
+            :add-exception-context? false
             :not-found-handler (constantly {:status 404 :body "Not found"})})
        (s/validate new-router-schema)
        map->Router))
