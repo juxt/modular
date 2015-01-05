@@ -6,12 +6,10 @@
    [modular.ring :refer (WebRequestHandler)]
    [com.stuartsierra.component :as component]
    [bidi.bidi :as bidi :refer (match-route resolve-handler)]
-   bidi.swagger
-   [bidi.ring :refer (resources-maybe make-handler)]
+   [bidi.server :refer (resources-maybe)]
+   [bidi.ring :refer (make-handler)]
    [clojure.tools.logging :refer :all]
-   [plumbing.core :refer (?>)])
-  (:import
-   (bidi.swagger SwaggerOperation)))
+   [plumbing.core :refer (?>)]))
 
 ;; I've thought hard about a less enterprisy name for this protocol, but
 ;; components that satisfy it fit most definitions of web
@@ -105,15 +103,19 @@
                           {:component component :handler handler}
                           cause)))))))
 
-(defrecord ComponentAddressable [matched ckey handlers]
+;; Replace keywords with their actual handlers. This is done by wrapping
+;; the handler and providing a proxy resolve-handler method which looks
+;; up the actual handler using the keyword and the handlers map. The
+;; keyword can then be used as the target in a call to
+;; bidi.bidi/path-for, rather than the handler itself.
+(defrecord KeywordIndirection [matched ckey handlers]
   bidi/Matched
   (resolve-handler [this m]
     (when-let [{:keys [handler] :as res} (bidi/resolve-handler matched m)]
       (if
           ;; Special handler type, actual Ring handler is indirectly
           ;; resolvable through the handlers map.
-          (or (keyword? handler)
-              (instance? SwaggerOperation handler))
+          (keyword? handler)
         (assoc res
                :handler (cond-> (get-in handlers [ckey handler])
                           ;; This should be based on given settings
@@ -142,7 +144,7 @@
                             ;; We wrap in some bidi middleware which
                             ;; allows us to form URIs via a
                             ;; keyword-path: [component-key handler-key]
-                            (->ComponentAddressable [(routes v)] ckey handlers)]))])))
+                            (->KeywordIndirection [(routes v)] ckey handlers)]))])))
   (stop [this] this)
 
   WebService
