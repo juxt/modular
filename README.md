@@ -1,32 +1,28 @@
 # modular
 
-Modular provides a meta-architecture for Clojure projects, based on Stuart Sierra's
+Modular a project that contains :-
+
+* a set of pre-written components
+* a template system for creating applications out of them
+* some optional utility libraries
+
+Modular is based on Stuart Sierra's
 [component](https://github.com/stuartsierra/component) library.
 
-Component dependencies form directed acyclic graphs. Two components in a
-dependency relationship are coupled using Clojure protocols.
-
-Besides some simple utility functions, modular is defined by a number of
-pre-built components which can be composed with custom components to
-form application systems.
-
-Modular is an approach, rather than a library or framework.
-
-Benefits include :-
-
-* Components can be reasoned about _in their own terms_ independently from the system
-* Component re-use
-* Architectural consistency
-* Stronger cohesion within parts, weaker coupling between parts
+See [lein-template](lein-template/README.md) for further details on
+project generation.
 
 ## Usage
+
+Here is a quick example to get started.
 
 ```clojure
 lein new modular my-website bootstrap-cover
 ```
 
-See [lein-template](lein-template/README.md) for further details on
-project generation, which can also be found on at http://modularity.org .
+## Documentation
+
+Full documentation can be found on at [modularity.org](http://modularity.org).
 
 ## Copyright & License
 
