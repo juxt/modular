@@ -1,6 +1,6 @@
 # modular
 
-Modular a project that contains :-
+Modular comprises :-
 
 * a set of pre-written components
 * a template system for creating applications out of them
