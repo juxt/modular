@@ -26,7 +26,7 @@ lein new modular my-website bootstrap-cover
 ```
 
 See [lein-template](lein-template/README.md) for further details on
-project generation.
+project generation, which can also be found on at http://modularity.org .
 
 ## Copyright & License
 
