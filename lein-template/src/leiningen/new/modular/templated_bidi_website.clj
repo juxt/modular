@@ -4,7 +4,8 @@
    [modular.ring :refer (WebRequestHandler)]
    [modular.bidi :refer (WebService as-request-handler)]
    [modular.template :refer (render-template template-model)]
-   [bidi.bidi :refer (path-for ->Redirect)]
+   [bidi.bidi :refer (path-for)]
+   [bidi.ring :refer (->Redirect)]
    [hiccup.core :refer (html)]
    [clojure.tools.logging :refer :all]))
 

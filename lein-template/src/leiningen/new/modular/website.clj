@@ -6,7 +6,8 @@
    [modular.bidi :refer (WebService as-request-handler)]
    [modular.web-template :refer (dynamic-template-data)]
    [hiccup.core :refer (html h)]
-   [bidi.bidi :refer (path-for ->Redirect)]
+   [bidi.bidi :refer (path-for)]
+   [bidi.ring :refer (->Redirect)]
    [clostache.parser :refer (render-resource)]))
 
 (defn home-page
