@@ -3,7 +3,7 @@
 Modular comprises :-
 
 * a set of pre-written components
-* a template system for creating applications out of them
+* a template system for creating new projects
 * some optional utility libraries
 
 Modular is based on Stuart Sierra's
