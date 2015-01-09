@@ -7,24 +7,64 @@
    [clj-less.less :refer (run-compiler)]
    [clojure.java.io :as io]
    [modular.bidi :refer (WebService)]
-   [ring.util.response :refer (file-response)]))
+   [ring.util.response :refer (file-response content-type)]))
 
-(defrecord LessCompiler []
+(defn source->target [path]
+  (when-let [[_ s] (re-matches #"(.*)\.less" path)]
+    (str s ".css")))
+
+(defn stale? [source-dir target]
+  (>
+   (apply max (conj (map #(.lastModified %) (.listFiles (io/file source-dir))) 1))
+   (.lastModified (io/file target))))
+
+(defrecord LessCompiler [uri-context source-dir source-path target-dir target-path]
   Lifecycle
   (start [this]
-    (run-compiler this)
-    this)
-  (stop [this] this))
+    (let [target-path (or target-path (source->target source-path))
+          target (io/file target-dir target-path)]
+      (when (stale? source-dir target)
+        (run-compiler (assoc this
+                             :source-path (str source-path)
+                             :target-path (str target)
+                             )))
+      (assoc this :target target :target-path target-path)))
+
+  (stop [this] this)
+
+  WebService
+  (request-handlers [_] {})
+
+  (routes [this]
+    ["/" [[(:target-path this)
+           (fn [_]
+             (-> (:target this)
+               str file-response
+               (content-type "text/css")))]]])
+
+  (uri-context [_] uri-context))
+
+(def default-src-dir "src/less")
 
 (defn new-less-compiler [& {:as opts}]
   (->> opts
-       (merge {:engine :nashorn
-               :loader #(slurp (str "resources/less/" %))})
-       (s/validate {:engine (s/enum :javascript :rhino :nashorn)
-                    :loader (s/=> s/Str s/Str)
-                    :source-path s/Str
-                    :target-path s/Str})
-       map->LessCompiler))
+    (merge
+     {:engine :nashorn
+      :source-dir default-src-dir
+      :loader #(slurp (str (io/file (or (:source-dir opts) default-src-dir) %)))
+      :target-dir "target/css"
+      :uri-context "/css"})
+    (s/validate
+     {:engine (s/enum :javascript :rhino :nashorn)
+      :loader (s/=> s/Str s/Str)
+      :source-dir s/Str
+      :source-path s/Str
+      :target-dir s/Str
+      ;; target-path, if missing, will be a result of concatenating the
+      ;; target-dir with the source-path (with a css suffix)
+      (s/optional-key :target-path) s/Str
+      :uri-context s/Str})
+    map->LessCompiler))
 
 (defrecord CustomBootstrapLessCompiler [version resource-dir target-path]
   Lifecycle
@@ -47,9 +87,7 @@
                          (let [res-path (format "META-INF/resources/webjars/bootstrap/%s/%s" version bootstrap-path)]
                            (io/resource res-path))
                          x)))))]
-      (if (>
-           (apply max (conj (map #(.lastModified %) (.listFiles (io/file resource-dir))) 1))
-           (.lastModified (io/file target-path)))
+      (if (stale? resource-dir target-path)
         (do
           (println "Compiling bootstrap less files")
           (run-compiler this))
@@ -59,9 +97,9 @@
 
   WebService
   (request-handlers [_]
-    {::css (fn [_] (file-response target-path))})
+    {::bootstrap-css (fn [_] (file-response target-path))})
   (routes [_]
-    ["/" {"css/bootstrap.css" ::css}])
+    ["/" {"css/bootstrap.css" ::bootstrap-css}])
   (uri-context [_]
     "/custom-bootstrap"))
 
