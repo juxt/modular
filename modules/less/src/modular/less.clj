@@ -72,12 +72,12 @@
   (assert (io/resource (format "META-INF/resources/webjars/bootstrap/%s/less/bootstrap.less" version))
           "Bootstrap resources not found on classpath")
   (->> opts
-       (merge {:engine :nashorn
-               :resource-dir "resources/less"
-               :version version
-               :target-path "target/css/bootstrap.css"})
-       (s/validate {:engine (s/enum :javascript :rhino :nashorn)
-                    :resource-dir s/Str
-                    :version s/Str
-                    :target-path s/Str})
-       map->CustomBootstrapLessCompiler))
+    (merge {:engine :nashorn
+            :resource-dir "resources/less"
+            :version version
+            :target-path "target/css/bootstrap.css"})
+    (s/validate {:engine (s/enum :javascript :rhino :nashorn)
+                 :resource-dir s/Str
+                 :version s/Str
+                 :target-path s/Str})
+    map->CustomBootstrapLessCompiler))
