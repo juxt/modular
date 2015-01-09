@@ -19,7 +19,7 @@
 (defn new-less-compiler [& {:as opts}]
   (->> opts
        (merge {:engine :nashorn
-               :loader #(slurp "resources/less/" %)})
+               :loader #(slurp (str "resources/less/" %))})
        (s/validate {:engine (s/enum :javascript :rhino :nashorn)
                     :loader (s/=> s/Str s/Str)
                     :source-path s/Str
