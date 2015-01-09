@@ -69,8 +69,12 @@
   "A constructor returning a configured Less compiler for Twitter Bootstrap resources"
   [& {:keys [version] :or {version "3.3.0"} :as opts}]
 
-  (assert (io/resource (format "META-INF/resources/webjars/bootstrap/%s/less/bootstrap.less" version))
-          "Bootstrap resources not found on classpath")
+  (if-not (io/resource (format "META-INF/resources/webjars/bootstrap/%s/less/bootstrap.less" version))
+    (throw
+     (ex-info
+      (format "Bootstrap resources not found on classpath, have you added [org.webjars/bootstrap \"%s\"] to project.clj?" version)
+      {})))
+
   (->> opts
     (merge {:engine :nashorn
             :resource-dir "resources/less"
