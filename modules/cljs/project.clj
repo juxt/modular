@@ -5,7 +5,7 @@
   :url "https://github.com/juxt/modular/tree/master/modules/cljs"
   :license {:name "The MIT License"
             :url "http://opensource.org/licenses/MIT"}
-  :dependencies [[juxt.modular/bidi "0.7.0"]
+  :dependencies [[juxt.modular/bidi "0.7.2"]
                  [juxt.modular/template "0.6.0"]
-                 [prismatic/schema "0.2.1"]
+                 [prismatic/schema "0.3.3"]
                  [thheller/shadow-build "0.5.0" :exclusions [org.clojure/clojurescript]]])
