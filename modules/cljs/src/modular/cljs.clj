@@ -5,7 +5,7 @@
    [com.stuartsierra.component :as component]
    [modular.bidi :refer (WebService)]
    [modular.template :refer (TemplateModel)]
-   [bidi.server :refer (files)]
+   [bidi.ring :refer (files)]
    [shadow.cljs.build :as cljs]
    [clojure.java.io :as io]
    [schema.core :as s]
