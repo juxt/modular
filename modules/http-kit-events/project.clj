@@ -6,6 +6,6 @@
   :license {:name "The MIT License"
             :url "http://opensource.org/licenses/MIT"}
   :dependencies [[juxt.modular/http-kit "0.5.3"]
-                 [juxt.modular/bidi "0.7.1"]
+                 [juxt.modular/bidi "0.7.2"]
                  [juxt.modular/async "0.5.3"]
                  ])
