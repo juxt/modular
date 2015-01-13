@@ -6,8 +6,7 @@
    [modular.ring :refer (WebRequestHandler)]
    [com.stuartsierra.component :as component]
    [bidi.bidi :as bidi :refer (match-route resolve-handler)]
-   [bidi.server :refer (resources-maybe)]
-   [bidi.ring :refer (make-handler)]
+   [bidi.ring :refer (resources-maybe make-handler)]
    [clojure.tools.logging :refer :all]
    [plumbing.core :refer (?>)]))
 
