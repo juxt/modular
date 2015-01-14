@@ -6,10 +6,5 @@
   :license {:name "The MIT License"
             :url "http://opensource.org/licenses/MIT"}
   :dependencies [[prismatic/schema "0.2.1"]
-                 [juxt/datomic-extras "1.0.3"
-                  :exclusions [org.slf4j/slf4j-nop
-                               org.slf4j/jul-to-slf4j
-                               org.slf4j/jcl-over-slf4j
-                               org.slf4j/log4j-over-slf4j]]
                  [org.clojure/tools.reader "0.8.3"]
                  ])
