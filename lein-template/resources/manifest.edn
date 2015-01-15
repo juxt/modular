@@ -193,7 +193,8 @@
            {:template "system.clj" :target "src/{{sanitized}}/system.clj" :close-parens? true}
            {:template "main.clj" :target "src/{{sanitized}}/main.clj" :close-parens? true}
            {:template "dev.clj" :target "dev/dev.clj"}
-           {:template "user.clj" :target "dev/user.clj"}]}
+           {:template "user.clj" :target "dev/user.clj"}
+           {:file "gitignore" :target ".gitignore"}]}
 
   {:module :component
    :library-dependencies [[com.stuartsierra/component "0.2.2"]]}
