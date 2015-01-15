@@ -104,3 +104,9 @@
     #_(generate-checkout name "/home/malcolm/Dropbox/src/modular/modules/less" "modular.less")
     (testing "project file should exist"
       (is (.exists (io/file (get-tmp-dir) (str name "/project.clj")))))))
+
+(deftest clean-blog-tests
+  (let [name "clean-blog-example"]
+    (generate-project name "clean-blog")
+    (testing "project file should exist"
+      (is (.exists (io/file (get-tmp-dir) (str name "/project.clj")))))))

@@ -369,7 +369,12 @@
 
   {:module :less-compiler
    :components {:compiler {:component :modular.less/compiler
-                           :args []}}}
+                           ;; TODO: modules need to be parameterized
+                           :args [:source-dir "\"resources/less\""
+                                  :source-path "\"clean-blog.less\""]}}
+   :library-dependencies [[org.webjars/bootstrap "3.3.0"]]
+   :dependencies {[:modular-bidi-router :webrouter] [:compiler]}
+   }
 
   {:module :bootstrap-less-compiler
    :components {:compiler {:component :modular.less/bootstrap-compiler
@@ -509,6 +514,22 @@
            {:file "custom-less/custom-other.less"
             :target "resources/less/custom-other.less"}
            ]}
+
+  "clean-blog"
+  {:description "A responsive blog site based on Start Bootstrap's 'Clean Blog'"
+   :modules #{:component
+              :co-dependency
+              :logback-logging
+              :http-listener
+              :modular-bidi-router
+              :dashboard-resources
+              :jquery
+              :clostache-templater
+              :less-compiler}
+   :files [{:template "dashboard/README.md" :target "README.md"}
+           {:file "clean-blog/clean-blog.less" :target "resources/less/clean-blog.less"}
+           {:file "clean-blog/variables.less" :target "resources/less/variables.less"}
+           {:file "clean-blog/mixins.less" :target "resources/less/mixins.less"}]}
 
   ;; TODO Let's add some example pages
 
