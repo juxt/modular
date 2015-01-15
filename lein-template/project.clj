@@ -3,6 +3,7 @@
 ;; We call this project modular to make the invocation: lein new modular appname
 (defproject modular/lein-template "0.6.13"
   :description "Leiningen template for a full-featured component based app using modular extensions."
+  :url "http://modularity.org/"
   :license {:name "The MIT License"
             :url "http://opensource.org/licenses/MIT"}
   :dependencies [[org.clojure/clojure "1.7.0-alpha4"]
