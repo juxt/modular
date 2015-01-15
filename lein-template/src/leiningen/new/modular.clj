@@ -76,247 +76,261 @@
      :dev-password (format "\"%s\"" (generate-password))
      :sanitized (name-to-path name)})))
 
+(defn usage []
+  (println "Usage: lein new modular <project-name> <template> [ <arg>... ]"))
+
+(defn list-templates [manifest]
+  (println "Available templates")
+  (println "-------------------")
+  (let [tabstop (inc (apply max (map count (keys (:application-templates manifest)))))]
+    (doseq [[^String k v] (sort-by first (:application-templates manifest))]
+      (println (format "%s%s%s" k (apply str (repeat (max 1 (- tabstop (.length k))) \space)) (:description v) )))))
+
 (defn modular
   "Create a new modular project - TODO documentation show go here which
   will be shown on 'lein new :show modular' , but will only appear when
   released."
 
-  [name app-template & args]
+  ([name app-template & args]
 
-  (let [augment-by (->> args
-                        (keep (partial re-matches #"\+(.*)") )
-                        (map second)    ; take the grouping
-                        (map #(split % #"/"))
-                        (map (partial apply keyword))
-                        set)
+   (let [augment-by (->> args
+                      (keep (partial re-matches #"\+(.*)") )
+                      (map second)    ; take the grouping
+                      (map #(split % #"/"))
+                      (map (partial apply keyword))
+                      set)
 
-        diminish-by (->> args
-                         (keep (partial re-matches #"\-(.*)") )
-                         (map second)   ; take the grouping
-                         (map #(split % #"/"))
-                         (map (partial apply keyword))
-                         set)
+         diminish-by (->> args
+                       (keep (partial re-matches #"\-(.*)") )
+                       (map second)   ; take the grouping
+                       (map #(split % #"/"))
+                       (map (partial apply keyword))
+                       set)
 
-        manifest (load-manifest (io/resource "manifest.edn") name)
+         manifest (load-manifest (io/resource "manifest.edn") name)
 
-        select-module?
-        (fn [{:keys [module]}]
-          (when-let [includes
-                     (conj (get-in manifest [:application-templates app-template :modules]) :core)]
-            (or (contains? augment-by module)
-                (and (includes module)
-                     (not (contains? diminish-by module))))))
+         select-module?
+         (fn [{:keys [module]}]
+           (when-let [includes
+                      (conj (get-in manifest [:application-templates app-template :modules]) :core)]
+             (or (contains? augment-by module)
+                 (and (includes module)
+                      (not (contains? diminish-by module))))))
 
-        component-keys (->> manifest :modules
-                            (filter select-module?)
-                            (mapcat :components) vals set)
+         component-keys (->> manifest :modules
+                             (filter select-module?)
+                             (mapcat :components) vals set)
 
-        components (->> manifest
-                        :components
-                        (filter (comp component-keys :component)))
+         components (->> manifest
+                      :components
+                      (filter (comp component-keys :component)))
 
-        components-by-id (->> manifest
-                              :components
-                              (map (juxt :component identity))
-                              (into {}))
+         components-by-id (->> manifest
+                            :components
+                            (map (juxt :component identity))
+                            (into {}))
 
-        modules (for [a (->> manifest :modules (filter select-module?))]
-                  (merge a
-                         {:fname (when (:components a)
-                                   (str (clojure.core/name (:module a)) "-components"))
+         modules (for [a (->> manifest :modules (filter select-module?))]
+                   (merge a
+                          {:fname (when (:components a)
+                                    (str (clojure.core/name (:module a)) "-components"))
 
-                          :components
-                          (when (:components a)
-                            (for [[n {component-ref :component
-                                      using :using
-                                      co-using :co-using
-                                      library-dependencies :library-dependencies
-                                      args :args
-                                      :as instance}]
-                                  (:components a)
-                                  :let [component (when component-ref
-                                                    (get components-by-id component-ref))
-                                        constructor (if component
-                                                      (:constructor component)
-                                                      (:constructor instance))]]
-                              (merge
-                               (when component
-                                 {:component component})
+                           :components
+                           (when (:components a)
+                             (for [[n {component-ref :component
+                                       using :using
+                                       co-using :co-using
+                                       library-dependencies :library-dependencies
+                                       args :args
+                                       :as instance}]
+                                   (:components a)
+                                   :let [component (when component-ref
+                                                     (get components-by-id component-ref))
+                                         constructor (if component
+                                                       (:constructor component)
+                                                       (:constructor instance))]]
+                               (merge
+                                (when component
+                                  {:component component})
 
-                               {:library-dependencies
-                                (if component
-                                  (concat
-                                   (:library-dependencies (get components-by-id component-ref))
-                                   library-dependencies)
-                                  library-dependencies)}
+                                {:library-dependencies
+                                 (if component
+                                   (concat
+                                    (:library-dependencies (get components-by-id component-ref))
+                                    library-dependencies)
+                                   library-dependencies)}
 
-                               {:key (make-key (:module a) n)
-                                :refers (conj (:refers instance) constructor)
-                                :constructor (symbol (clojure.core/name constructor))
-                                :args args
+                                {:key (make-key (:module a) n)
+                                 :refers (conj (:refers instance) constructor)
+                                 :constructor (symbol (clojure.core/name constructor))
+                                 :args args
 
-                                ;; Construct 'using' here, not in template
-                                ;; it could be a map, it could be a vector
+                                 ;; Construct 'using' here, not in template
+                                 ;; it could be a map, it could be a vector
 
-                                :using (pr-str
-                                        (or (:using instance) []))
+                                 :using (pr-str
+                                         (or (:using instance) []))
 
-                                :co-using (pr-str
-                                           (or (:co-using instance) []))
+                                 :co-using (pr-str
+                                            (or (:co-using instance) []))
 
-                                :pad10 (apply str (repeat (+ 10 (count (str n))) \space))
-                                :pad18 (apply str (repeat (+ 18 (count (str n))) \space))
-                                })))}))
+                                 :pad10 (apply str (repeat (+ 10 (count (str n))) \space))
+                                 :pad18 (apply str (repeat (+ 18 (count (str n))) \space))
+                                 })))}))
 
-        settings (let [f (io/file (System/getProperty "user.home") ".lein/modular.edn")]
-                   (when (.exists f)
-                     (read
-                      (indexing-push-back-reader
-                       (java.io.PushbackReader. (io/reader f))))))
+         settings (let [f (io/file (System/getProperty "user.home") ".lein/modular.edn")]
+                    (when (.exists f)
+                      (read
+                       (indexing-push-back-reader
+                        (java.io.PushbackReader. (io/reader f))))))
 
-        data {:name name
-              :user (or (-> settings :github :user) (System/getenv "USER"))
-              :year (str (.get (java.util.Calendar/getInstance) java.util.Calendar/YEAR))
-              :sanitized (name-to-path name)
-              :snake-cased-name (clojure.string/replace name #"_" "-")
+         data {:name name
+               :user (or (-> settings :github :user) (System/getenv "USER"))
+               :year (str (.get (java.util.Calendar/getInstance) java.util.Calendar/YEAR))
+               :sanitized (name-to-path name)
+               :snake-cased-name (clojure.string/replace name #"_" "-")
 
-              :modules modules
+               :modules modules
 
-              :module? (zipmap (set (map :module modules)) (repeat true))
+               :module? (zipmap (set (map :module modules)) (repeat true))
 
-              :template app-template
+               :template app-template
 
-              ;; Probably need to be sorted and with some conflict
-              ;; resolution warnings. Design decision is to generate
-              ;; anyway (the developer can always delete and start
-              ;; over). Also, developers can be given a warning (ala
-              ;; pacman on Arch) to tell them to expect conflicts -
-              ;; these can be resolved later
-              :library-dependencies
-              (->>
-               (for [module modules
-                     ;; this conj ensures module-level library dependencies are included
-                     c (conj (:components module) module)
-                     dep (:library-dependencies c)]
-                 dep)
-               sort distinct)
+               ;; Probably need to be sorted and with some conflict
+               ;; resolution warnings. Design decision is to generate
+               ;; anyway (the developer can always delete and start
+               ;; over). Also, developers can be given a warning (ala
+               ;; pacman on Arch) to tell them to expect conflicts -
+               ;; these can be resolved later
+               :library-dependencies
+               (->>
+                   (for [module modules
+                         ;; this conj ensures module-level library dependencies are included
+                         c (conj (:components module) module)
+                         dep (:library-dependencies c)]
+                     dep)
+                 sort distinct)
 
-              :refers
-              (->>
-               (for [module modules
-                     c (:components module)
-                     refer (:refers c)]
-                 refer)
-               sort distinct
-               (group-by (comp symbol namespace))
-               (reduce-kv
-                (fn [a k v] (conj a {:namespace k
-                                     :refers (apply str (interpose " " (distinct (map (comp clojure.core/name) v))))}))
-                []))
+               :refers
+               (->>
+                   (for [module modules
+                         c (:components module)
+                         refer (:refers c)]
+                     refer)
+                 sort distinct
+                 (group-by (comp symbol namespace))
+                 (reduce-kv
+                  (fn [a k v] (conj a {:namespace k
+                                       :refers (apply str (interpose " " (distinct (map (comp clojure.core/name) v))))}))
+                  []))
 
-              :dev-refers
-              (->>
-               (for [module modules
-                     refer (:dev-refers module)]
-                 refer)
-               sort distinct
-               (group-by (comp symbol namespace))
-               (reduce-kv
-                (fn [a k v] (conj a {:namespace k
-                                     :refers (apply str (interpose " " (distinct (map (comp clojure.core/name) v))))}))
-                []))
+               :dev-refers
+               (->>
+                   (for [module modules
+                         refer (:dev-refers module)]
+                     refer)
+                 sort distinct
+                 (group-by (comp symbol namespace))
+                 (reduce-kv
+                  (fn [a k v] (conj a {:namespace k
+                                       :refers (apply str (interpose " " (distinct (map (comp clojure.core/name) v))))}))
+                  []))
 
-              :dev-snippets
-              (apply str
-                     (interpose "\newline\newline"
-                                (for [snippet (mapcat :dev-snippets modules)]
-                                  (slurp (render (:template snippet))))))
+               :dev-snippets
+               (apply str
+                      (interpose "\newline\newline"
+                                 (for [snippet (mapcat :dev-snippets modules)]
+                                   (slurp (render (:template snippet))))))
 
-              ;; Dependency maps are be useful for adding dependencies
-              ;; to components that already exist, such as template
-              ;; models and menus
+               ;; Dependency maps are be useful for adding dependencies
+               ;; to components that already exist, such as template
+               ;; models and menus
 
-              :dependencies
-              (->>
-               (for [m modules
-                     :let [mkey #(if (keyword? %) (make-key (:module m) %)
-                                     (apply make-key %))]
+               :dependencies
+               (->>
+                   (for [m modules
+                         :let [mkey #(if (keyword? %) (make-key (:module m) %)
+                                         (apply make-key %))]
 
-                     [k v] (:dependencies m)
-                     [n v] (ensure-map v)
-                     ]
-                 [(mkey k) [n (mkey v)]])
-               ;; This call to 'first' should actually check to ensure
-               ;; there aren't multiple entries, if there are it means
-               ;; we have a conflict - more than one dependency is trying to bind
-               (gbf #(into {} (gbf first %)))
-               (into {})
-               )
+                         [k v] (:dependencies m)
+                         [n v] (ensure-map v)
+                         ]
+                     [(mkey k) [n (mkey v)]])
+                 ;; This call to 'first' should actually check to ensure
+                 ;; there aren't multiple entries, if there are it means
+                 ;; we have a conflict - more than one dependency is trying to bind
+                 (gbf #(into {} (gbf first %)))
+                 (into {})
+                 )
 
-              :co-dependencies
-              (->>
-               (for [m modules
-                     :let [mkey #(if (keyword? %) (make-key (:module m) %)
-                                     (apply make-key %))]
+               :co-dependencies
+               (->>
+                   (for [m modules
+                         :let [mkey #(if (keyword? %) (make-key (:module m) %)
+                                         (apply make-key %))]
 
-                     [k v] (:co-dependencies m)
-                     [n v] (ensure-map v)
-                     ]
-                 [(mkey k) [n (mkey v)]])
-               ;; This call to 'first' should actually check to ensure
-               ;; there aren't multiple entries, if there are it means
-               ;; we have a conflict - more than one dependency is trying to bind
-               (gbf #(into {} (gbf first %)))
-               (into {})
-               )
+                         [k v] (:co-dependencies m)
+                         [n v] (ensure-map v)
+                         ]
+                     [(mkey k) [n (mkey v)]])
+                 ;; This call to 'first' should actually check to ensure
+                 ;; there aren't multiple entries, if there are it means
+                 ;; we have a conflict - more than one dependency is trying to bind
+                 (gbf #(into {} (gbf first %)))
+                 (into {})
+                 )
 
-              :files (concat (get-in manifest [:application-templates app-template :files] [])
-                             (mapcat :files modules))
+               :files (concat (get-in manifest [:application-templates app-template :files] [])
+                              (mapcat :files modules))
 
-              }]
+               }]
 
-    (main/info (format "Generating a new modular project named %s with modules :-\n%s"
-                       name
-                       (->> manifest :modules
-                            (filter select-module?)
-                            (map (comp clojure.core/name :module))
-                            (interpose ", ")
-                            (apply str))))
+     (main/info (format "Generating a new modular project named %s with modules :-\n%s"
+                        name
+                        (->> manifest :modules
+                             (filter select-module?)
+                             (map (comp clojure.core/name :module))
+                             (interpose ", ")
+                             (apply str))))
 
-    (letfn [(proc-file [{:keys [target template close-parens? file]}]
-              (cond
-               template
-               [target (cond-> (render template (merge settings data)) close-parens? close-parens)]
+     (letfn [(proc-file [{:keys [target template close-parens? file]}]
+               (cond
+                 template
+                 [target (cond-> (render template (merge settings data)) close-parens? close-parens)]
 
-               file
-               [target (render file)]))]
-      (apply ->files data (map proc-file (:files data))))
+                 file
+                 [target (render file)]))]
+       (apply ->files data (map proc-file (:files data))))
 
-    #_(apply ->files data (process-files (:files data))
-             ;; Core files
-             ["project.clj" (render "project.clj" data)]
-             ["src/{{sanitized}}/system.clj" (close-parens (render "system.clj" data))]
-             ["dev/dev.clj" (render "dev.clj" data)]
-             ["dev/user.clj" (render "user.clj" data)]
+     #_(apply ->files data (process-files (:files data))
+              ;; Core files
+              ["project.clj" (render "project.clj" data)]
+              ["src/{{sanitized}}/system.clj" (close-parens (render "system.clj" data))]
+              ["dev/dev.clj" (render "dev.clj" data)]
+              ["dev/user.clj" (render "user.clj" data)]
 
-             ["dev/dev_components.clj" (render "dev_components.clj" data)]
+              ["dev/dev_components.clj" (render "dev_components.clj" data)]
 
-             #_["src/{{sanitized}}/main.clj" (render "main.clj" data)]
-             #_["src/{{sanitized}}/website.clj" (render "website.clj" data)]
+              #_["src/{{sanitized}}/main.clj" (render "main.clj" data)]
+              #_["src/{{sanitized}}/website.clj" (render "website.clj" data)]
 
-             ;; Our Hello World! handler
-             #_["src/{{sanitized}}/simple_webservice.clj" (render "simple_webservice.clj" data)]
+              ;; Our Hello World! handler
+              #_["src/{{sanitized}}/simple_webservice.clj" (render "simple_webservice.clj" data)]
 
-             ;; TODO Write website.clj in terms of boilerplate.clj, it is currently too 'standalone'
-             #_["src/{{sanitized}}/boilerplate.clj" (render "boilerplate.clj" data)]
+              ;; TODO Write website.clj in terms of boilerplate.clj, it is currently too 'standalone'
+              #_["src/{{sanitized}}/boilerplate.clj" (render "boilerplate.clj" data)]
 
-             #_["src/{{sanitized}}/example_page.clj" (render "example_page.clj" data)]
+              #_["src/{{sanitized}}/example_page.clj" (render "example_page.clj" data)]
 
-             #_["src/{{sanitized}}/restricted_page.clj" (render "restricted_page.clj" data)]
+              #_["src/{{sanitized}}/restricted_page.clj" (render "restricted_page.clj" data)]
 
-             #_["test/{{sanitized}}/website_tests.clj" (render "website_tests.clj" data)]
+              #_["test/{{sanitized}}/website_tests.clj" (render "website_tests.clj" data)]
 
-             #_["src-cljs/{{sanitized}}/main.cljs" (render "main.cljs" data)]
+              #_["src-cljs/{{sanitized}}/main.cljs" (render "main.cljs" data)]
 
 
-             )))
+              )))
+  ([name]
+   (usage)
+   (println)
+   (list-templates (load-manifest (io/resource "manifest.edn") name))))

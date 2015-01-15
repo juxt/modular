@@ -432,18 +432,21 @@
  ;; lein new modular <project-name> <app-template>
  :application-templates
  {"hello-world-web"
-  {:modules #{:component
+  {:description "A simple website that displays \"Hello World!\""
+   :modules #{:component
               :http-listener
               :hello-world-website}}
 
   "bidi-hello-world"
-  {:modules #{:component
+  {:description "A simple website that uses a bidi route"
+   :modules #{:component
               :http-listener
               :modular-bidi-router
               :simple-bidi-website}}
 
   "templated-bidi-website"
-  {:modules #{:component
+  {:description "A simple wesbite that demonstrates a bidi route and Mustache templating"
+   :modules #{:component
               :http-listener
               :modular-bidi-router
               :public-resources
@@ -457,7 +460,8 @@
 
   ;; A clean and simple website for homepages, etc.
   "bootstrap-cover"
-  {:modules #{:component
+  {:description "A rendition of Bootstrap's 'cover' template"
+   :modules #{:component
               :co-dependency
               :logback-logging
               :http-listener
@@ -472,7 +476,8 @@
 
   ;; A course on highly-concurrent async HTTP for the BBC
   "sse"
-  {:modules #{:component
+  {:description "A JUXT training module, demonstrating HTML5 Server Sent Events with http-kit"
+   :modules #{:component
               :logback-logging
               :http-listener
               :modular-bidi-router
@@ -482,7 +487,8 @@
    :files [{:template "sse-demo/README.md" :target "README.md"}]}
 
   "dashboard"
-  {:modules #{:component
+  {:description "A rendition of Bootstrap's 'dashboard' template"
+   :modules #{:component
               :co-dependency
               :logback-logging
               :http-listener
