@@ -1,7 +1,6 @@
 {
  ;; Components declared here are the external reusable building blocks
  ;; of modules.
- ;; TODO: Component versioning.
  :components
  [
   {:component :modular.http-kit/webserver
@@ -11,78 +10,48 @@
    :using [:request-handler]}
 
   {:component :modular.bidi/router
-   :library-dependencies [[juxt.modular/bidi "0.6.1"]]
+   :library-dependencies [[juxt.modular/bidi "0.7.2"]]
    :constructor modular.bidi/new-router}
 
+  {:component :modular.bidi/static-resource-service
+   :library-dependencies [[juxt.modular/bidi "0.7.2"]]
+   :constructor modular.bidi/new-static-resource-service}
+
+  {:component :modular.template/static-template-model
+   :library-dependencies [[juxt.modular/template "0.6.2"]]
+   :constructor modular.template/new-static-template-model}
+
   {:component :modular.template/aggregate-template-model
-   :library-dependencies [[juxt.modular/template "0.6.0"]]
+   :library-dependencies [[juxt.modular/template "0.6.2"]]
    :constructor modular.template/new-aggregate-template-model}
 
   {:component :modular.clostache/templater
-   :library-dependencies [[juxt.modular/clostache "0.6.0"]]
+   :library-dependencies [[juxt.modular/clostache "0.6.1"]]
    :constructor modular.clostache/new-clostache-templater}
 
-  {:component :modular.template/static-template-model
-   :library-dependencies [[juxt.modular/template "0.6.0"]]
-   :constructor modular.template/new-static-template-model}
-
-  {:component :modular.bidi/static-resource-service
-   :library-dependencies [[juxt.modular/bidi "0.6.1"]]
-   :constructor modular.bidi/new-static-resource-service}
-
   {:component :modular.less/compiler
-   :library-dependencies [[juxt.modular/less "0.1.0"]
-                          ;; temporary
-                          [juxt.modular/test "0.1.0"]]
+   :library-dependencies [[juxt.modular/less "0.1.2"]]
    :constructor modular.less/new-less-compiler}
 
   {:component :modular.less/bootstrap-compiler
-   :library-dependencies [[juxt.modular/less "0.1.0"]
-                          ;; temporary
-                          [juxt.modular/test "0.1.0"]]
+   :library-dependencies [[juxt.modular/less "0.1.2"]]
    :constructor modular.less/new-bootstrap-less-compiler}
 
   {:component :modular.cljs/module
-   :library-dependencies [[juxt.modular/cljs "0.5.3"]]
+   :library-dependencies [[juxt.modular/cljs "0.5.4"]]
    :constructor modular.cljs/new-cljs-module}
 
   {:component :modular.cljs/builder
-   :library-dependencies [[juxt.modular/cljs "0.5.3"]]
+   :library-dependencies [[juxt.modular/cljs "0.5.4"]]
    :constructor modular.cljs/new-cljs-builder}
 
   {:component :modular.async/channel
-   :library-dependencies [[juxt.modular/async "0.5.2"]]
+   :library-dependencies [[juxt.modular/async "0.5.3"]]
    :constructor modular.async/new-channel}
 
   {:component :modular.http-kit-events/event-service
-   :library-dependencies [[juxt.modular/http-kit-events "0.5.3"]]
+   :library-dependencies [[juxt.modular/http-kit-events "0.5.4"]]
    :constructor modular.http-kit.events/new-event-service}
-
-  #_{:component :sablono
-     :library-dependencies [[sablono "0.2.22" :exclusions [com.facebook/react]]]
-     }
-
-  #_{:component :modular.bidi/web-service
-     :library-dependencies [[juxt.modular/bidi "0.6.1"]]
-     :constructor modular.bidi/new-web-service}
-
-  #_{:component :webresources
-     :library-dependencies [[juxt.modular/bidi "0.6.1"]]
-     :constructor modular.bidi/new-web-service
-     :refers [bidi.bidi/->ResourcesMaybe]
-     ;; TODO The args should belong to the instance
-     :args [:request-handlers {}
-            :routes ["/" {"js/" (->ResourcesMaybe {:prefix "public/js/"})
-                          "css/" (->ResourcesMaybe {:prefix "public/css/"})}]]}
-
-  #_{:component :webmeta
-     :library-dependencies [[juxt.modular/bidi "0.6.1"]]
-     :constructor modular.template/new-static-template-data
-     ;; TODO The args should belong to the instance
-     :args [:title "{{name}}"]
-     }
-
-
 
   ;; Menus
   #_{:component :modular.menu/menu-index
@@ -215,8 +184,8 @@
    ;; temporary, while bidi is in checkouts, to allow for (reset)
    :library-dependencies [[org.clojure/clojure "1.7.0-alpha4"]
                           [org.clojure/tools.reader "0.8.9"]
-                          [prismatic/schema "0.2.1"]
-                          [prismatic/plumbing "0.2.2"]
+                          [prismatic/schema "0.3.3"]
+                          [prismatic/plumbing "0.3.5"]
                           [juxt.modular/maker "0.5.0"]
                           [juxt.modular/wire-up "0.5.0"]]
 

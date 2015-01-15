@@ -58,7 +58,7 @@
 #_(use-fixtures :once project-fixture)
 
 (deftest hello-world-web-tests
-  (let [name "hello-world-web"]
+  (let [name "hello-world-web-example"]
     (generate-project name "hello-world-web")
 
     (testing "project file should exist"
@@ -71,12 +71,12 @@
     (testing "project file should exist"
       (is (.exists (io/file (get-tmp-dir) (str name "/project.clj")))))))
 
-#_(deftest templated-bidi-website-tests
-  (let [name "templated-bidi-website"]
+(deftest templated-bidi-website-tests
+  (let [name "templated-bidi-website-example"]
     (generate-project name "templated-bidi-website")
-    (generate-checkout name "/home/malcolm/Dropbox/src/modular/modules/template" "template")
-    (generate-checkout name "/home/malcolm/Dropbox/src/modular/modules/clostache" "clostache")
-    (generate-checkout name "/home/malcolm/Dropbox/src/modular/modules/bidi" "modular.bidi")
+    #_(generate-checkout name "/home/malcolm/Dropbox/src/modular/modules/template" "template")
+    #_(generate-checkout name "/home/malcolm/Dropbox/src/modular/modules/clostache" "clostache")
+    #_(generate-checkout name "/home/malcolm/Dropbox/src/modular/modules/bidi" "modular.bidi")
     ;;(generate-checkout name "/home/malcolm/Dropbox/src/bidi" "bidi")
 
     (testing "project file should exist"
@@ -89,14 +89,6 @@
     (testing "project file should exist"
       (is (.exists (io/file (get-tmp-dir) (str name "/project.clj")))))))
 
-(deftest dashboard-tests
-  (let [name "dash"]
-    (generate-project name "dashboard")
-    #_(generate-checkout name "/home/malcolm/Dropbox/src/modular/modules/cljs" "modular.cljs")
-    #_(generate-checkout name "/home/malcolm/Dropbox/src/modular/modules/less" "modular.less")
-    (testing "project file should exist"
-      (is (.exists (io/file (get-tmp-dir) (str name "/project.clj")))))))
-
 (deftest sse-tests
   (let [name "sse-example"]
     (generate-project name "sse")
@@ -105,7 +97,10 @@
     (testing "project file should exist"
       (is (.exists (io/file (get-tmp-dir) (str name "/project.clj")))))))
 
-#_(deftest website-with-login-tests
-  (generate-project "website-with-login" "hello-world-web" "+cylon/login")
-  (testing "project file exists"
-    (is (.exists (io/file (get-tmp-dir) "website-with-login/project.clj")))))
+(deftest dashboard-tests
+  (let [name "dashboard-example"]
+    (generate-project name "dashboard")
+    #_(generate-checkout name "/home/malcolm/Dropbox/src/modular/modules/cljs" "modular.cljs")
+    #_(generate-checkout name "/home/malcolm/Dropbox/src/modular/modules/less" "modular.less")
+    (testing "project file should exist"
+      (is (.exists (io/file (get-tmp-dir) (str name "/project.clj")))))))
