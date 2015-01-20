@@ -39,15 +39,15 @@
       (->EphemeralDatabase uri)
       (->DurableDatabase uri))))
 
-(defrecord DatomicConnection [connection]
+(defrecord DatomicConnection []
   component/Lifecycle
   (start [this] (assoc this :connection (d/connect (get-in this [:database :uri]))))
-  (stop [this] (d/release connection) (dissoc this :connection)))
+  (stop [this] (d/release (:connection this)) (dissoc this :connection)))
 
-(defn new-datomic-connection
+(defn new-datomic-connection []
   (component/using
-   (->DatomicConnection nil)
-   [:database]))
+    (->DatomicConnection)
+    [:database]))
 
 (defrecord DatomicSchema [res]
   component/Lifecycle
