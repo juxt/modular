@@ -39,21 +39,21 @@
       (->EphemeralDatabase uri)
       (->DurableDatabase uri))))
 
-(defrecord DatomicConnection []
+(defrecord DatomicConnection [connection]
   component/Lifecycle
-  (start [this] (d/connect (get-in this [:database :uri])))
-  (stop [this] this))
+  (start [this] (assoc this :connection (d/connect (get-in this [:database :uri]))))
+  (stop [this] (d/release connection) (dissoc this :connection)))
 
-(defn new-datomic-connection []
+(defn new-datomic-connection
   (component/using
-   (->DatomicConnection)
+   (->DatomicConnection nil)
    [:database]))
 
 (defrecord DatomicSchema [res]
   component/Lifecycle
   (start [this]
     (with-open [rdr (java.io.PushbackReader. (io/reader res))]
-      @(d/transact (:connection this)
+      @(d/transact (get-in this [:connection :connection])
                    (binding [clojure.tools.reader/*data-readers*
                              {'db/id datomic.db/id-literal
                               'db/fn datomic.function/construct
@@ -79,7 +79,7 @@
 (defrecord DatomicFunctions [functions]
   component/Lifecycle
   (start [this]
-    @(d/transact (:connection this) (create-functions functions))
+    @(d/transact (get-in this [:connection :connection]) (create-functions functions))
     this)
   (stop [this] this))
 
