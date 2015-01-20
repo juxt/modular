@@ -46,8 +46,8 @@
 
 (defn new-datomic-connection []
   (component/using
-    (->DatomicConnection)
-    [:database]))
+   (->DatomicConnection)
+   [:database]))
 
 (defrecord DatomicSchema [res]
   component/Lifecycle
