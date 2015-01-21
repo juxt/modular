@@ -9,6 +9,9 @@
    [schema.core :as s]
    clojure.tools.reader))
 
+(defn conn [connection-comp]
+      (:connection connection-comp))
+
 (defrecord EphemeralDatabase [uri]
   component/Lifecycle
   (start [this]
@@ -53,7 +56,7 @@
   component/Lifecycle
   (start [this]
     (with-open [rdr (java.io.PushbackReader. (io/reader res))]
-      @(d/transact (get-in this [:connection :connection])
+      @(d/transact (conn (this :connection))
                    (binding [clojure.tools.reader/*data-readers*
                              {'db/id datomic.db/id-literal
                               'db/fn datomic.function/construct
@@ -79,7 +82,7 @@
 (defrecord DatomicFunctions [functions]
   component/Lifecycle
   (start [this]
-    @(d/transact (get-in this [:connection :connection]) (create-functions functions))
+    @(d/transact (conn (this :connection)) (create-functions functions))
     this)
   (stop [this] this))
 
