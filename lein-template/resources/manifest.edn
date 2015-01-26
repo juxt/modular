@@ -295,7 +295,7 @@
   {:module :dashboard-resources
    :components {:static
                 {:component :modular.bidi/static-resource-service
-                 :args [:uri-context "\"\"" :resource-prefix "\"public\""]}
+                 :args [:uri-context "\"/\"" :resource-prefix "\"public/\""]}
                 }
    :dependencies {[:modular-bidi-router :webrouter] [:static]}
    :files [{:template "dashboard/dashboard.html.mustache"
