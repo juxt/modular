@@ -116,6 +116,7 @@
           ;; resolvable through the handlers map.
           (keyword? handler)
         (assoc res
+               ::component ckey
                :handler (cond-> (get-in handlers [ckey handler])
                           ;; This should be based on given settings
                           add-exception-context? (wrap-capture-component-on-error :component ckey :handler handler)))
