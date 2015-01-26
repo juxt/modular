@@ -293,14 +293,11 @@
            {:file "resources/cover.css" :target "resources/public/cover.css"}]}
 
   {:module :dashboard-resources
-   :components {:bootstrap
-                {:component :modular.bidi/static-resource-service
-                 :args [:uri-context "\"/bootstrap\"" :resource-prefix "\"META-INF/resources/webjars/bootstrap/3.3.0\""]}
-                :static
+   :components {:static
                 {:component :modular.bidi/static-resource-service
                  :args [:uri-context "\"\"" :resource-prefix "\"public\""]}
                 }
-   :dependencies {[:modular-bidi-router :webrouter] [:bootstrap :static]}
+   :dependencies {[:modular-bidi-router :webrouter] [:static]}
    :files [{:template "dashboard/dashboard.html.mustache"
             :target "resources/templates/dashboard.html.mustache"}
            {:file "dashboard/dashboard.css"
@@ -500,6 +497,7 @@
               :http-listener
               :modular-bidi-router
               :dashboard-resources
+              :twitter-bootstrap
               :jquery
               :reactjs
               :clostache-templater
