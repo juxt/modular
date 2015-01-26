@@ -303,6 +303,19 @@
            {:file "dashboard/dashboard.css"
             :target "resources/public/dashboard.css"}]}
 
+  {:module :clean-blog-resources
+   :components {:static
+                {:component :modular.bidi/static-resource-service
+                 :args [:uri-context "\"/\"" :resource-prefix "\"public/\""]}
+                }
+   :dependencies {[:modular-bidi-router :webrouter] [:static]}
+   :files [{:file "clean-blog/less/clean-blog.less" :target "resources/less/clean-blog.less"}
+           {:file "clean-blog/less/variables.less" :target "resources/less/variables.less"}
+           {:file "clean-blog/less/mixins.less" :target "resources/less/mixins.less"}
+           {:file "clean-blog/js/clean-blog.min.js" :target "resources/public/js/clean-blog.min.js"}
+           {:template "clean-blog/html/page.html.mustache" :target "resources/templates/page.html.mustache"}
+           {:file "clean-blog/img/home-bg.jpg" :target "resources/public/img/home-bg.jpg"}]}
+
   {:module :single-cljs-module
    :components {:cljs-core {:component :modular.cljs/module
                             :args [:name :cljs-core :mains ['cljs.core] :dependencies #{}]}
@@ -379,6 +392,15 @@
    :library-dependencies [[org.webjars/bootstrap "3.3.0"]]
    :dependencies {[:modular-bidi-router :webrouter] [:compiler]}
    }
+
+  {:module :clean-blog-website
+   :components {:website
+                {:constructor {{name}}.website/new-website}}
+   :dependencies {[:modular-bidi-router :webrouter] [:website]
+                  :website {:templater [:clostache-templater :templater]}}
+   :co-dependencies {:website {:router [:modular-bidi-router :webrouter]}}
+   :files [
+           {:template "clean-blog/website.clj" :target "src/{{sanitized}}/website.clj"}]}
 
   ;; TODO Add support for general webjars.org support in modular
   ;; How to?
@@ -520,14 +542,14 @@
               :logback-logging
               :http-listener
               :modular-bidi-router
-              :dashboard-resources
+              :twitter-bootstrap
               :jquery
               :clostache-templater
-              :less-compiler}
-   :files [{:template "dashboard/README.md" :target "README.md"}
-           {:file "clean-blog/clean-blog.less" :target "resources/less/clean-blog.less"}
-           {:file "clean-blog/variables.less" :target "resources/less/variables.less"}
-           {:file "clean-blog/mixins.less" :target "resources/less/mixins.less"}]}
+              :less-compiler
+              :clean-blog-resources
+              :clean-blog-website}
+   :files [{:template "clean-blog/README.md" :target "README.md"}
+           ]}
 
   ;; TODO Let's add some example pages
 

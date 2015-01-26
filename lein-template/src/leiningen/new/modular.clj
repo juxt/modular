@@ -299,7 +299,9 @@
                  [target (cond-> (render template (merge settings data)) close-parens? close-parens)]
 
                  file
-                 [target (render file)]))]
+                 [target (io/file
+                          (clojure.string/join "/" ["src" "leiningen" "new" "modular"])
+                          file)]))]
        (apply ->files data (map proc-file (:files data))))
 
      #_(apply ->files data (process-files (:files data))
