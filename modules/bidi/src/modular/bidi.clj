@@ -50,7 +50,7 @@
   (request-handlers [_] {})
   (routes [_]
     [uri-context (resources-maybe {:prefix resource-prefix})])
-  (uri-context [_] ""))
+  (uri-context [_] "/"))
 
 (def new-static-resource-service-schema
   {:uri-context s/Str
