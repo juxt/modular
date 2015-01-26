@@ -1,0 +1,27 @@
+{{=<< >>=}}
+      <div class="container">
+        <div class="row">
+          <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+            {{#posts}}
+            <div class="post-preview">
+              <a href="{{href}}">
+                <h2 class="post-title">
+                  {{title}}
+                </h2>
+                <h3 class="post-subtitle">
+                  {{subtitle}}
+                </h3>
+              </a>
+              <p class="post-meta">Posted by <a href="#">Start Bootstrap</a> on September 24, 2014</p>
+            </div>
+            <hr>
+            {{/posts}}
+            <!-- Pager -->
+            <ul class="pager">
+              <li class="next">
+                <a href="#">Older Posts &rarr;</a>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>

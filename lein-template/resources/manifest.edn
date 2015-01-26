@@ -303,19 +303,6 @@
            {:file "dashboard/dashboard.css"
             :target "resources/public/dashboard.css"}]}
 
-  {:module :clean-blog-resources
-   :components {:static
-                {:component :modular.bidi/static-resource-service
-                 :args [:uri-context "\"/\"" :resource-prefix "\"public/\""]}
-                }
-   :dependencies {[:modular-bidi-router :webrouter] [:static]}
-   :files [{:file "clean-blog/less/clean-blog.less" :target "resources/less/clean-blog.less"}
-           {:file "clean-blog/less/variables.less" :target "resources/less/variables.less"}
-           {:file "clean-blog/less/mixins.less" :target "resources/less/mixins.less"}
-           {:file "clean-blog/js/clean-blog.min.js" :target "resources/public/js/clean-blog.min.js"}
-           {:template "clean-blog/html/page.html.mustache" :target "resources/templates/page.html.mustache"}
-           {:file "clean-blog/img/home-bg.jpg" :target "resources/public/img/home-bg.jpg"}]}
-
   {:module :single-cljs-module
    :components {:cljs-core {:component :modular.cljs/module
                             :args [:name :cljs-core :mains ['cljs.core] :dependencies #{}]}
@@ -400,7 +387,33 @@
                   :website {:templater [:clostache-templater :templater]}}
    :co-dependencies {:website {:router [:modular-bidi-router :webrouter]}}
    :files [
-           {:template "clean-blog/website.clj" :target "src/{{sanitized}}/website.clj"}]}
+           {:template "clean-blog/website.clj" :target "src/{{sanitized}}/website.clj"}
+           {:file "clean-blog/posts/explore.md" :target "posts/explore.md"}
+           {:file "clean-blog/posts/failure.md" :target "posts/failure.md"}
+           {:file "clean-blog/posts/human.md" :target "posts/human.md"}
+           {:file "clean-blog/posts/science.md" :target "posts/science.md"}
+
+           {:template "clean-blog/html/index.html.mustache" :target "resources/templates/index.html.mustache"}
+           {:template "clean-blog/html/about.html.mustache" :target "resources/templates/about.html.mustache"}
+           {:template "clean-blog/html/contact.html.mustache" :target "resources/templates/contact.html.mustache"}
+           {:template "clean-blog/html/post.html.mustache" :target "resources/templates/post.html.mustache"}]}
+
+  {:module :clean-blog-resources
+   :components {:static
+                {:component :modular.bidi/static-resource-service
+                 :args [:uri-context "\"/\"" :resource-prefix "\"public/\""]}
+                }
+   :dependencies {[:modular-bidi-router :webrouter] [:static]}
+   :files [{:file "clean-blog/less/clean-blog.less" :target "resources/less/clean-blog.less"}
+           {:file "clean-blog/less/variables.less" :target "resources/less/variables.less"}
+           {:file "clean-blog/less/mixins.less" :target "resources/less/mixins.less"}
+           {:file "clean-blog/js/clean-blog.min.js" :target "resources/public/js/clean-blog.min.js"}
+           {:template "clean-blog/html/page.html.mustache" :target "resources/templates/page.html.mustache"}
+
+           {:file "clean-blog/img/home-bg.jpg" :target "resources/public/img/home-bg.jpg"}]}
+
+  {:module :endophile
+   :library-dependencies [[endophile "0.1.2"]]}
 
   ;; TODO Add support for general webjars.org support in modular
   ;; How to?
@@ -547,7 +560,8 @@
               :clostache-templater
               :less-compiler
               :clean-blog-resources
-              :clean-blog-website}
+              :clean-blog-website
+              :endophile}
    :files [{:template "clean-blog/README.md" :target "README.md"}
            ]}
 
