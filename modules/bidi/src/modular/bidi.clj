@@ -129,7 +129,7 @@
           (keyword? handler)
         (assoc res
                ::component ckey
-               :handler (cond-> (get-in handlers [ckey handler])
+               :handler (cond-> (get handlers handler)
                           ;; This should be based on given settings
                           add-exception-context? (wrap-capture-component-on-error :component ckey :handler handler)))
         ;; Otherwise continue to return the original result
@@ -156,7 +156,7 @@
                             ;; We wrap in some bidi middleware which
                             ;; allows us to form URIs via a
                             ;; keyword-path: [component-key handler-key]
-                            (->KeywordIndirection [(routes v)] ckey handlers add-exception-context?)]))])))
+                            (->KeywordIndirection [(routes v)] ckey (get handlers ckey) add-exception-context?)]))])))
   (stop [this] this)
 
   WebService
