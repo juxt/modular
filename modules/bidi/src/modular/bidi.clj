@@ -61,7 +61,7 @@
   WebService
   (request-handlers [_] {})
   (routes [component]
-    [uri-context (:target component)])
+    ["" (:target component)])
   (uri-context [_] uri-context))
 
 (def new-static-resource-service-schema
