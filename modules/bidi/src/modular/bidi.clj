@@ -4,7 +4,7 @@
   (:require
    [schema.core :as s]
    [modular.ring :refer (WebRequestHandler)]
-   [com.stuartsierra.component :as component]
+   [com.stuartsierra.component :as component :refer (Lifecycle)]
    [bidi.bidi :as bidi :refer (match-route resolve-handler)]
    [bidi.ring :refer (resources-maybe make-handler)]
    [clojure.tools.logging :refer :all]
@@ -46,11 +46,23 @@
        map->WebServiceFromArguments))
 
 (defrecord StaticResourceService [uri-context resource-prefix]
+  Lifecycle
+  (start [component]
+    (assoc component
+           :target (resources-maybe
+                    {:prefix resource-prefix
+                     ;; By adding uri-context, we ensure that the
+                     ;; path-for function works properly, as it uses an
+                     ;; = check, so we avoid the situation where the
+                     ;; wrong instance of this record returns a non-nil
+                     ;; value
+                     ::uri-context uri-context})))
+  (stop [component] component)
   WebService
   (request-handlers [_] {})
-  (routes [_]
-    [uri-context (resources-maybe {:prefix resource-prefix})])
-  (uri-context [_] "/"))
+  (routes [component]
+    [uri-context (:target component)])
+  (uri-context [_] uri-context))
 
 (def new-static-resource-service-schema
   {:uri-context s/Str
@@ -58,9 +70,9 @@
 
 (defn new-static-resource-service [& {:as opts}]
   (->> opts
-       (merge {})
-       (s/validate new-static-resource-service-schema)
-       (map->StaticResourceService)))
+    (merge {:uri-context "/"})
+    (s/validate new-static-resource-service-schema)
+    (map->StaticResourceService)))
 
 ;; Production of a Ring handler from a single WebService component
 
