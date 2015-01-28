@@ -320,9 +320,13 @@
                  [target (cond-> (render template (merge settings data)) close-parens? close-parens)]
 
                  file
-                 [target (io/file
-                          (clojure.string/join "/" ["src" "leiningen" "new" "modular"])
-                          file)]))]
+                 [target (if-let [res
+                                  (io/resource (clojure.string/join "/" ["leiningen" "new" "modular" file]))]
+                           (io/input-stream res)
+                           (throw (ex-info (format "Cannot load resource: '%s'" file) {:file file}))
+
+                           )]))]
+
        (apply ->files data (map proc-file (:files data))))
 
      #_(apply ->files data (process-files (:files data))
