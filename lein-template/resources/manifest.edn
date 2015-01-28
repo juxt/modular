@@ -10,12 +10,16 @@
    :using [:request-handler]}
 
   {:component :modular.bidi/router
-   :library-dependencies [[juxt.modular/bidi "0.7.2"]]
+   :library-dependencies [[juxt.modular/bidi "0.7.3"]]
    :constructor modular.bidi/new-router}
 
   {:component :modular.bidi/static-resource-service
-   :library-dependencies [[juxt.modular/bidi "0.7.2"]]
+   :library-dependencies [[juxt.modular/bidi "0.7.3"]]
    :constructor modular.bidi/new-static-resource-service}
+
+  {:component :modular.bidi/redirect
+   :library-dependencies [[juxt.modular/bidi "0.7.3"]]
+   :constructor modular.bidi/new-redirect}
 
   {:component :modular.template/static-template-model
    :library-dependencies [[juxt.modular/template "0.6.2"]]
@@ -129,7 +133,7 @@
   ;; Project-local components
   {:component :website
    :library-dependencies [[hiccup "1.0.5"]
-                          [juxt.modular/bidi "0.6.1"]]
+                          [juxt.modular/bidi "0.7.3"]]
    :constructor {{name}}.website/new-website
    :using [:template-model]}
 
