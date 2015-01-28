@@ -12,41 +12,73 @@
    [ring.util.response :refer (response)]
    [tangrammer.component.co-dependency :refer (co-using)]
    [endophile.core :refer (mp)]
-   [endophile.hiccup :refer (to-hiccup)]))
+   [endophile.hiccup :refer (to-hiccup)]
+   [hiccup.core :refer (html)]
+   [schema.core :as s]))
 
-(defn get-posts []
-  (for [f (.listFiles (io/file "posts"))
-        :let [content (to-hiccup (mp (slurp f)))]]
-    {:title (-> content first second)
-     :subtitle (-> content second second)
-     :href (str "/posts/" (second (re-matches #"(.*)\.md" (.getName f))) ".html")}))
-
-(defn get-post [post]
-  (let [content (to-hiccup (mp (slurp (io/file "posts" (str post ".md")))))]
-    {:title (-> content first second)
-     :subtitle (-> content second second)}))
-
-(defn page [{:keys [templater router resources]} content-template data req]
-  (let [ctx (path-for (:routes @router) (:target resources))]
+(defn page [{:keys [templater router resources title]} content-template data req]
+  (let [ ;; By getting the static context from the resources component,
+        ;; we avoid hardcoding its uri-context
+        ctx (path-for (:routes @router) (:target resources))]
     (response
      (render-template
       templater
-      "templates/page.html.mustache" ; our Mustache template
-      {:static ctx
-       :title "My Blog"
-       :subtitle "Musings on adventures in the amazing world of Clojure"
-       :content (render-template templater (str "templates/" content-template)
+      "templates/page.html.mustache"    ; our Mustache template
+      {:brand-title title
+       :title (:title data)
+       :static ctx
+       :links {:about (path-for (:routes @router) ::about)
+               :contact (path-for (:routes @router) ::contact)}
+       :home (path-for (:routes @router) ::index) ; href to home page
+       :content (render-template templater
+                                 (str "templates/" content-template)
                                  (assoc data :static ctx))}))))
 
-;; Components are defined using defrecord.
+(def META #"(\w+):\s+(.*)")
+
+(defn extract-meta [s]
+  (into {}
+        (keep (fn [line]
+                (when-let [[_ k v]
+                           (re-matches META line)]
+                  [(keyword (.toLowerCase k)) v]
+                  )) s)))
+
+(defn get-post [post routes]
+  (let [doc (partition-by #(nil? (re-matches META %)) (line-seq (io/reader (io/file "posts" (str post ".md")))))
+        [header body] (case (count doc)
+                        1 [nil (first doc)]
+                        2 doc
+                        )]
+    (merge (if header
+             (extract-meta header)
+             {:title "No title" :subtitle "No subtitle"})
+           {:href (path-for routes ::post :post post)
+            :body body})))
+
+(defn get-posts [routes]
+  (for [f (.listFiles (io/file "posts"))
+        :let [name (second (re-matches #"(.*).md" (.getName f)))]]
+    (get-post name routes)))
 
 (defn index [this req]
-  (page this "index.html.mustache" {:posts (get-posts)} req))
+  (page this "index.html.mustache"
+        {:title (:title this)
+         :subtitle (:subtitle this)
+         :posts (get-posts (:routes @(:router this)))}
+        req))
 
 (defn post [this req]
-  (page this "post.html.mustache" (get-post (-> req :route-params :post)) req))
+  (page this "post.html.mustache"
+        (update-in
+         (get-post (-> req :route-params :post)
+                   (:routes @(:router this))
+                   )
+         [:body]
+         #(html (to-hiccup (mp (apply str (interpose \newline %)))))
+         ) req))
 
-(defrecord Website [templater router resources cljs-builder]
+(defrecord Website [title subtitle templater router resources cljs-builder]
 
                                         ; modular.bidi provides a router which dispatches to routes provided
                                         ; by components that satisfy its WebService protocol
@@ -74,7 +106,12 @@
 ;; the construction with parameters, provide defaults and declare
 ;; dependency relationships with other components.
 
-(defn new-website []
-  (-> (map->Website {})
-      (using [:templater :resources])
-      (co-using [:router])))
+(defn new-website [& {:as opts}]
+  (-> (->> opts
+        (merge {:title "default title here"
+                :subtitle "default subtitle here"})
+        (s/validate {:title s/Str
+                     :subtitle s/Str})
+        map->Website)
+    (using [:templater :resources])
+    (co-using [:router])))
