@@ -251,7 +251,7 @@
   {:module :public-resources
    :components {:public-resources
                 {:component :modular.bidi/static-resource-service
-                 :args [:uri-context "\"/static\"" :resource-prefix "\"public\""]}}
+                 :args [:uri-context "/static" :resource-prefix "public"]}}
    :dependencies {[:modular-bidi-router :webrouter] [:public-resources]}}
 
   {:module :templated-bidi-website
@@ -261,7 +261,7 @@
 
                 #_:example-data
                 #_{:component :modular.template/static-template-model
-                   :args [:a "\"ABC\""]}
+                   :args [:a "ABC"]}
                 }
    :dependencies {[:modular-bidi-router :webrouter] [:website]
                   :website {#_:aggregate-template-model #_[:aggregate-template-model :template-model]
@@ -291,7 +291,7 @@
    :library-dependencies [[org.webjars/bootstrap "3.3.0"]]
    :components {:service
                 {:component :modular.bidi/static-resource-service
-                 :args [:uri-context "\"/bootstrap\"" :resource-prefix "\"META-INF/resources/webjars/bootstrap/3.3.0\""]}}
+                 :args [:uri-context "/bootstrap" :resource-prefix "META-INF/resources/webjars/bootstrap/3.3.0"]}}
    :dependencies {[:modular-bidi-router :webrouter] {:twitter-bootstrap :service}}}
 
   {:module :bootstrap-cover-resources
@@ -301,7 +301,7 @@
   {:module :dashboard-resources
    :components {:static
                 {:component :modular.bidi/static-resource-service
-                 :args [:uri-context "\"/\"" :resource-prefix "\"public/\""]}
+                 :args [:uri-context "/" :resource-prefix "public/"]}
                 }
    :dependencies {[:modular-bidi-router :webrouter] [:static]}
    :files [{:template "dashboard/dashboard.html.mustache"
@@ -315,7 +315,7 @@
                 :cljs-app {:component :modular.cljs/module
                            :args [:name :default :mains ['{{name}}.core] :dependencies #{:cljs-core}]}
                 :cljs-builder {:component :modular.cljs/builder
-                               :args [:source-path "\"src-cljs\""]
+                               :args [:source-path "src-cljs"]
                                :using [:single-cljs-module-cljs-core :single-cljs-module-cljs-app]}}
    :files [{:template "core.cljs"
             :target "src-cljs/{{sanitized}}/core.cljs"}]
@@ -339,7 +339,7 @@
    :library-dependencies [[org.webjars/jquery "2.1.0"]]
    :components {:resources
                 {:component :modular.bidi/static-resource-service
-                 :args [:uri-context "\"/jquery\"" :resource-prefix "\"META-INF/resources/webjars/jquery/2.1.0\""]}}
+                 :args [:uri-context "/jquery" :resource-prefix "META-INF/resources/webjars/jquery/2.1.0"]}}
    :dependencies {[:modular-bidi-router :webrouter] {:jquery :resources}}}
 
   {:module :reactjs
@@ -347,7 +347,7 @@
    :library-dependencies [[org.webjars/react "0.11.1"]]
    :components {:resources
                 {:component :modular.bidi/static-resource-service
-                 :args [:uri-context "\"/reactjs\"" :resource-prefix "\"META-INF/resources/webjars/react/0.11.1\""]}}
+                 :args [:uri-context "/reactjs" :resource-prefix "META-INF/resources/webjars/react/0.11.1"]}}
    :dependencies {[:modular-bidi-router :webrouter] {:reactjs :resources}}}
 
   #_{:module :sse-demo-mult-channel
@@ -376,8 +376,8 @@
    :docstring "Compile LESS files to CSS."
    :components {:compiler {:component :modular.less/compiler
                            ;; TODO: modules need to be parameterized
-                           :args [:source-dir "\"resources/less\""
-                                  :source-path "\"clean-blog.less\""]}}
+                           :args [:source-dir "resources/less"
+                                  :source-path "clean-blog.less"]}}
    :library-dependencies [[org.webjars/bootstrap "3.3.0"]]
    :dependencies {[:modular-bidi-router :webrouter] [:compiler]}
    }
@@ -393,7 +393,7 @@
   {:module :clean-blog-resources
    :components {:static
                 {:component :modular.bidi/static-resource-service
-                 :args [:uri-context "\"/static/\"" :resource-prefix "\"public/\""]}
+                 :args [:uri-context "/static/" :resource-prefix "public/"]}
                 }
    :dependencies {[:modular-bidi-router :webrouter] [:static]}
    :files [{:file "clean-blog/less/clean-blog.less" :target "resources/less/clean-blog.less"}
@@ -413,7 +413,9 @@
    redirect to the blog index. Remove this component (and this
    docstring) if you don't want this."
    :components {:website
-                {:constructor {{name}}.website/new-website}
+                {:constructor {{name}}.website/new-website
+                 :args [:title "My blog"
+                        :subtitle "Musings on adventures in the amazing world of Clojure"]}
                 :redirect
                 {:component :modular.bidi/redirect
                  :args [:to  :{{name}}.website/index]}}
