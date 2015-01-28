@@ -286,6 +286,8 @@
            {:file "resources/theme.css" :target "resources/public/theme.css"}]}
 
   {:module :twitter-bootstrap
+   :docstring "Serve Twitter Bootstrap CSS, Javascript and other
+   resources from a web-jar."
    :library-dependencies [[org.webjars/bootstrap "3.3.0"]]
    :components {:service
                 {:component :modular.bidi/static-resource-service
@@ -333,6 +335,7 @@
            ]}
 
   {:module :jquery
+   :docstring "Serve JQuery resources from a web-jar."
    :library-dependencies [[org.webjars/jquery "2.1.0"]]
    :components {:resources
                 {:component :modular.bidi/static-resource-service
@@ -340,6 +343,7 @@
    :dependencies {[:modular-bidi-router :webrouter] {:jquery :resources}}}
 
   {:module :reactjs
+   :docstring "Serve Facebook React resources from a web-jar."
    :library-dependencies [[org.webjars/react "0.11.1"]]
    :components {:resources
                 {:component :modular.bidi/static-resource-service
@@ -369,6 +373,7 @@
            {:file "sse-demo/events.js" :target "resources/events.js"}]}
 
   {:module :less-compiler
+   :docstring "Compile LESS files to CSS."
    :components {:compiler {:component :modular.less/compiler
                            ;; TODO: modules need to be parameterized
                            :args [:source-dir "\"resources/less\""
@@ -378,6 +383,7 @@
    }
 
   {:module :bootstrap-less-compiler
+   :docstring "Compile Bootstrap LESS files to CSS."
    :components {:compiler {:component :modular.less/bootstrap-compiler
                            :args []}}
    :library-dependencies [[org.webjars/bootstrap "3.3.0"]]
