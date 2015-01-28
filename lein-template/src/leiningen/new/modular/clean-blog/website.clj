@@ -1,6 +1,6 @@
 (ns {{name}}.website
   (:require
-   [bidi.bidi :refer (path-for)]
+   [bidi.bidi :refer (path-for alts)]
    [bidi.ring :refer (redirect)]
    [clojure.pprint :refer (pprint)]
    [clojure.tools.logging :refer :all]
@@ -26,15 +26,17 @@
     {:title (-> content first second)
      :subtitle (-> content second second)}))
 
-(defn page [{:keys [templater]} content-template data req]
-  (response
-   (render-template
-    templater
-    "templates/page.html.mustache" ; our Mustache template
-    {:title "My Blog"
-     :subtitle "Musings on adventures in the amazing world of Clojure"
-     :content (render-template templater (str "templates/" content-template)
-                               data)})))
+(defn page [{:keys [templater router resources]} content-template data req]
+  (let [ctx (path-for (:routes @router) (:target resources))]
+    (response
+     (render-template
+      templater
+      "templates/page.html.mustache" ; our Mustache template
+      {:static ctx
+       :title "My Blog"
+       :subtitle "Musings on adventures in the amazing world of Clojure"
+       :content (render-template templater (str "templates/" content-template)
+                                 (assoc data :static ctx))}))))
 
 ;; Components are defined using defrecord.
 
@@ -44,10 +46,10 @@
 (defn post [this req]
   (page this "post.html.mustache" (get-post (-> req :route-params :post)) req))
 
-(defrecord Website [templater router cljs-builder]
+(defrecord Website [templater router resources cljs-builder]
 
-  ; modular.bidi provides a router which dispatches to routes provided
-  ; by components that satisfy its WebService protocol
+                                        ; modular.bidi provides a router which dispatches to routes provided
+                                        ; by components that satisfy its WebService protocol
   WebService
   (request-handlers [this]
     ;; Return a map between some keywords and their associated Ring
@@ -58,14 +60,14 @@
      ::post (fn [req] (post this req))})
 
   ;; All paths lead to the dashboard
-  (routes [_] ["/" [["index.html" ::index]
-                    [["posts/" :post ".html"] ::post]
-                    ["about.html" ::about]
-                    ["contact.html" ::contact]
-                    ["" (redirect ::index)]]])
+  (routes [_] ["" [["/index.html" ::index]
+                   [["/posts/" :post ".html"] ::post]
+                   ["/about.html" ::about]
+                   ["/contact.html" ::contact]
+                   [(alts "/foo" "" "/") (redirect ::index)]]])
 
   ;; A WebService can be 'mounted' underneath a common uri context
-  (uri-context [_] ""))
+  (uri-context [_] "/myblog"))
 
 ;; While not mandatory, it is common to use a function to construct an
 ;; instance of the component. This affords the opportunity to control
@@ -74,5 +76,5 @@
 
 (defn new-website []
   (-> (map->Website {})
-      (using [:templater])
+      (using [:templater :resources])
       (co-using [:router])))
