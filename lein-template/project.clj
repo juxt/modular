@@ -1,7 +1,7 @@
 ;; Copyright © 2014 JUXT LTD.
 
 ;; We call this project modular to make the invocation: lein new modular appname
-(defproject modular/lein-template "0.6.13"
+(defproject modular/lein-template "0.6.14"
   :description "Leiningen template for a full-featured component based app using modular extensions."
   :url "http://modularity.org/"
   :license {:name "The MIT License"
