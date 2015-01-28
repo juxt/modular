@@ -86,6 +86,19 @@
     (doseq [[^String k v] (sort-by first (:application-templates manifest))]
       (println (format "%s%s%s" k (apply str (repeat (max 1 (- tabstop (.length k))) \space)) (:description v) )))))
 
+(defn clean [text]
+  (apply str (interpose " " (clojure.string/split text #"\s+"))))
+
+(defn word-wrap [s]
+  (->> s
+    clean
+    (#(str % " "))           ; add a space (to ensure remainder matches)
+    (re-seq #".{0,70}\s")   ; this regex
+    (interpose (str \newline "   "))    ; format ecah line
+    (apply str)                         ; join up
+    ;; remove the space
+    (#(subs % 0 (dec (count %))))))
+
 (defn modular
   "Create a new modular project - TODO documentation show go here which
   will be shown on 'lein new :show modular' , but will only appear when
@@ -134,6 +147,14 @@
                    (merge a
                           {:fname (when (:components a)
                                     (str (clojure.core/name (:module a)) "-components"))
+
+                           :docstring (if (:docstring a)
+                                        (str \newline "  \""
+                                             (word-wrap (:docstring a))
+
+
+                                             "\"")
+                                        "")
 
                            :components
                            (when (:components a)

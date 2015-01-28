@@ -48,7 +48,8 @@
          (user-config)))
 {{#modules}}
 {{#fname}}
-(defn {{fname}} [system config]
+(defn {{fname}}{{{docstring}}}
+  [system config]
   (assoc system
     {{#components}}
     {{key}}
