@@ -1,0 +1,15 @@
+Ring uses blocking I/O by default, because that's often sufficient for most web servers, and is generally easier to reason about. HTTP works best when the response is returned ASAP, which means blocking I/O typically isn't much of a bottleneck.
+
+However, since Ring 1.2, all of the standard middleware has also been available to use asynchronously, in order to support frameworks like Pedestal. So it's certainly possible to use Ring in an async environment, at least with the core Ring libs.
+
+Although HTTP Kit doesn't use core.async channels itself, the async protocol used isn't complex. You should be able to hook up core.async/take! to http-kit/send!. Something like:
+
+    (defn handler [req]
+      (httpkit/with-channel req http-ch
+        (let [resp-ch (async-handler! req)]
+          (httpkit/on-close (fn [_] (a/close! resp-ch)))
+          (a/take! resp-ch (fn [resp] (httpkit/send! http-ch resp) (httpkit/close http-ch))))))
+
+That said, I'd be wary about having HTTP clients wait around on the server. If it's just a few seconds, that seems reasonable, but any longer and you should consider redirecting to a "job" resource instead.
+
+- James
