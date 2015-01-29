@@ -1,10 +1,11 @@
 (ns {{name}}.website
   (:require
-   [bidi.bidi :refer (path-for alts)]
+   [bidi.bidi :as bidi]
    [bidi.ring :refer (redirect)]
    [clojure.pprint :refer (pprint)]
    [clojure.tools.logging :refer :all]
    [clojure.java.io :as io]
+   [clojure.string :as string]
    [com.stuartsierra.component :refer (using)]
    [modular.bidi :refer (WebService as-request-handler)]
    [modular.ring :refer (WebRequestHandler)]
@@ -16,72 +17,67 @@
    [hiccup.core :refer (html)]
    [schema.core :as s]))
 
+(defn path-for [router target & args]
+  (apply bidi/path-for (:routes @router) target args))
+
 (defn page [{:keys [templater router resources title]} content-template data req]
-  (let [ ;; By getting the static context from the resources component,
-        ;; we avoid hardcoding its uri-context
-        ctx (path-for (:routes @router) (:target resources))]
+  (let [static ; ask bidi to determine the static context where public resources are mounted
+        (path-for router (:target resources))]
     (response
      (render-template
       templater
-      "templates/page.html.mustache"    ; our Mustache template
+      "templates/page.html.mustache" ; our Mustache template
       {:brand-title title
        :title (:title data)
-       :static ctx
-       :links {:about (path-for (:routes @router) ::about)
-               :contact (path-for (:routes @router) ::contact)}
-       :home (path-for (:routes @router) ::index) ; href to home page
+       :static static
+       :links {:about (path-for router ::about)
+               :contact (path-for router ::contact)}
+       :home (path-for router ::index) ; href to home page
        :content (render-template templater
                                  (str "templates/" content-template)
-                                 (assoc data :static ctx))}))))
+                                 (assoc data :static static))}))))
 
-(def META #"(\w+):\s+(.*)")
+(defn get-post [post router]
+  (let [regex #"(\w+):\s+(.*)"
+        extract-meta (fn [s]
+                       (into {}
+                             (keep (fn [line]
+                                     (when-let [[_ k v]
+                                                (re-matches regex line)]
+                                       [(keyword (.toLowerCase k)) v]))
+                                   s)))]
+    (let [doc (group-by #(some? (re-matches regex %)) (line-seq (io/reader (io/file "posts" (str post ".md")))))]
+      (merge
+       (extract-meta (get doc true))
+       {:href (path-for router ::post :post post)
+        :body (->> (get doc false)
+                (interpose \newline)
+                (apply str) mp to-hiccup html delay)}))))
 
-(defn extract-meta [s]
-  (into {}
-        (keep (fn [line]
-                (when-let [[_ k v]
-                           (re-matches META line)]
-                  [(keyword (.toLowerCase k)) v]
-                  )) s)))
-
-(defn get-post [post routes]
-  (let [doc (partition-by #(nil? (re-matches META %)) (line-seq (io/reader (io/file "posts" (str post ".md")))))
-        [header body] (case (count doc)
-                        1 [nil (first doc)]
-                        2 doc
-                        )]
-    (merge (if header
-             (extract-meta header)
-             {:title "No title" :subtitle "No subtitle"})
-           {:href (path-for routes ::post :post post)
-            :body body})))
-
-(defn get-posts [routes]
+(defn get-posts [router]
   (for [f (.listFiles (io/file "posts"))
         :let [name (second (re-matches #"(.*).md" (.getName f)))]]
-    (get-post name routes)))
+    (get-post name router)))
 
 (defn index [this req]
   (page this "index.html.mustache"
         {:title (:title this)
          :subtitle (:subtitle this)
-         :posts (get-posts (:routes @(:router this)))}
+         :posts (get-posts (:router this))}
         req))
 
 (defn post [this req]
   (page this "post.html.mustache"
-        (update-in
-         (get-post (-> req :route-params :post)
-                   (:routes @(:router this))
-                   )
-         [:body]
-         #(html (to-hiccup (mp (apply str (interpose \newline %)))))
-         ) req))
+        (-> (get-post (-> req :route-params :post)
+                      (:router this))
+          (update-in [:body] deref))
+        req))
 
 (defrecord Website [title subtitle templater router resources cljs-builder]
 
-                                        ; modular.bidi provides a router which dispatches to routes provided
-                                        ; by components that satisfy its WebService protocol
+  ;; modular.bidi provides a router which dispatches to routes provided
+  ;; by components that satisfy its WebService protocol
+
   WebService
   (request-handlers [this]
     ;; Return a map between some keywords and their associated Ring
@@ -96,7 +92,7 @@
                    [["/posts/" :post ".html"] ::post]
                    ["/about.html" ::about]
                    ["/contact.html" ::contact]
-                   [(alts "/foo" "" "/") (redirect ::index)]]])
+                   [(bidi/alts "/foo" "" "/") (redirect ::index)]]])
 
   ;; A WebService can be 'mounted' underneath a common uri context
   (uri-context [_] "/myblog"))

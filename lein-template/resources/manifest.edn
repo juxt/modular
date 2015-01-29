@@ -423,6 +423,7 @@
                   :website {:templater [:clostache-templater :templater]
                             :resources [:clean-blog-resources :static]}}
    :co-dependencies {:website {:router [:modular-bidi-router :webrouter]}}
+   :library-dependencies [[clj-time "0.9.0"]]
    :files [
            {:template "clean-blog/website.clj" :target "src/{{sanitized}}/website.clj"}
            {:file "clean-blog/posts/explore.md" :target "posts/explore.md"}
