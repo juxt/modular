@@ -149,12 +149,7 @@
                                     (str (clojure.core/name (:module a)) "-components"))
 
                            :docstring (if (:docstring a)
-                                        (str \newline "  \""
-                                             (word-wrap (:docstring a))
-
-
-                                             "\"")
-                                        "")
+                                        (str \newline "  \"" (word-wrap (:docstring a)) "\"") "")
 
                            :components
                            (when (:components a)
@@ -298,13 +293,10 @@
                  ;; there aren't multiple entries, if there are it means
                  ;; we have a conflict - more than one dependency is trying to bind
                  (gbf #(into {} (gbf first %)))
-                 (into {})
-                 )
+                 (into {}))
 
                :files (concat (get-in manifest [:application-templates app-template :files] [])
-                              (mapcat :files modules))
-
-               }]
+                              (mapcat :files modules))}]
 
      (main/info (format "Generating a new modular project named %s with modules :-\n%s"
                         name
