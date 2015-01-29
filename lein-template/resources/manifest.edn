@@ -425,10 +425,10 @@
    :library-dependencies [[clj-time "0.9.0"]]
    :files [
            {:template "clean-blog/website.clj" :target "src/{{sanitized}}/website.clj"}
-           {:file "clean-blog/posts/explore.md" :target "posts/explore.md"}
-           {:file "clean-blog/posts/failure.md" :target "posts/failure.md"}
-           {:file "clean-blog/posts/human.md" :target "posts/human.md"}
-           {:file "clean-blog/posts/science.md" :target "posts/science.md"}
+           {:template "clean-blog/posts/explore.md" :target "posts/explore.md"}
+           {:template "clean-blog/posts/failure.md" :target "posts/failure.md"}
+           {:template "clean-blog/posts/human.md" :target "posts/human.md"}
+           {:template "clean-blog/posts/science.md" :target "posts/science.md"}
 
            {:template "clean-blog/html/index.html.mustache" :target "resources/templates/index.html.mustache"}
            {:template "clean-blog/html/about.html.mustache" :target "resources/templates/about.html.mustache"}

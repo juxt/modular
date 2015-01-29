@@ -21,8 +21,6 @@
                              unparse unparse-date
                              formatter date-format}]))
 
-
-
 (defn path-for [router target & args]
   (apply bidi/path-for (:routes @router) target args))
 
@@ -53,6 +51,10 @@
          (= :img (:tag x)) (update-in x [:attrs :src] #(str static %))
          :else x)) s)))
 
+(defn format-date [s]
+  (when s
+    (unparse-date (date-format "EEEE, d MMMM, y") s)))
+
 (defn get-post [post router resources]
   "Get the data associated with a post, including a delayed
   body (as :body). Router can be nil, for testing, but will result in
@@ -60,37 +62,40 @@
   (let [regex #"(\w+):\s+(.*)"
         extract-meta
         (fn [s]
-          (->> s
-            (keep (fn [line]
-                        (when-let [[_ k v]
-                                   (re-matches regex line)]
-                          (let [k (keyword (.toLowerCase k))]
-                            [k ((case k :date parse-date identity) v)]))))
-            (into {})))]
+          (let [res
+                (->> s
+                  (keep (fn [line]
+                          (when-let [[_ k v]
+                                     (re-matches regex line)]
+                            (let [k (keyword (.toLowerCase k))]
+                              [k ((case k :date parse-date identity) v)]))))
+                  (into {}))]
+            (pprint res)
+            res))]
     (let [doc (group-by #(some? (re-matches regex %)) (line-seq (io/reader (io/file "posts" (str post ".md")))))]
-      (merge
-       (extract-meta (get doc true))
-       {:href (when router (path-for router ::post :post post))
-        :body (->> (get doc false)
-                (interpose \newline)
-                (apply str) mp to-clj (process-html router resources) html-string delay)}))))
+      (let [{:keys [author date] :as meta} (extract-meta (get doc true))]
+        (merge
+         meta
+         (when (or author date)
+           {:attribution (format "Posted%s%s"
+                                 (if author (format " by %s" author) "")
+                                 (if date (format " on %s" (format-date date)) ""))})
+         {:href (when router (path-for router ::post :post post))
+          :body (->> (get doc false)
+                  (interpose \newline)
+                  (apply str) mp to-clj (process-html router resources) html-string delay)})))))
 
 (defn get-posts [router resources]
-  (sort-by (comp to-long :date) >
+  (sort-by (comp (fnil to-long 0) :date) >
            (for [f (.listFiles (io/file "posts"))
                  :let [post (second (re-matches #"(.*).md" (.getName f)))]]
              (get-post post router resources))))
-
-(defn format-date [s]
-  (when s
-    (unparse-date (date-format "EEEE, d MMMM, y") s)))
 
 (defn index [{:keys [title subtitle router resources] :as this} req]
   (page this "index.html.mustache"
         {:title title
          :subtitle subtitle
-         :posts (map #(update-in % [:date] format-date)
-                     (get-posts router resources))}
+         :posts (get-posts router resources)}
         req))
 
 (defn post [{:keys [router resources] :as this} req]
@@ -98,8 +103,7 @@
                        router resources)]
     (page this "post.html.mustache"
           (-> post
-            (update-in [:body] deref)
-            (update-in [:date] format-date))
+            (update-in [:body] deref))
           req)))
 
 (defrecord Website [title subtitle templater router resources cljs-builder]
