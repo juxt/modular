@@ -404,7 +404,6 @@
 
            {:file "clean-blog/img/home-bg.jpg" :target "resources/public/img/home-bg.jpg"}
            {:file "clean-blog/img/post-bg.jpg" :target "resources/public/img/post-bg.jpg"}
-           {:file "clean-blog/img/contact-bg.jpg" :target "resources/public/img/contact-bg.jpg"}
            {:file "clean-blog/img/about-bg.jpg" :target "resources/public/img/about-bg.jpg"}
            {:file "clean-blog/img/post-sample-image.jpg" :target "resources/public/img/post-sample-image.jpg"}]}
 
