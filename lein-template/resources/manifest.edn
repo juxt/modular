@@ -433,7 +433,6 @@
 
            {:template "clean-blog/html/index.html.mustache" :target "resources/templates/index.html.mustache"}
            {:template "clean-blog/html/about.html.mustache" :target "resources/templates/about.html.mustache"}
-           {:template "clean-blog/html/contact.html.mustache" :target "resources/templates/contact.html.mustache"}
            {:template "clean-blog/html/post.html.mustache" :target "resources/templates/post.html.mustache"}]}
 
 

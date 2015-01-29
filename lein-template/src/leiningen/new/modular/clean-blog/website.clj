@@ -12,17 +12,26 @@
    [modular.template :refer (render-template template-model)]
    [ring.util.response :refer (response)]
    [tangrammer.component.co-dependency :refer (co-using)]
-   [endophile.core :refer (mp)]
-   [endophile.hiccup :refer (to-hiccup)]
+   [endophile.core :refer (mp to-clj html-string)]
    [hiccup.core :refer (html)]
-   [schema.core :as s]))
+   [schema.core :as s]
+   [clj-time.coerce :refer (to-long)]
+   [clj-time.format :refer (parse unparse formatter)
+                    :rename {parse parse-date
+                             unparse unparse-date
+                             formatter date-format}]))
+
+
 
 (defn path-for [router target & args]
   (apply bidi/path-for (:routes @router) target args))
 
+(defn static-path [router resources]
+  ; ask bidi to determine the static context where public resources are mounted
+  (path-for router (:target resources)))
+
 (defn page [{:keys [templater router resources title]} content-template data req]
-  (let [static ; ask bidi to determine the static context where public resources are mounted
-        (path-for router (:target resources))]
+  (let [static (static-path router resources)]
     (response
      (render-template
       templater
@@ -30,68 +39,84 @@
       {:brand-title title
        :title (:title data)
        :static static
-       :links {:about (path-for router ::about)
-               :contact (path-for router ::contact)}
+       :links {:about (path-for router ::about)}
        :home (path-for router ::index) ; href to home page
        :content (render-template templater
                                  (str "templates/" content-template)
                                  (assoc data :static static))}))))
 
-(defn get-post [post router]
+(defn process-html [router resources s]
+  (let [static (static-path router resources)]
+    (clojure.walk/postwalk
+     (fn [x]
+       (cond
+         (= :img (:tag x)) (update-in x [:attrs :src] #(str static %))
+         :else x)) s)))
+
+(defn get-post [post router resources]
+  "Get the data associated with a post, including a delayed
+  body (as :body). Router can be nil, for testing, but will result in
+  nil hrefs being generated"
   (let [regex #"(\w+):\s+(.*)"
-        extract-meta (fn [s]
-                       (into {}
-                             (keep (fn [line]
-                                     (when-let [[_ k v]
-                                                (re-matches regex line)]
-                                       [(keyword (.toLowerCase k)) v]))
-                                   s)))]
+        extract-meta
+        (fn [s]
+          (->> s
+            (keep (fn [line]
+                        (when-let [[_ k v]
+                                   (re-matches regex line)]
+                          (let [k (keyword (.toLowerCase k))]
+                            [k ((case k :date parse-date identity) v)]))))
+            (into {})))]
     (let [doc (group-by #(some? (re-matches regex %)) (line-seq (io/reader (io/file "posts" (str post ".md")))))]
       (merge
        (extract-meta (get doc true))
-       {:href (path-for router ::post :post post)
+       {:href (when router (path-for router ::post :post post))
         :body (->> (get doc false)
                 (interpose \newline)
-                (apply str) mp to-hiccup html delay)}))))
+                (apply str) mp to-clj (process-html router resources) html-string delay)}))))
 
-(defn get-posts [router]
-  (for [f (.listFiles (io/file "posts"))
-        :let [name (second (re-matches #"(.*).md" (.getName f)))]]
-    (get-post name router)))
+(defn get-posts [router resources]
+  (sort-by (comp to-long :date) >
+           (for [f (.listFiles (io/file "posts"))
+                 :let [post (second (re-matches #"(.*).md" (.getName f)))]]
+             (get-post post router resources))))
 
-(defn index [this req]
+(defn format-date [s]
+  (when s
+    (unparse-date (date-format "EEEE, d MMMM, y") s)))
+
+(defn index [{:keys [title subtitle router resources] :as this} req]
   (page this "index.html.mustache"
-        {:title (:title this)
-         :subtitle (:subtitle this)
-         :posts (get-posts (:router this))}
+        {:title title
+         :subtitle subtitle
+         :posts (map #(update-in % [:date] format-date)
+                     (get-posts router resources))}
         req))
 
-(defn post [this req]
-  (page this "post.html.mustache"
-        (-> (get-post (-> req :route-params :post)
-                      (:router this))
-          (update-in [:body] deref))
-        req))
+(defn post [{:keys [router resources] :as this} req]
+  (let [post (get-post (-> req :route-params :post)
+                       router resources)]
+    (page this "post.html.mustache"
+          (-> post
+            (update-in [:body] deref)
+            (update-in [:date] format-date))
+          req)))
 
 (defrecord Website [title subtitle templater router resources cljs-builder]
-
   ;; modular.bidi provides a router which dispatches to routes provided
   ;; by components that satisfy its WebService protocol
-
   WebService
   (request-handlers [this]
     ;; Return a map between some keywords and their associated Ring
     ;; handlers
     {::index (fn [req] (index this req))
      ::about (fn [req] (page this "about.html.mustache" {} req))
-     ::contact (fn [req] (page this "contact.html.mustache" {} req))
      ::post (fn [req] (post this req))})
 
   ;; All paths lead to the dashboard
   (routes [_] ["" [["/index.html" ::index]
                    [["/posts/" :post ".html"] ::post]
                    ["/about.html" ::about]
-                   ["/contact.html" ::contact]
                    [(bidi/alts "/foo" "" "/") (redirect ::index)]]])
 
   ;; A WebService can be 'mounted' underneath a common uri context

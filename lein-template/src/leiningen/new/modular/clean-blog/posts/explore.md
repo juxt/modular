@@ -1,5 +1,6 @@
 Title: Man must explore, and this is exploration at its greatest
 Subtitle: Problems look mighty small from 150 miles up
+Date: 2014-11-10
 
 Never in all their history have men been able truly to conceive of the
 world as one: a single sphere, a globe, having the qualities of a globe,

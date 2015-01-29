@@ -29,16 +29,18 @@
                   {{subtitle}}
                 </h3>
               </a>
-              <p class="post-meta">Posted by <a href="#">Start Bootstrap</a> on September 24, 2014</p>
+              {{date?}}<p class="post-meta">Posted by <a href="#">Start Bootstrap</a> on {{date}}</p>{{/date}}
             </div>
             <hr>
             {{/posts}}
             <!-- Pager -->
+<!-- not currently suported
             <ul class="pager">
               <li class="next">
                 <a href="#">Older Posts &rarr;</a>
               </li>
             </ul>
+-->
           </div>
         </div>
       </div>
