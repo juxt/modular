@@ -62,19 +62,17 @@
   (let [regex #"(\w+):\s+(.*)"
         extract-meta
         (fn [s]
-          (let [res
-                (->> s
-                  (keep (fn [line]
-                          (when-let [[_ k v]
-                                     (re-matches regex line)]
-                            (let [k (keyword (.toLowerCase k))]
-                              [k ((case k :date parse-date identity) v)]))))
-                  (into {}))]
-            (pprint res)
-            res))]
+          (->> s
+            (keep (fn [line]
+                    (when-let [[_ k v]
+                               (re-matches regex line)]
+                      (let [k (keyword (.toLowerCase k))]
+                        [k ((case k :date parse-date identity) v)]))))
+            (into {})))]
     (let [doc (group-by #(some? (re-matches regex %)) (line-seq (io/reader (io/file "posts" (str post ".md")))))]
       (let [{:keys [author date] :as meta} (extract-meta (get doc true))]
         (merge
+         {:title "" :subtitle ""} ; blank out similar keys in main document
          meta
          (when (or author date)
            {:attribution (format "Posted%s%s"

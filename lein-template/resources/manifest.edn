@@ -425,6 +425,7 @@
    :library-dependencies [[clj-time "0.9.0"]]
    :files [
            {:template "clean-blog/website.clj" :target "src/{{sanitized}}/website.clj"}
+           {:template "clean-blog/generate.clj" :target "src/{{sanitized}}/generate.clj"}
            {:template "clean-blog/posts/explore.md" :target "posts/explore.md"}
            {:template "clean-blog/posts/failure.md" :target "posts/failure.md"}
            {:template "clean-blog/posts/human.md" :target "posts/human.md"}
