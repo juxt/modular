@@ -411,20 +411,20 @@
    :docstring "A redirect component is added which ensures that / will
    redirect to the blog index. Remove this component (and this
    docstring) if you don't want this."
-   :components {:website
-                {:constructor {{name}}.website/new-website
+   :components {:pages
+                {:constructor {{name}}.pages/new-pages
                  :args [:title "My blog"
                         :subtitle "Musings on adventures in the amazing world of Clojure"]}
                 :redirect
                 {:component :modular.bidi/redirect
-                 :args [:to  :{{name}}.website/index]}}
-   :dependencies {[:modular-bidi-router :webrouter] [:website :redirect]
-                  :website {:templater [:clostache-templater :templater]
+                 :args [:to  :{{name}}.pages/index]}}
+   :dependencies {[:modular-bidi-router :webrouter] [:pages :redirect]
+                  :pages {:templater [:clostache-templater :templater]
                             :resources [:clean-blog-resources :static]}}
-   :co-dependencies {:website {:router [:modular-bidi-router :webrouter]}}
+   :co-dependencies {:pages {:router [:modular-bidi-router :webrouter]}}
    :library-dependencies [[clj-time "0.9.0"]]
    :files [
-           {:template "clean-blog/website.clj" :target "src/{{sanitized}}/website.clj"}
+           {:template "clean-blog/pages.clj" :target "src/{{sanitized}}/pages.clj"}
            {:template "clean-blog/generate.clj" :target "src/{{sanitized}}/generate.clj"}
            {:template "clean-blog/posts/explore.md" :target "posts/explore.md"}
            {:template "clean-blog/posts/failure.md" :target "posts/failure.md"}

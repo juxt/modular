@@ -1,4 +1,4 @@
-(ns {{name}}.website
+(ns {{name}}.pages
   (:require
    [bidi.bidi :as bidi]
    [bidi.ring :refer (redirect)]
@@ -104,7 +104,7 @@
             (update-in [:body] deref))
           req)))
 
-(defrecord Website [title subtitle templater router resources cljs-builder]
+(defrecord Pages [title subtitle templater router resources cljs-builder]
   ;; modular.bidi provides a router which dispatches to routes provided
   ;; by components that satisfy its WebService protocol
   WebService
@@ -129,12 +129,12 @@
 ;; the construction with parameters, provide defaults and declare
 ;; dependency relationships with other components.
 
-(defn new-website [& {:as opts}]
+(defn new-pages [& {:as opts}]
   (-> (->> opts
         (merge {:title "default title here"
                 :subtitle "default subtitle here"})
         (s/validate {:title s/Str
                      :subtitle s/Str})
-        map->Website)
+        map->Pages)
     (using [:templater :resources])
     (co-using [:router])))
