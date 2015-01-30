@@ -418,7 +418,7 @@
                         :subtitle "Musings on adventures in the amazing world of Clojure"]}
                 :redirect
                 {:component :modular.bidi/redirect
-                 :args [:to  :{{name}}.pages/index]}}
+                 :args [:to :{{name}}.pages/index]}}
    :dependencies {[:modular-bidi-router :webrouter] [:pages :redirect]
                   :pages {:templater [:clostache-templater :templater]
                             :resources [:clean-blog-resources :static]}}
