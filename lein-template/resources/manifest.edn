@@ -208,7 +208,8 @@
 
   {:module :http-listener
    :components
-   {:listener {:component :modular.http-kit/webserver}}}
+   {:listener {:component :modular.http-kit/webserver
+               :args [{:port [:http-server :port]} nil]}}}
 
   {:module :hello-world-website
    :components {:handler

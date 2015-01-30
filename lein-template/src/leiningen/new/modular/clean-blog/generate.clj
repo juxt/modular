@@ -15,7 +15,7 @@
   java.io.File
   (serialize [f] (slurp f))
   sun.net.www.protocol.jar.JarURLConnection$JarURLInputStream
-  (serialize [_] ""))
+  (serialize [i] (slurp i)))
 
 (defn get-links [type body]
   (case type
@@ -56,7 +56,8 @@
 (defn spider [visited request]
   (cond
     (#{".jpg" ".png" ".js"} (get-suffix (:uri request)))
-    [(:uri request)]
+    [{:type :copy
+      :uri (:uri request)}]
 
     :otherwise
     (try
@@ -65,28 +66,59 @@
         (cond
           (redirect? response)
           (conj (spider visited {:uri (get-in response [:headers "Location"])})
-                [:redirect (:uri request)])
+                {:type :redirect
+                 :uri (:uri request)})
 
           (ok? response)
-          (conj
-           (distinct
-            (apply concat
-                   (for [link (set/difference
-                               (set (get-links (get-type (:uri request))
-                                               (serialize (:body response))))
-                               visited)]
-                     (spider visited {:uri link}))))
-           (:uri request))
+          (let [sbody (serialize (:body response))]
+            (conj
+             (distinct
+              (apply concat
+                     (for [link (set/difference
+                                 (set (get-links
+                                       (get-type (:uri request))
+                                       sbody))
+                                 visited)]
+                       (spider visited {:uri link}))))
+             {:type :copy
+              :uri (:uri request)}))
 
           (client-error? response)
-          [[:not-found (:uri request)]]
+          [{:type :not-found :uri (:uri request)}]
 
-          :otherwise [{:unexpected response
+          :otherwise [{:type :unexpected
+                       :respose response
                        :request request}]
           ))
-      (catch Exception e [{:error-with (:uri request)
+      (catch Exception e [{:type :error
+                           :uri (:uri request)
                            :exception e
                            :stack-trace (seq (.getStackTrace e))}]))))
+
+(defmulti action (fn [x destdir] (:type x)))
+
+(defmethod action :redirect [a destdir]
+  (println "redirect - noop"))
+
+(defmethod action :copy [{:keys [uri]} destdir]
+  (try
+    (let [response (*handler* {:uri uri})]
+      (assert (= (:status response)200))
+      (let [outfile (io/file (str destdir uri))
+            data (.getBytes (serialize (:body response)))]
+        (.mkdirs (.getParentFile outfile))
+        (io/copy data outfile)
+        (println (format "Copied %d bytes to %s" (count data) outfile))))
+    (catch Exception e
+      (println "Exception" e " on uri" uri)
+      )))
+
+
+(defn do-actions [actions]
+  (let [destdir (io/file "target/site")]
+    (.mkdirs destdir)
+    (doseq [a actions]
+      (action a destdir))))
 
 (defn -main [& args]
   (eval '(do (require '{{name}}.system)
@@ -102,7 +134,8 @@
              (println "Starting {{name}}")
 
              (let [system (->
-                           ({{name}}.system/new-production-system)
+                           ({{name}}.system/new-production-system
+                            #_{:http-server {:port 3001}})
                            {{^module?.co-dependency}}
                            com.stuartsierra.component/start
                            {{/module?.co-dependency}}
@@ -115,8 +148,8 @@
                (println "Spidering...")
 
                (binding [{{name}}.generate/*handler* (-> system :modular-bidi-router-webrouter modular.ring/request-handler)]
-                 (doseq [path (mapcat (partial {{name}}.generate/spider #{}) [{:uri "/"}])]
-                   (println "> " path)))
+                 ({{name}}.generate/do-actions
+                  (mapcat (partial {{name}}.generate/spider #{}) [{:uri "/"}])))
 
                (println "Stopping {{name}}")
                (com.stuartsierra.component/stop system)

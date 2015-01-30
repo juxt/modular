@@ -89,10 +89,11 @@
 
 (defn new-production-system
   "Create the production system"
-  []
-  (-> (new-system-map (config))
-      (system-using (new-dependency-map))
-      {{#module?.co-dependency}}
-      (system-co-using (new-co-dependency-map))
-      {{/module?.co-dependency}}
-      ))
+  ([opts]
+   (-> (new-system-map (merge (config) opts))
+     (system-using (new-dependency-map))
+     {{#module?.co-dependency}}
+     (system-co-using (new-co-dependency-map))
+     {{/module?.co-dependency}}
+     ))
+  ([] (new-production-system {})))
