@@ -30,6 +30,16 @@ dev> (reset)
 
 Rinse and repeat.
 
+## Generating a static site
+
+You can generate this site to a set of static files with
+
+```
+lein gen
+```
+
+You can then deploy these files to your website. Note, it's [possible to use github to serve static files](https://help.github.com/articles/setting-up-a-custom-domain-with-github-pages/) too.
+
 ## Credits
 
 The blog-site style has been taken from Start Bootstrap: http://startbootstrap.com/template-overviews/clean-blog/
