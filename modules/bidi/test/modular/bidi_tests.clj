@@ -3,7 +3,7 @@
 (ns modular.bidi-tests
   (:require
    [clojure.test :refer :all]
-   [modular.bidi :refer (WebService request-handlers uri-context routes ->ComponentAddressable ->Router)]
+   [modular.bidi :refer (WebService request-handlers uri-context routes ->KeywordToHandler ->Router)]
    [bidi.bidi :as bidi :refer (match-route path-for)]
    [com.stuartsierra.component :as component])
   )
