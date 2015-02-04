@@ -20,6 +20,7 @@ path in the config where the value should be found.
 
 See modular.maker-tests/make-args-test for examples."
   [cfg & args]
+  (assert (= 0 (mod (count args) 2)))
   (apply concat
          (for [[k dv]
                (partition 2 args)]
@@ -28,12 +29,13 @@ See modular.maker-tests/make-args-test for examples."
                                  (associative? k)
                                  (let [path (second (first (seq k)))]
                                    (cond (keyword? path) [path]
-                                         (vector? path) path))))]
+                                         (vector? path) path)))
+                           dv)]
              (cond
-              (and (= dv :modular.maker/required) (nil? v))
+              (and (= dv v :modular.maker/required))
               (throw (ex-info "Configuration value required but couldn't be found" {:key-or-mapping k}))
-              (keyword? k) [k (or v dv)]
-              (associative? k) [(ffirst (seq k)) (or v dv)])))))
+              (keyword? k) [k v]
+              (associative? k) [(ffirst (seq k)) v])))))
 
 (defn make
   "Call the constructor with default keyword arguments, each of which is

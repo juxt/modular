@@ -14,9 +14,14 @@
     (is (= '(:a 2) (make-args {:a 2} :a nil))))
   (testing "Nil selects config"
     (is (= '(:a 2) (make-args {:a 2} :a :required))))
+  (testing "Preservation of Boolean values"
+    (is (= '(:a false :b true) (make-args {:a false :b true} :a nil :b nil))))
   (testing "Exception thrown on required"
     (is (thrown? clojure.lang.ExceptionInfo
                  (make-args {} :a :modular.maker/required))))
+  (testing "Exception thrown on odd number of args"
+    (is (thrown? java.lang.AssertionError
+                 (make-args {} :a))))
   (testing "Mapping with a keyword"
     (is (= '(:a 2) (make-args {:b 2} {:a :b} 1))))
   (testing "Mapping with a vector path"
