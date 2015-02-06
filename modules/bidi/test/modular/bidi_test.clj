@@ -1,9 +1,9 @@
 ;; Copyright © 2014 JUXT LTD.
 
-(ns modular.bidi-tests
+(ns modular.bidi-test
   (:require
    [clojure.test :refer :all]
-   [modular.bidi :refer (WebService request-handlers uri-context routes ->KeywordToHandler ->Router)]
+   [modular.bidi :refer (WebService request-handlers uri-context routes ->KeywordToHandler map->Router)]
    [bidi.bidi :as bidi :refer (match-route path-for)]
    [com.stuartsierra.component :as component])
   )
@@ -26,7 +26,7 @@
           (uri-context [_] "/g"))
 
         system (-> (component/system-map
-                    :router (->Router)
+                    :router (map->Router {})
                     :ws-a component-A
                     :ws-b component-B)
                    (component/system-using
@@ -39,7 +39,7 @@
     (is router)
     (is (:routes router))
 
-    (is (= (match-route routes "/a/123") {:handler "Alpha", :params {:docid "123"}}))
+    (is (= (match-route routes "/a/123") {:handler "Alpha", :route-params {:docid "123"}}))
     (is (= (match-route routes "/b") {:handler "Beta"}))
     (is (= (match-route routes "/g/a") {:handler "Delta"}))
     (is (= (match-route routes "/g/b") {:handler "Gamma"}))
@@ -161,10 +161,4 @@
   (assert (= (path-for (:routes this) [:A :a] :docid "123") "/a/123"))
   (assert (= (path-for (:routes this) [:A :b]) "/b"))
   (assert (= (path-for (:routes this) [:B :a]) "/g/a"))
-  (assert (= (path-for (:routes this) [:B :g]) "/g/g"))
-
-
-
-
-
-  )
+  (assert (= (path-for (:routes this) [:B :g]) "/g/g")))

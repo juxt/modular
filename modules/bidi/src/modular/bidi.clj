@@ -5,15 +5,32 @@
    [schema.core :as s]
    [modular.ring :refer (WebRequestHandler)]
    [com.stuartsierra.component :as component :refer (Lifecycle)]
-   [bidi.bidi :as bidi :refer (match-route resolve-handler)]
+   [bidi.bidi :as bidi :refer (match-route resolve-handler RouteProvider)]
    [bidi.ring :refer (resources-maybe make-handler redirect)]
    [clojure.tools.logging :refer :all]
    [plumbing.core :refer (?>)]))
 
+;; TODO Support bidi route compilation
+(defn as-request-handler
+  "Take a WebService component and return a Ring handler."
+  [service not-found-handler]
+  (assert (or (satisfies? RouteProvider service)))
+  (some-fn
+   (make-handler
+    (cond
+      (satisfies? RouteProvider service)
+      (bidi/routes service)
+
+      #_(satisfies? WebService service)
+      #_[(or (uri-context service) "")
+       (->KeywordToHandler [(routes service)]
+                           (request-handlers service))]))
+   not-found-handler))
+
 ;; I've thought hard about a less enterprisy name for this protocol, but
 ;; components that satisfy it fit most definitions of web
 ;; services. There's an interface (URIs), coupled to an implementation
-;; (via handlers)
+;; (via handlers) - now DEPRECATED in favour of 'bidi.protocols/BidiRoutes'
 (defprotocol WebService
   (request-handlers [_]
     "Return a map, keys (usually namespaced) to Ring handler functions")
@@ -100,18 +117,6 @@
   (unresolve-handler [this m]
     (bidi/unresolve-handler matched m)))
 
-;; TODO Support bidi route compilation
-(defn as-request-handler
-  "Take a WebService component and return a Ring handler."
-  [service not-found-handler]
-  (assert (satisfies? WebService service))
-  (some-fn
-   (make-handler
-    [(or (uri-context service) "")
-     (->KeywordToHandler [(routes service)]
-                         (request-handlers service))])
-   not-found-handler))
-
 ;; -----------------------------------------------------------------------
 
 (defn wrap-capture-component-on-error
@@ -163,19 +168,28 @@
 
       (assoc this
         :handlers handlers
-        :routes ["" (vec (for [[ckey v] this
-                               :when (satisfies? WebService v)]
-                           [(or (uri-context v) "")
-                            ;; We wrap in some bidi middleware which
-                            ;; allows us to form URIs via a
-                            ;; keyword-path: [component-key handler-key]
-                            (->KeywordIndirection [(routes v)] ckey (get handlers ckey) add-exception-context?)]))])))
+        :routes ["" (vec
+                     (remove nil?
+                             (for [[ckey v] this]
+                               (cond
+                                 (satisfies? WebService v)
+                                 [(or (uri-context v) "")
+                                  ;; We wrap in some bidi middleware which
+                                  ;; allows us to form URIs via a
+                                  ;; keyword-path: [component-key handler-key]
+                                  (->KeywordIndirection [(routes v)] ckey (get handlers ckey) add-exception-context?)]
+                                 (satisfies? RouteProvider v)
+                                 (bidi/routes v)
+                                 ))))])))
   (stop [this] this)
 
-  WebService
-  (request-handlers [this] (:handlers this))
+  #_WebService
+  #_(request-handlers [this] (:handlers this))
+  #_(routes [this] (:routes this))
+  #_(uri-context [this] (:uri-context this))
+
+  RouteProvider
   (routes [this] (:routes this))
-  (uri-context [this] (:uri-context this))
 
   WebRequestHandler
   (request-handler [this] (as-request-handler this not-found-handler)))
