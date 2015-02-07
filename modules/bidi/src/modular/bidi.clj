@@ -6,8 +6,7 @@
    [modular.ring :refer (WebRequestHandler)]
    [com.stuartsierra.component :as component :refer (Lifecycle)]
    [bidi.bidi :as bidi :refer (match-route resolve-handler RouteProvider)]
-   [bidi.ring :refer (resources-maybe make-handler redirect)]
-   [clojure.tools.logging :refer :all]))
+   [bidi.ring :refer (resources-maybe make-handler redirect)]))
 
 ;; TODO Support bidi route compilation
 (defn as-request-handler
