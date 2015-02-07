@@ -13,7 +13,7 @@
 (defn as-request-handler
   "Take a WebService component and return a Ring handler."
   [service not-found-handler]
-  (assert (or (satisfies? RouteProvider service)))
+  (assert (satisfies? RouteProvider service))
   (some-fn
    (make-handler
     (cond
