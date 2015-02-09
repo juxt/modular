@@ -8,7 +8,6 @@
   :dependencies [[com.stuartsierra/component "0.2.1"]
                  [bidi "1.18.0"]
                  [juxt.modular/ring "0.5.2"]
-                 [prismatic/schema "0.3.3"]
-                 [prismatic/plumbing "0.3.5"]]
+                 [prismatic/schema "0.3.3"]]
   :profiles {:dev
              {:dependencies [[ring-mock "0.1.5"]]}})
