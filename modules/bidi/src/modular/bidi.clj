@@ -6,8 +6,9 @@
    [modular.ring :refer (WebRequestHandler)]
    [com.stuartsierra.component :as component :refer (Lifecycle)]
    [bidi.bidi :as bidi :refer (match-route resolve-handler RouteProvider)]
-   [bidi.ring :refer (resources-maybe make-handler redirect)]
+   [bidi.ring :refer (resources-maybe make-handler redirect archive)]
    [clojure.tools.logging :refer :all]
+   [clojure.java.io :as io]
    [plumbing.core :refer (?>)]))
 
 ;; TODO Support bidi route compilation
@@ -90,6 +91,24 @@
     (merge {:uri-context "/"})
     (s/validate new-static-resource-service-schema)
     (map->StaticResourceService)))
+
+(defrecord ArchivedResources [archive uri-context resource-prefix]
+  RouteProvider
+  (routes [_] [uri-context (bidi.ring/archive
+                            {:archive archive
+                             :resource-prefix resource-prefix})]))
+
+(def new-archived-resources-schema
+  {:archive (s/protocol clojure.java.io/IOFactory)
+   :uri-context s/Str
+   :resource-prefix s/Str})
+
+(defn new-archived-resources [& {:as opts}]
+  (->> opts
+       (merge {:uri-context "/"
+               :resource-prefix "/"})
+    (s/validate new-archived-resources-schema)
+    (map->ArchivedResources)))
 
 (defrecord Redirect [from to]
   WebService
