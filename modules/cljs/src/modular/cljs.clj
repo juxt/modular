@@ -3,8 +3,8 @@
 (ns modular.cljs
   (:require
    [com.stuartsierra.component :as component]
-   [modular.bidi :refer (WebService)]
    [modular.template :refer (TemplateModel)]
+   [bidi.bidi :refer (handler RouteProvider)]
    [bidi.ring :refer (files)]
    [shadow.cljs.build :as cljs]
    [clojure.java.io :as io]
@@ -83,44 +83,43 @@
    :pretty-print s/Bool
    })
 
-(defrecord ClojureScriptBuilder []
+(defrecord ClojureScriptBuilder [id context target-dir optimizations pretty-print]
   component/Lifecycle
-  (start [this]
-    (let [modules (map get-definition (filter (partial satisfies? ClojureScriptModule) (vals this)))]
+  (start [component]
+    (let [modules (map get-definition (filter (partial satisfies? ClojureScriptModule) (vals component)))]
       (try
-        (compile-cljs (:id this)
-                      modules (select-keys this (keys new-cljs-builder-schema)))
+        (compile-cljs id
+                      modules (select-keys component (keys new-cljs-builder-schema)))
         (cond
-         (and (= (:optimizations this) :none)
-              (= (:pretty-print this) true))
-         ;; Only do this on optimizations: none and pretty-print: true - do
-         ;; something different for each optimization mode (TODO)
-         (assoc this
-           :javascripts
-           (for [n (dep/topo-sort
-                    ;; Build a dependency graph between all the modules so
-                    ;; they load in the correct order.
-                    (reduce (fn [g {:keys [name dependencies]}]
-                              (reduce (fn [g d] (dep/depend g name d)) g dependencies))
-                            (dep/graph) modules))]
-             (str (:context this) (name n) ".js")))
-         :otherwise this)
+          (and (= optimizations :none)
+               (= pretty-print true))
+          ;; Only do this on optimizations: none and pretty-print: true - do
+          ;; something different for each optimization mode (TODO)
+          (assoc component
+                 :javascripts
+                 (for [n (dep/topo-sort
+                          ;; Build a dependency graph between all the modules so
+                          ;; they load in the correct order.
+                          (reduce (fn [g {:keys [name dependencies]}]
+                                    (reduce (fn [g d] (dep/depend g name d)) g dependencies))
+                                  (dep/graph) modules))]
+                   (str context (name n) ".js")))
+          :otherwise component)
         (catch Exception e
           (println "ClojureScript build failed:" e)
-          (assoc this :error e)))))
-  (stop [this] this)
+          (assoc component :error e)))))
+  (stop [component] component)
 
-  WebService
-  (request-handlers [this] {})
-  (routes [this] ["" (files {:dir (:target-dir this)
-                             :mime-types {"map" "application/javascript"}})])
-  (uri-context [this] (:context this))
+  RouteProvider
+  (routes [component]
+    [context (files {:dir target-dir
+                     :mime-types {"map" "application/javascript"}})])
 
   JavaScripts
-  (get-javascript-paths [this] (:javascripts this))
+  (get-javascript-paths [component] (:javascripts component))
 
   TemplateModel
-  (template-model [this _] {:javascripts (get-javascript-paths this)}))
+  (template-model [component _] {:javascripts (get-javascript-paths component)}))
 
 (defn new-cljs-builder [& {:as opts}]
   (->> opts
