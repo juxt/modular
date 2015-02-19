@@ -24,6 +24,10 @@ lein new modular my-website bootstrap-cover
 
 Full documentation can be found on at [modularity.org](http://modularity.org).
 
+## Mailing list
+
+Announcements and discussions about modular take place on the [modularity list](https://groups.google.com/forum/?hl=en#!forum/modularity).
+
 ## Copyright & License
 
 The MIT License (MIT)
