@@ -1,35 +1,28 @@
 (ns {{name}}.pages
   (:require
-   [bidi.bidi :as bidi]
+   [bidi.bidi :as bidi :refer (handler RouteProvider)]
    [bidi.ring :refer (redirect)]
-   [clojure.pprint :refer (pprint)]
-   [clojure.tools.logging :refer :all]
-   [clojure.java.io :as io]
-   [clojure.string :as string]
-   [com.stuartsierra.component :refer (using)]
-   [modular.bidi :refer (WebService as-request-handler)]
-   [modular.ring :refer (WebRequestHandler)]
-   [modular.template :refer (render-template template-model)]
-   [ring.util.response :refer (response)]
-   [tangrammer.component.co-dependency :refer (co-using)]
-   [endophile.core :refer (mp to-clj html-string)]
-   [hiccup.core :refer (html)]
-   [schema.core :as s]
    [clj-time.coerce :refer (to-long)]
    [clj-time.format :refer (parse unparse formatter)
                     :rename {parse parse-date
                              unparse unparse-date
-                             formatter date-format}]))
+                             formatter date-format}]
+   [clojure.java.io :as io]
+   [clojure.pprint :refer (pprint)]
+   [clojure.string :as string]
+   [clojure.tools.logging :refer :all]
+   [com.stuartsierra.component :refer (using)]
+   [endophile.core :refer (mp to-clj html-string)]
+   [hiccup.core :refer (html)]
+   [modular.bidi :refer (as-request-handler path-for)]
+   [modular.ring :refer (WebRequestHandler)]
+   [modular.template :refer (render-template template-model)]
+   [ring.util.response :refer (response)]
+   [schema.core :as s]
+   [tangrammer.component.co-dependency :refer (co-using)]))
 
-(defn path-for [router target & args]
-  (apply bidi/path-for (:routes @router) target args))
-
-(defn static-path [router resources]
-  ; ask bidi to determine the static context where public resources are mounted
-  (path-for router (:target resources)))
-
-(defn page [{:keys [templater router resources title]} content-template data req]
-  (let [static (static-path router resources)]
+(defn page [{:keys [templater router title]} content-template data req]
+  (let [static (path-for @router :web-resources)]
     (response
      (render-template
       templater
@@ -37,14 +30,14 @@
       {:brand-title title
        :title (:title data)
        :static static
-       :links {:about (path-for router ::about)}
-       :home (path-for router ::index) ; href to home page
+       :links {:about (path-for @router ::about)}
+       :home (path-for @router ::index) ; href to home page
        :content (render-template templater
                                  (str "templates/" content-template)
                                  (assoc data :static static))}))))
 
-(defn process-html [router resources s]
-  (let [static (static-path router resources)]
+(defn process-html [router s]
+  (let [static (path-for @router :web-resources)]
     (clojure.walk/postwalk
      (fn [x]
        (cond
@@ -55,7 +48,7 @@
   (when s
     (unparse-date (date-format "EEEE, d MMMM, y") s)))
 
-(defn get-post [post router resources]
+(defn get-post [post router]
   "Get the data associated with a post, including a delayed
   body (as :body). Router can be nil, for testing, but will result in
   nil hrefs being generated"
@@ -78,51 +71,49 @@
            {:attribution (format "Posted%s%s"
                                  (if author (format " by %s" author) "")
                                  (if date (format " on %s" (format-date date)) ""))})
-         {:href (when router (path-for router ::post :post post))
+         {:href (when router (path-for @router ::post :post post))
           :body (->> (get doc false)
                   (interpose \newline)
-                  (apply str) mp to-clj (process-html router resources) html-string delay)})))))
+                  (apply str) mp to-clj (process-html router) html-string delay)})))))
 
-(defn get-posts [router resources]
+(defn get-posts [router]
   (sort-by (comp (fnil to-long 0) :date) >
            (for [f (.listFiles (io/file "posts"))
                  :let [post (second (re-matches #"(.*).md" (.getName f)))]]
-             (get-post post router resources))))
+             (get-post post router))))
 
-(defn index [{:keys [title subtitle router resources] :as this} req]
+(defn index [{:keys [title subtitle router] :as this} req]
   (page this "index.html.mustache"
         {:title title
          :subtitle subtitle
-         :posts (get-posts router resources)}
+         :posts (get-posts router)}
         req))
 
-(defn post [{:keys [router resources] :as this} req]
-  (let [post (get-post (-> req :route-params :post)
-                       router resources)]
+(defn post [{:keys [router] :as this} req]
+  (let [post (get-post (-> req :route-params :post) router)]
     (page this "post.html.mustache"
           (-> post
             (update-in [:body] deref))
           req)))
 
-(defrecord Pages [title subtitle templater router resources cljs-builder]
-  ;; modular.bidi provides a router which dispatches to routes provided
-  ;; by components that satisfy its WebService protocol
-  WebService
-  (request-handlers [this]
-    ;; Return a map between some keywords and their associated Ring
-    ;; handlers
-    {::index (fn [req] (index this req))
-     ::about (fn [req] (page this "about.html.mustache" {} req))
-     ::post (fn [req] (post this req))})
+(defrecord Pages [title subtitle templater router cljs-builder]
+  RouteProvider
+  (routes [component]
+    ["/myblog"
+     [["/index.html"
+       (handler ::index
+                (fn [req] (index component req)))]
 
-  ;; All paths lead to the dashboard
-  (routes [_] ["" [["/index.html" ::index]
-                   [["/posts/" :post ".html"] ::post]
-                   ["/about.html" ::about]
-                   [(bidi/alts "/foo" "" "/") (redirect ::index)]]])
+      [["/posts/" :post ".html"]
+       (handler ::post
+                (fn [req] (post component req)))]
 
-  ;; A WebService can be 'mounted' underneath a common uri context
-  (uri-context [_] "/myblog"))
+      ["/about.html"
+       (handler ::about
+                (fn [req] (page component "about.html.mustache" {} req)))]
+
+      [(bidi/alts "" "/")
+       (redirect ::index)]]]))
 
 ;; While not mandatory, it is common to use a function to construct an
 ;; instance of the component. This affords the opportunity to control
@@ -136,5 +127,5 @@
         (s/validate {:title s/Str
                      :subtitle s/Str})
         map->Pages)
-    (using [:templater :resources])
+    (using [:templater])
     (co-using [:router])))

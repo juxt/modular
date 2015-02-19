@@ -4,11 +4,10 @@
    [clojure.java.io :as io]
    [clojure.pprint :refer (pprint)]
    [clojure.tools.logging :refer :all]
-   [bidi.bidi :refer (path-for)]
+   [bidi.bidi :refer (path-for RouteProvider handler)]
    [bidi.ring :refer (redirect)]
    [com.stuartsierra.component :refer (Lifecycle using)]
    [hiccup.core :as hiccup]
-   [modular.bidi :refer (WebService)]
    [org.httpkit.server :as httpkit]
    [ring.util.response :refer (response redirect-after-post)]
    [ring.middleware.params :refer (params-request)]))
@@ -80,35 +79,23 @@
     (let [ch (chan (buffer 10))]
       ;; Let's create a mult
       (assoc component
-        :channel ch
-        :messages (atom [])
-        :mult (mult ch))))
+             :channel ch
+             :messages (atom [])
+             :mult (mult ch))))
   (stop [component] component)
 
-  ; modular.bidi provides a router which dispatches to routes provided
-  ; by components that satisfy its WebService protocol
-  WebService
-  (request-handlers [component]
-    ;; Return a map between some keywords and their associated Ring
-    ;; handlers
-    {::index index
-     ::show-system (show-system)
-     ::show-chat (show-chat component)
-     ::post (post-to-channel component)
-     ::events (server-event-source (:mult component))})
-
+  RouteProvider
   ;; Return a bidi route structure, mapping routes to keywords defined
   ;; above. This additional level of indirection means we can generate
   ;; hyperlinks from known keywords.
-  (routes [_] ["/" {"index.html" ::index
-                    "" (redirect ::index)
-                    "system.html" ::show-system
-                    "chat.html" ::show-chat
-                    "messages" ::post
-                    "events" ::events}])
-
-  ;; A WebService can be 'mounted' underneath a common uri context
-  (uri-context [_] "/events"))
+  (routes [component]
+    ["/events/"
+     {"index.html" (handler ::index index)
+      "" (redirect ::index)
+      "system.html" (handler ::show-system (show-system))
+      "chat.html" (handler ::show-chat (show-chat component))
+      "messages" (handler ::post (post-to-channel component))
+      "events" (handler ::events (server-event-source (:mult component)))}]))
 
 ;; While not mandatory, it is common to use a function to construct an
 ;; instance of the component. This affords the opportunity to control

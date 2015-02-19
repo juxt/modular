@@ -3,7 +3,6 @@
    [clojure.string :as str]
    [com.stuartsierra.component :refer (using)]
    [modular.menu :refer (MenuItems)]
-   [modular.bidi :refer (WebService)]
    [modular.web-template :refer (dynamic-template-data)]
    [clostache.parser :refer (render-resource)]
    [plumbing.core :refer (<-)]
@@ -11,21 +10,20 @@
    [hiccup.core :refer (html)]))
 
 (defrecord ExamplePage [title content key path]
-  WebService
-  (request-handlers [this]
-    {key (fn [req]
-           {:status 200
-            :body
-            (let [model (dynamic-template-data (:template-model this) req)]
-              (render-resource
-               "templates/page.html.mustache"
-               (assoc model
-                 :content (html [:div.container
-                                 [:div.page-header
-                                  [:h1 title]
-                                  [:p content]]]))))})})
-  (routes [_] ["" {path key}])
-  (uri-context [_] ""))
+  RouteProvider
+  (routes [_]
+    ["" {path (handler key
+                       (fn [req]
+                         {:status 200
+                          :body
+                          (let [model (dynamic-template-data (:template-model this) req)]
+                            (render-resource
+                             "templates/page.html.mustache"
+                             (assoc model
+                                    :content (html [:div.container
+                                                    [:div.page-header
+                                                     [:h1 title]
+                                                     [:p content]]]))))}))}]))
 
 (defn new-example-page [& {:as opts}]
   (->> opts

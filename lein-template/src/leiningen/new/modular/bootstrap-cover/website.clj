@@ -1,12 +1,12 @@
 (ns {{name}}.website
   (:require
-   [bidi.bidi :refer (path-for)]
+   [bidi.bidi :refer (path-for handler RouteProvider)]
    [bidi.ring :refer (redirect)]
    [clojure.pprint :refer (pprint)]
    [clojure.tools.logging :refer :all]
    [com.stuartsierra.component :refer (using)]
    [hiccup.core :as hiccup]
-   [modular.bidi :refer (WebService as-request-handler)]
+   [modular.bidi :refer (as-request-handler)]
    [modular.ring :refer (WebRequestHandler)]
    [modular.template :refer (render-template template-model)]
    [ring.util.response :refer (response)]
@@ -85,26 +85,19 @@
 
 (defrecord Website [templater router]
 
-  ; modular.bidi provides a router which dispatches to routes provided
-  ; by components that satisfy its WebService protocol
-  WebService
-  (request-handlers [this]
-    ;; Return a map between some keywords and their associated Ring
-    ;; handlers
-    {::index (index templater router)
-     ::features (features templater router)
-     ::about (about templater router)})
+  ;; modular.bidi provides a router which dispatches to routes provided
+  ;; by components that satisfy bidi's RouteProvider protocol
+  RouteProvider
 
-  ;; Return a bidi route structure, mapping routes to keywords defined
-  ;; above. This additional level of indirection means we can generate
-  ;; hyperlinks from known keywords.
-  (routes [_] ["/" {"index.html" ::index
-                    "" (redirect ::index)
-                    "features.html" ::features
-                    "about.html" ::about}])
-
-  ;; A WebService can be 'mounted' underneath a common uri context
-  (uri-context [_] ""))
+  ;; Return a bidi route structure, using bidi's handler wrapper to
+  ;; assign keywords to Ring handlers, keywords that can be used in
+  ;; calls to bidi's path-for function.
+  (routes [_]
+    ["/"
+     {"index.html" (handler ::index (index templater router))
+      "" (redirect ::index)
+      "features.html" (handler ::features (features templater router))
+      "about.html" (handler ::about (about templater router))}]))
 
 ;; While not mandatory, it is common to use a function to construct an
 ;; instance of the component. This affords the opportunity to control

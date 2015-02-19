@@ -1,12 +1,12 @@
 (ns {{name}}.website
   (:require
-   [bidi.bidi :refer (path-for)]
+   [bidi.bidi :refer (path-for RouteProvider handler)]
    [bidi.ring :refer (redirect)]
    [clojure.pprint :refer (pprint)]
    [clojure.tools.logging :refer :all]
    [com.stuartsierra.component :refer (using)]
    [hiccup.core :as hiccup]
-   [modular.bidi :refer (WebService as-request-handler)]
+   [modular.bidi :refer (as-request-handler)]
    [modular.ring :refer (WebRequestHandler)]
    [modular.template :refer (render-template template-model)]
    [modular.cljs :refer (get-javascript-paths)]
@@ -24,22 +24,19 @@
 
 (defrecord Website [templater router cljs-builder]
 
-  ; modular.bidi provides a router which dispatches to routes provided
-  ; by components that satisfy its WebService protocol
-  WebService
-  (request-handlers [this]
-    ;; Return a map between some keywords and their associated Ring
-    ;; handlers
-    {::dashboard (fn [req] (page this req))})
+  ;; modular.bidi provides a router which dispatches to routes provided
+  ;; by components that satisfy its RouteProvider protocol
+  RouteProvider
+  (routes [component]
+    ;; All paths lead to the dashboard
+    ["/" [["dashboard/"
+           (handler ::dashboard (fn [req] (page component req)))]
 
-  ;; All paths lead to the dashboard
-  (routes [_] ["/" [["dashboard/" ::dashboard]
-                    ;; You cannot redirect to a target that requires a parameter
-                    [["dashboard/" [#".*" :path]] ::dashboard]
-                    ["" (redirect ::dashboard)]]])
+          ;; You cannot redirect to a target that requires a parameter
+          [["dashboard/" [#".*" :path]]
+           (handler ::dashboard (fn [req] (page component req)))]
 
-  ;; A WebService can be 'mounted' underneath a common uri context
-  (uri-context [_] ""))
+          ["" (redirect ::dashboard)]]]))
 
 ;; While not mandatory, it is common to use a function to construct an
 ;; instance of the component. This affords the opportunity to control

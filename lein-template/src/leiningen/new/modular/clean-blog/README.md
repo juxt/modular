@@ -30,6 +30,44 @@ dev> (reset)
 
 Rinse and repeat.
 
+## Understanding how routes are matched
+
+Unless you change it, the blog index is at `/myblog/index.html`.
+
+You can test what it matches to from the REPL like this:
+
+```
+dev> (pprint (match-route "/myblog/index.html"))
+{:handler ...
+ :id :clean-blog-example.pages/index}
+```
+
+Here we see the `id` of the Ring handler. It is defined in [{{name}}/pages](src/{{sanitized}}/pages.clj).
+
+Near the bottom of this namespace is a record named `Pages`. It satisfies bidi's `RouteProvider` protocol and returns a route structure. The leaves of this route structure and wrapped in bidi's `handler` wrapper, allowing the handlers to be associated with keywords.
+
+You can also find out where these handlers are accessible from the REPL.
+
+```
+dev> (path-for :clean-blog-example.pages/index)
+"/myblog/index.html"
+```
+
+There is a special keywords such as `:web-resources`,
+`:bootstrap-resources` and `:jquery-resources` that are relate to
+collections of static resources. The first corresponds to resources
+under `resources/public`, the others extract resources from
+[webjars](http://www.webjars.org/) that the project depends on.
+
+```
+dev> (path-for :web-resources)
+"/static"
+dev> (path-for :bootstrap-resources)
+"/bootstrap"
+dev> (path-for :jquery-resources)
+"/jquery"
+```
+
 ## Generating a static site
 
 You can generate this site to a set of static files with

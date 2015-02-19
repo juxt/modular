@@ -3,11 +3,11 @@
    [clojure.pprint :refer (pprint)]
    [com.stuartsierra.component :as component]
    [modular.ring :refer (WebRequestHandler)]
-   [modular.bidi :refer (WebService as-request-handler)]
+   [modular.bidi :refer (as-request-handler)]
    [modular.web-template :refer (dynamic-template-data)]
    [hiccup.core :refer (html h)]
-   [bidi.bidi :refer (path-for)]
-   [bidi.ring :refer (->Redirect)]
+   [bidi.bidi :refer (path-for RouteProvider handler)]
+   [bidi.ring :refer (redirect)]
    [clostache.parser :refer (render-resource)]))
 
 (defn home-page
@@ -23,22 +23,19 @@
             (assoc :content (render-resource "templates/home.html.mustache" model)))))}))
 
 ;; Consider the component below. It is defined by defrecord.
-;; It satisfies 2 protocols: modular.bidi.WebService and modular.ring.WebRequestHandler
+;; It satisfies 2 protocols: bidi.RouteProvider and modular.ring.WebRequestHandler
 
-;; To satisfy modular.bidi.WebSerivce a component must provide the following:
-;;   request-handlers: A map between keywords and Ring handlers
-;;   routes: A bidi route structure, where terminals are keywords
-;;              - these keywords correspond to the keys in request-handler-map
-;;   uri-context: Usually an empty string, but acts as a prefix to the route structure
+;; To satisfy bidi.RoutepProvider a component must provide a routes
+;; function, which returns a bidi route structure.
 
-;; The use of keywords is to allow looser coupling between generated
-;; hyperlinks and the request handlers they route to. Every handler can
-;; be targeted by using a keyword in bidi's path-for function. This
-;; eliminates string-munging code that would otherwise be written to
-;; form URIs, with the implicit coupling between this logic and the
-;; route structure that would result. Note it is idiomatic to use
-;; namespaced keywords so that there is less chance of conflict with
-;; other keywords used by other components.
+;; The use of the bidi 'handler' function is to allow looser coupling
+;; between generated hyperlinks and the request handlers they route
+;; to. Every handler can be targeted by using a keyword in bidi's
+;; path-for function. This eliminates string-munging code that would
+;; otherwise be written to form URIs, with the implicit coupling between
+;; this logic and the route structure that would result. Note it is
+;; idiomatic to use namespaced keywords so that there is less chance of
+;; conflict with other keywords used by other components.
 
 ;; By also satisfying the WebRequestHandler protocol, this component can be
 ;; made a direct dependency of a Ring-compatible web server like
@@ -50,14 +47,12 @@
 ;; instance of the component record.
 
 (defrecord Website []
-  WebService
-  (request-handlers [this]
-    {::index (home-page (:template-model this))})
+  RouteProvider
+  (routes [_]
+    ["/" {"index.html"
+          (handler ::index (home-page (:template-model this)))
 
-  (routes [_] ["/" {"index.html" ::index
-                    "" (->Redirect 307 ::index)}])
-
-  (uri-context [_] "")
+          "" (redirect ::index)}])
 
   WebRequestHandler
   (request-handler [this] (as-request-handler this)))

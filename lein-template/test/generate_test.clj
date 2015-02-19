@@ -68,6 +68,8 @@
   (let [name "bidi-hello-world-example"]
     (generate-project name "bidi-hello-world")
 
+    #_(generate-checkout name "/home/malcolm/Dropbox/src/modular/modules/bidi" "modular.bidi")
+
     (testing "project file should exist"
       (is (.exists (io/file (get-tmp-dir) (str name "/project.clj")))))))
 

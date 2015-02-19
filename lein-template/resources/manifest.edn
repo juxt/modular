@@ -10,15 +10,15 @@
    :using [:request-handler]}
 
   {:component :modular.bidi/router
-   :library-dependencies [[juxt.modular/bidi "0.7.3"]]
+   :library-dependencies [[juxt.modular/bidi "0.9.0"]]
    :constructor modular.bidi/new-router}
 
-  {:component :modular.bidi/static-resource-service
-   :library-dependencies [[juxt.modular/bidi "0.7.3"]]
-   :constructor modular.bidi/new-static-resource-service}
+  {:component :modular.bidi/web-resources
+   :library-dependencies [[juxt.modular/bidi "0.9.0"]]
+   :constructor modular.bidi/new-web-resources}
 
   {:component :modular.bidi/redirect
-   :library-dependencies [[juxt.modular/bidi "0.7.3"]]
+   :library-dependencies [[juxt.modular/bidi "0.9.0"]]
    :constructor modular.bidi/new-redirect}
 
   {:component :modular.template/static-template-model
@@ -34,19 +34,19 @@
    :constructor modular.clostache/new-clostache-templater}
 
   {:component :modular.less/compiler
-   :library-dependencies [[juxt.modular/less "0.1.2"]]
+   :library-dependencies [[juxt.modular/less "0.1.3"]]
    :constructor modular.less/new-less-compiler}
 
   {:component :modular.less/bootstrap-compiler
-   :library-dependencies [[juxt.modular/less "0.1.2"]]
+   :library-dependencies [[juxt.modular/less "0.1.3"]]
    :constructor modular.less/new-bootstrap-less-compiler}
 
   {:component :modular.cljs/module
-   :library-dependencies [[juxt.modular/cljs "0.5.4"]]
+   :library-dependencies [[juxt.modular/cljs "0.6.0"]]
    :constructor modular.cljs/new-cljs-module}
 
   {:component :modular.cljs/builder
-   :library-dependencies [[juxt.modular/cljs "0.5.4"]]
+   :library-dependencies [[juxt.modular/cljs "0.6.0"]]
    :constructor modular.cljs/new-cljs-builder}
 
   {:component :modular.async/channel
@@ -54,7 +54,7 @@
    :constructor modular.async/new-channel}
 
   {:component :modular.http-kit-events/event-service
-   :library-dependencies [[juxt.modular/http-kit-events "0.5.4"]]
+   :library-dependencies [[juxt.modular/http-kit-events "0.6.0"]]
    :constructor modular.http-kit.events/new-event-service}
 
   ;; Menus
@@ -133,16 +133,9 @@
   ;; Project-local components
   {:component :website
    :library-dependencies [[hiccup "1.0.5"]
-                          [juxt.modular/bidi "0.7.3"]]
+                          [juxt.modular/bidi "0.9.0"]]
    :constructor {{name}}.website/new-website
    :using [:template-model]}
-
-  #_{:component :{{name}}-cljs
-     :library-dependencies [[juxt.modular/cljs "0.5.3"]]
-     :constructor modular.cljs/new-cljs-module
-     ;; TODO The args should belong to the instance
-     :args [:name :{{name}} :mains ['{{name}}.main] :dependencies #{:cljs-core}]
-     }
 
   #_{:component :example-page
      :constructor {{name}}.example-page/new-example-page
@@ -187,8 +180,8 @@
 
    ;; temporary, while bidi is in checkouts, to allow for (reset)
    :library-dependencies [[org.clojure/clojure "1.7.0-alpha4"]
-                          [org.clojure/tools.reader "0.8.9"]
-                          [prismatic/schema "0.3.3"]
+                          [org.clojure/tools.reader "0.8.13"]
+                          [prismatic/schema "0.3.5"]
                           [prismatic/plumbing "0.3.5"]
                           [juxt.modular/maker "0.5.0"]
                           [juxt.modular/wire-up "0.5.0"]]
@@ -222,7 +215,7 @@
    :components {:webrouter
                 {:component :modular.bidi/router}}
    :dependencies {[:http-listener :listener] {:request-handler :webrouter}}
-   :dev-refers [bidi.bidi/match-route bidi.bidi/path-for]
+   :dev-refers []
    :dev-snippets [{:template "dev/routes.clj"}]}
 
   {:module :simple-bidi-website
@@ -251,8 +244,9 @@
 
   {:module :public-resources
    :components {:public-resources
-                {:component :modular.bidi/static-resource-service
-                 :args [:uri-context "/static" :resource-prefix "public"]}}
+                {:component :modular.bidi/web-resources
+                 :args [:uri-context "/static"
+                        :resource-prefix "public"]}}
    :dependencies {[:modular-bidi-router :webrouter] [:public-resources]}}
 
   {:module :templated-bidi-website
@@ -291,8 +285,10 @@
    resources from a web-jar."
    :library-dependencies [[org.webjars/bootstrap "3.3.0"]]
    :components {:service
-                {:component :modular.bidi/static-resource-service
-                 :args [:uri-context "/bootstrap" :resource-prefix "META-INF/resources/webjars/bootstrap/3.3.0"]}}
+                {:component :modular.bidi/web-resources
+                 :args [:uri-context "/bootstrap"
+                        :resource-prefix "META-INF/resources/webjars/bootstrap/3.3.0"
+                        :key :bootstrap-resources]}}
    :dependencies {[:modular-bidi-router :webrouter] {:twitter-bootstrap :service}}}
 
   {:module :bootstrap-cover-resources
@@ -301,9 +297,9 @@
 
   {:module :dashboard-resources
    :components {:static
-                {:component :modular.bidi/static-resource-service
-                 :args [:uri-context "/" :resource-prefix "public/"]}
-                }
+                {:component :modular.bidi/web-resources
+                 :args [:uri-context "/static/"
+                        :resource-prefix "public/"]}}
    :dependencies {[:modular-bidi-router :webrouter] [:static]}
    :files [{:template "dashboard/dashboard.html.mustache"
             :target "resources/templates/dashboard.html.mustache"}
@@ -339,16 +335,20 @@
    :docstring "Serve JQuery resources from a web-jar."
    :library-dependencies [[org.webjars/jquery "2.1.0"]]
    :components {:resources
-                {:component :modular.bidi/static-resource-service
-                 :args [:uri-context "/jquery" :resource-prefix "META-INF/resources/webjars/jquery/2.1.0"]}}
+                {:component :modular.bidi/web-resources
+                 :args [:uri-context "/jquery"
+                        :resource-prefix "META-INF/resources/webjars/jquery/2.1.0"
+                        :key :jquery-resources]}}
    :dependencies {[:modular-bidi-router :webrouter] {:jquery :resources}}}
 
   {:module :reactjs
    :docstring "Serve Facebook React resources from a web-jar."
    :library-dependencies [[org.webjars/react "0.11.1"]]
    :components {:resources
-                {:component :modular.bidi/static-resource-service
-                 :args [:uri-context "/reactjs" :resource-prefix "META-INF/resources/webjars/react/0.11.1"]}}
+                {:component :modular.bidi/web-resources
+                 :args [:uri-context "/reactjs"
+                        :resource-prefix "META-INF/resources/webjars/react/0.11.1"
+                        :key :react-resources]}}
    :dependencies {[:modular-bidi-router :webrouter] {:reactjs :resources}}}
 
   #_{:module :sse-demo-mult-channel
@@ -393,8 +393,9 @@
 
   {:module :clean-blog-resources
    :components {:static
-                {:component :modular.bidi/static-resource-service
-                 :args [:uri-context "/static/" :resource-prefix "public/"]}
+                {:component :modular.bidi/web-resources
+                 :args [:uri-context "/static"
+                        :resource-prefix "public/"]}
                 }
    :dependencies {[:modular-bidi-router :webrouter] [:static]}
    :files [{:file "clean-blog/less/clean-blog.less" :target "resources/less/clean-blog.less"}
@@ -420,8 +421,7 @@
                 {:component :modular.bidi/redirect
                  :args [:to :{{name}}.pages/index]}}
    :dependencies {[:modular-bidi-router :webrouter] [:pages :redirect]
-                  :pages {:templater [:clostache-templater :templater]
-                            :resources [:clean-blog-resources :static]}}
+                  :pages {:templater [:clostache-templater :templater]}}
    :co-dependencies {:pages {:router [:modular-bidi-router :webrouter]}}
    :library-dependencies [[clj-time "0.9.0"]]
    :files [
