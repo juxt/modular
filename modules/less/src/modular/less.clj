@@ -2,11 +2,11 @@
 
 (ns modular.less
   (:require
+   [bidi.bidi :refer (RouteProvider handler)]
    [com.stuartsierra.component :refer (Lifecycle)]
    [schema.core :as s]
    [clj-less.less :refer (run-compiler)]
    [clojure.java.io :as io]
-   [modular.bidi :refer (WebService)]
    [ring.util.response :refer (file-response content-type)]))
 
 (defn source->target [path]
@@ -20,29 +20,27 @@
 
 (defrecord LessCompiler [uri-context source-dir source-path target-dir target-path]
   Lifecycle
-  (start [this]
+  (start [component]
     (let [target-path (or target-path (source->target source-path))
           target (io/file target-dir target-path)]
       (when (stale? source-dir target)
-        (run-compiler (assoc this
-                             :source-path (str source-path)
-                             :target-path (str target)
-                             )))
-      (assoc this :target target :target-path target-path)))
+        (run-compiler
+         (assoc component
+                :source-path (str source-path)
+                :target-path (str target))))
+      (assoc component :target target :target-path target-path)))
+  (stop [component] component)
 
-  (stop [this] this)
-
-  WebService
-  (request-handlers [_] {})
-
-  (routes [this]
-    ["/" [[(:target-path this)
-           (fn [_]
-             (-> (:target this)
-               str file-response
-               (content-type "text/css")))]]])
-
-  (uri-context [_] uri-context))
+  RouteProvider
+  (routes [component]
+    [(if (.endsWith uri-context "/")
+       uri-context
+       (str uri-context "/"))
+     [[(:target-path component)
+       (fn [_]
+         (-> (:target component)
+             str file-response
+             (content-type "text/css")))]]]))
 
 (def default-src-dir "src/less")
 
@@ -68,40 +66,38 @@
 
 (defrecord CustomBootstrapLessCompiler [version resource-dir target-path]
   Lifecycle
-  (start [this]
+  (start [component]
     (io/file resource-dir)
     (let [custom (let [fl (io/file resource-dir "custom-bootstrap.less")]
                    (when (and (.exists fl) (.isFile fl))
                      fl))
-          this
+          component
           (cond->
-           this
-           true (assoc :source-path
-                  (or custom
-                      (str (io/resource (format "META-INF/resources/webjars/bootstrap/%s/less/bootstrap.less" version)))))
-           custom (assoc :loader
-                    (fn [x]
-                      (println "Loading" x)
-                      (slurp
-                       (if-let [bootstrap-path (second (re-matches #"/bootstrap/(.*)" x))]
-                         (let [res-path (format "META-INF/resources/webjars/bootstrap/%s/%s" version bootstrap-path)]
-                           (io/resource res-path))
-                         x)))))]
+              component
+            true (assoc :source-path
+                        (or custom
+                            (str (io/resource (format "META-INF/resources/webjars/bootstrap/%s/less/bootstrap.less" version)))))
+            custom (assoc :loader
+                          (fn [x]
+                            (println "Loading" x)
+                            (slurp
+                             (if-let [bootstrap-path (second (re-matches #"/bootstrap/(.*)" x))]
+                               (let [res-path (format "META-INF/resources/webjars/bootstrap/%s/%s" version bootstrap-path)]
+                                 (io/resource res-path))
+                               x)))))]
       (if (stale? resource-dir target-path)
         (do
           (println "Compiling bootstrap less files")
-          (run-compiler this))
+          (run-compiler component))
         (println "No bootstrap less compilation necessary"))
-      this))
-  (stop [this] this)
+      component))
+  (stop [component] component)
 
-  WebService
-  (request-handlers [_]
-    {::bootstrap-css (fn [_] (file-response target-path))})
+  RouteProvider
   (routes [_]
-    ["/" {"css/bootstrap.css" ::bootstrap-css}])
-  (uri-context [_]
-    "/custom-bootstrap"))
+    ["/custom-bootstrap/"
+     {"css/bootstrap.css"
+      (handler ::bootstrap-css (fn [_] (file-response target-path)))}]))
 
 (defn new-bootstrap-less-compiler
   "A constructor returning a configured Less compiler for Twitter Bootstrap resources"
