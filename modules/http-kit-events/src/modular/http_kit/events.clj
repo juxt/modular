@@ -2,10 +2,10 @@
 
 (ns modular.http-kit.events
   (:require
+   [bidi.bidi :refer (RouteProvider handler)]
    [clojure.core.async :as async :refer (go <! go-loop)]
    [com.stuartsierra.component :as component]
    [modular.async :refer (channel)]
-   [modular.bidi :refer (WebService)]
    [org.httpkit.server :refer (with-channel send! on-close)]
    [schema.core :as s]))
 
@@ -33,10 +33,9 @@
               (recur))))))))
 
 (defrecord EventService [channel-provider]
-  WebService
-  (request-handlers [this] {::events (server-event-source (channel channel-provider))})
-  (routes [_] ["" ::events])
-  (uri-context [_] "/events"))
+  RouteProvider
+  (routes [_]
+    ["/events" (handler ::events (server-event-source (channel channel-provider)))]))
 
 (defn new-event-service [& {:as opts}]
   (component/using
