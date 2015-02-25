@@ -107,18 +107,18 @@
   ([name app-template & args]
 
    (let [augment-by (->> args
-                      (keep (partial re-matches #"\+(.*)") )
-                      (map second)    ; take the grouping
-                      (map #(split % #"/"))
-                      (map (partial apply keyword))
-                      set)
+                         (keep (partial re-matches #"\+(.*)") )
+                         (map second)   ; take the grouping
+                         (map #(split % #"/"))
+                         (map (partial apply keyword))
+                         set)
 
          diminish-by (->> args
-                       (keep (partial re-matches #"\-(.*)") )
-                       (map second)   ; take the grouping
-                       (map #(split % #"/"))
-                       (map (partial apply keyword))
-                       set)
+                          (keep (partial re-matches #"\-(.*)") )
+                          (map second)  ; take the grouping
+                          (map #(split % #"/"))
+                          (map (partial apply keyword))
+                          set)
 
          manifest (load-manifest (io/resource "manifest.edn") name)
 
@@ -139,13 +139,13 @@
                              (mapcat :components) vals set)
 
          components (->> manifest
-                      :components
-                      (filter (comp component-keys :component)))
+                         :components
+                         (filter (comp component-keys :component)))
 
          components-by-id (->> manifest
-                            :components
-                            (map (juxt :component identity))
-                            (into {}))
+                               :components
+                               (map (juxt :component identity))
+                               (into {}))
 
          modules (for [a (->> manifest :modules (filter select-module?))]
                    (merge a
@@ -224,37 +224,37 @@
                ;; these can be resolved later
                :library-dependencies
                (->>
-                   (for [module modules
-                         ;; this conj ensures module-level library dependencies are included
-                         c (conj (:components module) module)
-                         dep (:library-dependencies c)]
-                     dep)
-                 sort distinct)
+                (for [module modules
+                      ;; this conj ensures module-level library dependencies are included
+                      c (conj (:components module) module)
+                      dep (:library-dependencies c)]
+                  dep)
+                sort distinct)
 
                :refers
                (->>
-                   (for [module modules
-                         c (:components module)
-                         refer (:refers c)]
-                     refer)
-                 sort distinct
-                 (group-by (comp symbol namespace))
-                 (reduce-kv
-                  (fn [a k v] (conj a {:namespace k
-                                       :refers (apply str (interpose " " (distinct (map (comp clojure.core/name) v))))}))
-                  []))
+                (for [module modules
+                      c (:components module)
+                      refer (:refers c)]
+                  refer)
+                sort distinct
+                (group-by (comp symbol namespace))
+                (reduce-kv
+                 (fn [a k v] (conj a {:namespace k
+                                      :refers (apply str (interpose " " (distinct (map (comp clojure.core/name) v))))}))
+                 []))
 
                :dev-refers
                (->>
-                   (for [module modules
-                         refer (:dev-refers module)]
-                     refer)
-                 sort distinct
-                 (group-by (comp symbol namespace))
-                 (reduce-kv
-                  (fn [a k v] (conj a {:namespace k
-                                       :refers (apply str (interpose " " (distinct (map (comp clojure.core/name) v))))}))
-                  []))
+                (for [module modules
+                      refer (:dev-refers module)]
+                  refer)
+                sort distinct
+                (group-by (comp symbol namespace))
+                (reduce-kv
+                 (fn [a k v] (conj a {:namespace k
+                                      :refers (apply str (interpose " " (distinct (map (comp clojure.core/name) v))))}))
+                 []))
 
                :dev-snippets
                (apply str
@@ -268,36 +268,36 @@
 
                :dependencies
                (->>
-                   (for [m modules
-                         :let [mkey #(if (keyword? %) (make-key (:module m) %)
-                                         (apply make-key %))]
+                (for [m modules
+                      :let [mkey #(if (keyword? %) (make-key (:module m) %)
+                                      (apply make-key %))]
 
-                         [k v] (:dependencies m)
-                         [n v] (ensure-map v)
-                         ]
-                     [(mkey k) [n (mkey v)]])
-                 ;; This call to 'first' should actually check to ensure
-                 ;; there aren't multiple entries, if there are it means
-                 ;; we have a conflict - more than one dependency is trying to bind
-                 (gbf #(into {} (gbf first %)))
-                 (into {})
-                 )
+                      [k v] (:dependencies m)
+                      [n v] (ensure-map v)
+                      ]
+                  [(mkey k) [n (mkey v)]])
+                ;; This call to 'first' should actually check to ensure
+                ;; there aren't multiple entries, if there are it means
+                ;; we have a conflict - more than one dependency is trying to bind
+                (gbf #(into {} (gbf first %)))
+                (into {})
+                )
 
                :co-dependencies
                (->>
-                   (for [m modules
-                         :let [mkey #(if (keyword? %) (make-key (:module m) %)
-                                         (apply make-key %))]
+                (for [m modules
+                      :let [mkey #(if (keyword? %) (make-key (:module m) %)
+                                      (apply make-key %))]
 
-                         [k v] (:co-dependencies m)
-                         [n v] (ensure-map v)
-                         ]
-                     [(mkey k) [n (mkey v)]])
-                 ;; This call to 'first' should actually check to ensure
-                 ;; there aren't multiple entries, if there are it means
-                 ;; we have a conflict - more than one dependency is trying to bind
-                 (gbf #(into {} (gbf first %)))
-                 (into {}))
+                      [k v] (:co-dependencies m)
+                      [n v] (ensure-map v)
+                      ]
+                  [(mkey k) [n (mkey v)]])
+                ;; This call to 'first' should actually check to ensure
+                ;; there aren't multiple entries, if there are it means
+                ;; we have a conflict - more than one dependency is trying to bind
+                (gbf #(into {} (gbf first %)))
+                (into {}))
 
                :files (concat (get-in manifest [:application-templates app-template :files] [])
                               (mapcat :files modules))}]
