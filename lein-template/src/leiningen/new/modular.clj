@@ -122,6 +122,10 @@
 
          manifest (load-manifest (io/resource "manifest.edn") name)
 
+         _ (when-not (get-in manifest [:application-templates app-template :modules])
+             (throw (ex-info (format "No such template: %s" app-template)
+                             {:template app-template})))
+
          select-module?
          (fn [{:keys [module]}]
            (when-let [includes
