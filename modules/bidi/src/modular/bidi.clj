@@ -5,26 +5,33 @@
    [schema.core :as s]
    [modular.ring :refer (WebRequestHandler)]
    [com.stuartsierra.component :as component :refer (Lifecycle)]
-   [bidi.bidi :as bidi :refer (match-route resolve-handler RouteProvider handler)]
+   [bidi.bidi :as bidi :refer (match-route resolve-handler RouteProvider tag)]
    [bidi.ring :refer (resources-maybe make-handler redirect archive)]
    [clojure.tools.logging :refer :all]
    [clojure.java.io :as io]))
 
-(defrecord WebResources [uri-context resource-prefix key]
+(defrecord WebResources [uri-context resource-prefix key maybe?]
   RouteProvider
   (routes [_]
-    [uri-context (handler key (bidi.ring/resources {:prefix resource-prefix}))]))
+    [uri-context
+     (-> ((if maybe?
+            bidi.ring/resources-maybe
+            bidi.ring/resources)
+          {:prefix resource-prefix})
+         (tag key))]))
 
 (def new-web-resources-schema
   {:uri-context s/Str
    :resource-prefix s/Str
-   :key s/Keyword})
+   :key s/Keyword
+   :maybe? s/Bool})
 
 (defn new-web-resources [& {:as opts}]
   (->> opts
        (merge {:uri-context "/"
                :resource-prefix ""
-               :key :web-resources})
+               :key :web-resources
+               :maybe? true})
     (s/validate new-web-resources-schema)
     (map->WebResources)))
 
