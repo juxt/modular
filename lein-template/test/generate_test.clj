@@ -112,3 +112,10 @@
     (generate-project name "clean-blog")
     (testing "project file should exist"
       (is (.exists (io/file (get-tmp-dir) (str name "/project.clj")))))))
+
+(deftest protected-site-tests
+  (let [name "protected-site-example"]
+    (generate-project name "protected-site")
+    (generate-checkout name "/home/malcolm/Dropbox/src/cylon" "cylon")
+    (testing "project file should exist"
+      (is (.exists (io/file (get-tmp-dir) (str name "/project.clj")))))))

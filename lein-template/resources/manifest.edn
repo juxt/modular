@@ -10,15 +10,15 @@
    :using [:request-handler]}
 
   {:component :modular.bidi/router
-   :library-dependencies [[juxt.modular/bidi "0.9.0"]]
+   :library-dependencies [[juxt.modular/bidi "0.9.1"]]
    :constructor modular.bidi/new-router}
 
   {:component :modular.bidi/web-resources
-   :library-dependencies [[juxt.modular/bidi "0.9.0"]]
+   :library-dependencies [[juxt.modular/bidi "0.9.1"]]
    :constructor modular.bidi/new-web-resources}
 
   {:component :modular.bidi/redirect
-   :library-dependencies [[juxt.modular/bidi "0.9.0"]]
+   :library-dependencies [[juxt.modular/bidi "0.9.1"]]
    :constructor modular.bidi/new-redirect}
 
   {:component :modular.template/static-template-model
@@ -67,10 +67,48 @@
      :constructor modular.bootstrap.menu/new-bootstrap-menu}
 
   ;; Security components
-  #_{:component :cylon/login-form
-     :library-dependencies [[cylon "0.5.0-20141014.130020-17"]]
-     :constructor cylon.impl.authentication/new-authentication-login-form
-     }
+  {:component :cylon/file-backed-user-store
+   :library-dependencies [[cylon "0.6.0-SNAPSHOT"]
+                          ;; temp while in checkouts
+                          [cheshire "5.3.1"]
+                          ]
+   :constructor cylon.user.file-backed-store/new-file-backed-user-store
+   }
+
+  {:component :cylon/cookie-session-store
+   :library-dependencies [[cylon "0.6.0-SNAPSHOT"]
+                          ;; temp while in checkouts
+                          [cheshire "5.3.1"]
+                          ]
+   :constructor cylon.session.cookie-session-store/new-cookie-session-store}
+
+  {:component :cylon/atom-backed-token-store
+   :library-dependencies [[cylon "0.6.0-SNAPSHOT"]
+                          ;; temp while in checkouts
+                          [cheshire "5.3.1"]
+                          ]
+   :constructor cylon.token-store.atom-backed-store/new-atom-backed-token-store}
+
+  {:component :cylon/pbkdf2-password-algo
+   :library-dependencies [[cylon "0.6.0-SNAPSHOT"]
+                          ;; temp while in checkouts
+                          [cheshire "5.3.1"]
+                          ]
+   :constructor cylon.password.pbkdf2/new-pbkdf2-hash}
+
+  {:component :cylon/user-store-password-verifier
+   :library-dependencies [[cylon "0.6.0-SNAPSHOT"]
+                          ;; temp while in checkouts
+                          [cheshire "5.3.1"]
+                          ]
+   :constructor cylon.password/new-user-store-password-verifier}
+
+  {:component :cylon/login
+   :library-dependencies [[cylon "0.6.0-SNAPSHOT"]
+                          ;; temp while in checkouts
+                          [cheshire "5.3.1"]]
+   :constructor cylon.user.login/new-login
+   }
 
   #_{:component :login-form-menu-items
      :library-dependencies [[cylon "0.5.0-20141014.130020-17"]
@@ -133,7 +171,7 @@
   ;; Project-local components
   {:component :website
    :library-dependencies [[hiccup "1.0.5"]
-                          [juxt.modular/bidi "0.9.0"]]
+                          [juxt.modular/bidi "0.9.1"]]
    :constructor {{name}}.website/new-website
    :using [:template-model]}
 
@@ -245,8 +283,8 @@
   {:module :public-resources
    :components {:public-resources
                 {:component :modular.bidi/web-resources
-                 :args [:uri-context "/static"
-                        :resource-prefix "public"]}}
+                 :args [:uri-context "\"/static\""
+                        :resource-prefix "\"public\""]}}
    :dependencies {[:modular-bidi-router :webrouter] [:public-resources]}}
 
   {:module :templated-bidi-website
@@ -259,7 +297,6 @@
                             :template-model [:aggregate-template-model :template-model]}
                   [:aggregate-template-model :template-model] [:application-template-model]
                   }
-   :library-dependencies [[hiccup "1.0.5"]]
    :files [{:template "templated-bidi-website/website.clj"
             :target "src/{{sanitized}}/website.clj"}
            {:template "templated-bidi-website/page.html.mustache"
@@ -285,8 +322,8 @@
    :library-dependencies [[org.webjars/bootstrap "3.3.0"]]
    :components {:service
                 {:component :modular.bidi/web-resources
-                 :args [:uri-context "/bootstrap"
-                        :resource-prefix "META-INF/resources/webjars/bootstrap/3.3.0"
+                 :args [:uri-context "\"/bootstrap\""
+                        :resource-prefix "\"META-INF/resources/webjars/bootstrap/3.3.0\""
                         :key :bootstrap-resources]}}
    :dependencies {[:modular-bidi-router :webrouter] {:twitter-bootstrap :service}}}
 
@@ -297,8 +334,8 @@
   {:module :dashboard-resources
    :components {:static
                 {:component :modular.bidi/web-resources
-                 :args [:uri-context "/static/"
-                        :resource-prefix "public/"]}}
+                 :args [:uri-context "\"/static/\""
+                        :resource-prefix "\"public/\""]}}
    :dependencies {[:modular-bidi-router :webrouter] [:static]}
    :files [{:template "dashboard/dashboard.html.mustache"
             :target "resources/templates/dashboard.html.mustache"}
@@ -311,7 +348,7 @@
                 :cljs-app {:component :modular.cljs/module
                            :args [:name :default :mains ['{{name}}.core] :dependencies #{:cljs-core}]}
                 :cljs-builder {:component :modular.cljs/builder
-                               :args [:source-path "src-cljs"]
+                               :args [:source-path "\"src-cljs\""]
                                :using [:single-cljs-module-cljs-core :single-cljs-module-cljs-app]}}
    :files [{:template "core.cljs"
             :target "src-cljs/{{sanitized}}/core.cljs"}]
@@ -335,8 +372,8 @@
    :library-dependencies [[org.webjars/jquery "2.1.0"]]
    :components {:resources
                 {:component :modular.bidi/web-resources
-                 :args [:uri-context "/jquery"
-                        :resource-prefix "META-INF/resources/webjars/jquery/2.1.0"
+                 :args [:uri-context "\"/jquery\""
+                        :resource-prefix "\"META-INF/resources/webjars/jquery/2.1.0\""
                         :key :jquery-resources]}}
    :dependencies {[:modular-bidi-router :webrouter] {:jquery :resources}}}
 
@@ -345,8 +382,8 @@
    :library-dependencies [[org.webjars/react "0.11.1"]]
    :components {:resources
                 {:component :modular.bidi/web-resources
-                 :args [:uri-context "/reactjs"
-                        :resource-prefix "META-INF/resources/webjars/react/0.11.1"
+                 :args [:uri-context "\"/reactjs\""
+                        :resource-prefix "\"META-INF/resources/webjars/react/0.11.1\""
                         :key :react-resources]}}
    :dependencies {[:modular-bidi-router :webrouter] {:reactjs :resources}}}
 
@@ -376,8 +413,8 @@
    :docstring "Compile LESS files to CSS."
    :components {:compiler {:component :modular.less/compiler
                            ;; TODO: modules need to be parameterized
-                           :args [:source-dir "resources/less"
-                                  :source-path "clean-blog.less"]}}
+                           :args [:source-dir "\"resources/less\""
+                                  :source-path "\"clean-blog.less\""]}}
    :library-dependencies [[org.webjars/bootstrap "3.3.0"]]
    :dependencies {[:modular-bidi-router :webrouter] [:compiler]}
    }
@@ -393,8 +430,8 @@
   {:module :clean-blog-resources
    :components {:static
                 {:component :modular.bidi/web-resources
-                 :args [:uri-context "/static"
-                        :resource-prefix "public/"]}
+                 :args [:uri-context "\"/static\""
+                        :resource-prefix "\"public/\""]}
                 }
    :dependencies {[:modular-bidi-router :webrouter] [:static]}
    :files [{:file "clean-blog/less/clean-blog.less" :target "resources/less/clean-blog.less"}
@@ -414,8 +451,8 @@
    docstring) if you don't want this."
    :components {:pages
                 {:constructor {{name}}.pages/new-pages
-                 :args [:title "My blog"
-                        :subtitle "Musings on adventures in the amazing world of Clojure"]}
+                 :args [:title "\"My blog\""
+                        :subtitle "\"Musings on adventures in the amazing world of Clojure\""]}
                 :redirect
                 {:component :modular.bidi/redirect
                  :args [:to :{{name}}.pages/index]}}
@@ -486,6 +523,56 @@
                        :user-store :cylon/user-store}
                       :menu-index [:login-form-menu-items]}
      :doc {:main #markdown "cylon-login.md"}}
+
+
+  {:module :cylon
+   :components {:user-store
+                {:component :cylon/file-backed-user-store
+                 :args [:file "(io/file (System/getProperty \"user.home\") \".{{name}}-userstore.edn\")"]}
+                :session-store
+                {:component :cylon/cookie-session-store}
+
+                :token-store
+                {:component :cylon/atom-backed-token-store}
+
+                :password-algo
+                {:component :cylon/pbkdf2-password-algo}
+
+                :password-verifier
+                {:component :cylon/user-store-password-verifier}
+
+                :login
+                {:component :cylon/login}
+                }
+   :dependencies {:session-store {:token-store :token-store}
+                  :password-verifier {:user-store :user-store
+                                      :password-hash-algo :password-algo}
+                  :login {:user-store :user-store
+                          :session-store :session-store
+                          :password-verifier :password-verifier}}}
+
+  {:module :protected-site-website
+   :components {:website
+                {:constructor {{name}}.website/new-website}
+                :application-template-model
+                {:constructor {{name}}.website/new-application-template-model}
+                :static
+                {:component :modular.bidi/web-resources
+                 :args [:uri-context "\"/static\""
+                        :resource-prefix "\"public/\""]}}
+   :dependencies {[:modular-bidi-router :webrouter] [:website :static [:cylon :login]]
+                  :website {:templater [:clostache-templater :templater]
+                            :template-model [:aggregate-template-model :template-model]}
+                  [:aggregate-template-model :template-model] [:application-template-model]
+                  [:cylon :login] {:renderer :website}}
+   :co-dependencies {:website {:router [:modular-bidi-router :webrouter]}
+                     :application-template-model {:router [:modular-bidi-router :webrouter]}
+                     [:cylon :login] {:router [:modular-bidi-router :webrouter]}}
+   :files [{:template "protected-site/website.clj" :target "src/{{sanitized}}/website.clj"}
+           {:template "protected-site/html/page.html.mustache" :target "resources/templates/page.html.mustache"}
+           {:template "protected-site/html/content.html.mustache" :target "resources/templates/content.html.mustache"}
+           {:file "protected-site/style.css" :target "resources/public/style.css"}
+           ]}
 
   #_{:module :dev-browser
      :components #{}
@@ -587,7 +674,24 @@
               :clean-blog-resources
               :clean-blog-website
               :endophile}
-   :files [{:template "clean-blog/README.md" :target "README.md"}
+   :files [{:template "clean-blog/README.md" :target "README.md"}]}
+
+
+  "protected-site"
+  {:description "A demonstration of securely protecting web pages from unauthorized users"
+   :modules #{:component
+              :co-dependency
+              :logback-logging
+              :http-listener
+              :modular-bidi-router
+              :twitter-bootstrap
+              :jquery
+              :clostache-templater
+              :cylon
+              :aggregate-template-model
+              :protected-site-website
+              }
+   :files [{:template "protected-site/README.md" :target "README.md"}
            ]}
 
   ;; TODO Let's add some example pages
