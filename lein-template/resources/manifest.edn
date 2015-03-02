@@ -251,21 +251,21 @@
 
   {:module :templated-bidi-website
    :components {:website
-                {:constructor {{name}}.templated-bidi-website/new-website
-                 }
-
-                #_:example-data
-                #_{:component :modular.template/static-template-model
-                   :args [:a "ABC"]}
-                }
+                {:constructor {{name}}.website/new-website}
+                :application-template-model
+                {:constructor {{name}}.website/new-application-template-model}}
    :dependencies {[:modular-bidi-router :webrouter] [:website]
-                  :website {#_:aggregate-template-model #_[:aggregate-template-model :template-model]
-                            :templater [:clostache-templater :templater]}
-                  ;; [:aggregate-template-model :template-model] [:example-data]
+                  :website {:templater [:clostache-templater :templater]
+                            :template-model [:aggregate-template-model :template-model]}
+                  [:aggregate-template-model :template-model] [:application-template-model]
                   }
    :library-dependencies [[hiccup "1.0.5"]]
-   :files [{:template "templated_bidi_website.clj"
-            :target "src/{{sanitized}}/templated_bidi_website.clj"}]}
+   :files [{:template "templated-bidi-website/website.clj"
+            :target "src/{{sanitized}}/website.clj"}
+           {:template "templated-bidi-website/page.html.mustache"
+            :target "resources/templates/page.html.mustache"}
+           {:template "templated-bidi-website/content.html.mustache"
+            :target "resources/templates/content.html.mustache"}]}
 
   {:module :bootstrap-cover-website
    :components {:website
@@ -277,8 +277,7 @@
    :files [{:template "bootstrap-cover/website.clj" :target "src/{{sanitized}}/website.clj"}]}
 
   {:module :bootstrap-theme
-   :files [{:template "page.html.mustache" :target "resources/templates/page.html.mustache"}
-           {:file "resources/theme.css" :target "resources/public/theme.css"}]}
+   :files [{:file "resources/theme.css" :target "resources/public/theme.css"}]}
 
   {:module :twitter-bootstrap
    :docstring "Serve Twitter Bootstrap CSS, Javascript and other
@@ -516,7 +515,7 @@
               :public-resources
               :templated-bidi-website
               :clostache-templater
-              #_:aggregate-template-model
+              :aggregate-template-model
               :bootstrap-theme
               :logback-logging
               :twitter-bootstrap
