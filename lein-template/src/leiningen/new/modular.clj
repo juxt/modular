@@ -183,7 +183,7 @@
                                 {:key (make-key (:module a) n)
                                  :refers (conj (:refers instance) constructor)
                                  :constructor (symbol (clojure.core/name constructor))
-                                 :args (map #(cond (string? %) (str "\"" % "\"") :else %) args)
+                                 :args (map #(cond (string? %) % #_(str "\"" % "\"") :else %) args)
 
                                  ;; Construct 'using' here, not in template
                                  ;; it could be a map, it could be a vector
