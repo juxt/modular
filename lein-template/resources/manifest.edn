@@ -235,7 +235,7 @@
    :library-dependencies [[com.stuartsierra/component "0.2.2"]]}
 
   {:module :co-dependency
-   :library-dependencies [[malcolmsparks/co-dependency "0.1.5"]]}
+   :library-dependencies [[juxt.modular/co-dependency "0.2.0"]]}
 
   {:module :http-listener
    :components
@@ -554,23 +554,21 @@
   {:module :protected-site-website
    :components {:website
                 {:constructor {{name}}.website/new-website}
-                :application-template-model
-                {:constructor {{name}}.website/new-application-template-model}
                 :static
                 {:component :modular.bidi/web-resources
                  :args [:uri-context "\"/static\""
                         :resource-prefix "\"public/\""]}}
    :dependencies {[:modular-bidi-router :webrouter] [:website :static [:cylon :login]]
-                  :website {:templater [:clostache-templater :templater]
-                            :template-model [:aggregate-template-model :template-model]}
-                  [:aggregate-template-model :template-model] [:application-template-model]
+                  :website {:templater [:clostache-templater :templater]}
+                  [:aggregate-template-model :template-model] [:website]
                   [:cylon :login] {:renderer :website}}
-   :co-dependencies {:website {:router [:modular-bidi-router :webrouter]}
-                     :application-template-model {:router [:modular-bidi-router :webrouter]}
+   :co-dependencies {:website {:router [:modular-bidi-router :webrouter]
+                               :template-model [:aggregate-template-model :template-model]}
                      [:cylon :login] {:router [:modular-bidi-router :webrouter]}}
    :files [{:template "protected-site/website.clj" :target "src/{{sanitized}}/website.clj"}
            {:template "protected-site/html/page.html.mustache" :target "resources/templates/page.html.mustache"}
-           {:template "protected-site/html/content.html.mustache" :target "resources/templates/content.html.mustache"}
+           {:template "protected-site/html/index.html.mustache" :target "resources/templates/index.html.mustache"}
+           {:template "protected-site/html/login.html.mustache" :target "resources/templates/login.html.mustache"}
            {:file "protected-site/style.css" :target "resources/public/style.css"}
            ]}
 
