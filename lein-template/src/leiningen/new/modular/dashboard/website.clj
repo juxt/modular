@@ -1,19 +1,19 @@
 (ns {{name}}.website
   (:require
-   [bidi.bidi :refer (path-for RouteProvider handler)]
+   [bidi.bidi :refer (RouteProvider tag)]
    [bidi.ring :refer (redirect)]
    [clojure.pprint :refer (pprint)]
    [clojure.tools.logging :refer :all]
    [com.stuartsierra.component :refer (using)]
    [hiccup.core :as hiccup]
-   [modular.bidi :refer (as-request-handler)]
+   [modular.component.co-dependency :refer (co-using)]
+   [modular.bidi :refer (as-request-handler path-for)]
    [modular.ring :refer (WebRequestHandler)]
    [modular.template :refer (render-template template-model)]
    [modular.cljs :refer (get-javascript-paths)]
-   [ring.util.response :refer (response)]
-   [tangrammer.component.co-dependency :refer (co-using)]))
+   [ring.util.response :refer (response)]))
 
-(defn page [{:keys [templater router cljs-builder]} req]
+(defn page [{:keys [templater *router cljs-builder]} req]
   (response
    (render-template
     templater
@@ -22,7 +22,7 @@
 
 ;; Components are defined using defrecord.
 
-(defrecord Website [templater router cljs-builder]
+(defrecord Website [templater *router cljs-builder]
 
   ;; modular.bidi provides a router which dispatches to routes provided
   ;; by components that satisfy its RouteProvider protocol
@@ -30,11 +30,11 @@
   (routes [component]
     ;; All paths lead to the dashboard
     ["/" [["dashboard/"
-           (handler ::dashboard (fn [req] (page component req)))]
+           (-> (fn [req] (page component req)) (tag ::dashboard))]
 
           ;; You cannot redirect to a target that requires a parameter
           [["dashboard/" [#".*" :path]]
-           (handler ::dashboard (fn [req] (page component req)))]
+           (-> (fn [req] (page component req)) (tag ::dashboard))]
 
           ["" (redirect ::dashboard)]]]))
 

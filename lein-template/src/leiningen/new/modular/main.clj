@@ -9,7 +9,7 @@
              (require '{{name}}.main)
              (require 'com.stuartsierra.component)
              {{#module?.co-dependency}}
-             (require 'tangrammer.component.co-dependency)
+             (require 'modular.component.co-dependency)
              {{/module?.co-dependency}}
 
              (require 'clojure.java.browse)
@@ -22,7 +22,7 @@
                            com.stuartsierra.component/start
                            {{/module?.co-dependency}}
                            {{#module?.co-dependency}}
-                           tangrammer.component.co-dependency/start-system
+                           modular.component.co-dependency/start-system
                            {{/module?.co-dependency}}
                            )]
 

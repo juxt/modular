@@ -1,28 +1,29 @@
 (ns {{name}}.pages
   (:require
-   [bidi.bidi :as bidi :refer (handler RouteProvider)]
+   [clojure.java.io :as io]
+   [clojure.pprint :refer (pprint)]
+   [clojure.string :as string]
+   [clojure.tools.logging :refer :all]
+   [bidi.bidi :as bidi :refer (tag RouteProvider)]
    [bidi.ring :refer (redirect)]
    [clj-time.coerce :refer (to-long)]
    [clj-time.format :refer (parse unparse formatter)
                     :rename {parse parse-date
                              unparse unparse-date
                              formatter date-format}]
-   [clojure.java.io :as io]
-   [clojure.pprint :refer (pprint)]
-   [clojure.string :as string]
-   [clojure.tools.logging :refer :all]
    [com.stuartsierra.component :refer (using)]
    [endophile.core :refer (mp to-clj html-string)]
    [hiccup.core :refer (html)]
    [modular.bidi :refer (as-request-handler path-for)]
+   [modular.component.co-dependency :refer (co-using)]
    [modular.ring :refer (WebRequestHandler)]
    [modular.template :refer (render-template template-model)]
    [ring.util.response :refer (response)]
    [schema.core :as s]
-   [tangrammer.component.co-dependency :refer (co-using)]))
+   ))
 
-(defn page [{:keys [templater router title]} content-template data req]
-  (let [static (path-for @router :web-resources)]
+(defn page [{:keys [templater *router title]} content-template data req]
+  (let [static (path-for @*router :web-resources)]
     (response
      (render-template
       templater
@@ -30,14 +31,14 @@
       {:brand-title title
        :title (:title data)
        :static static
-       :links {:about (path-for @router ::about)}
-       :home (path-for @router ::index) ; href to home page
+       :links {:about (path-for @*router ::about)}
+       :home (path-for @*router ::index) ; href to home page
        :content (render-template templater
                                  (str "templates/" content-template)
                                  (assoc data :static static))}))))
 
-(defn process-html [router s]
-  (let [static (path-for @router :web-resources)]
+(defn process-html [*router s]
+  (let [static (path-for @*router :web-resources)]
     (clojure.walk/postwalk
      (fn [x]
        (cond
@@ -48,7 +49,7 @@
   (when s
     (unparse-date (date-format "EEEE, d MMMM, y") s)))
 
-(defn get-post [post router]
+(defn get-post [post *router]
   "Get the data associated with a post, including a delayed
   body (as :body). Router can be nil, for testing, but will result in
   nil hrefs being generated"
@@ -71,46 +72,46 @@
            {:attribution (format "Posted%s%s"
                                  (if author (format " by %s" author) "")
                                  (if date (format " on %s" (format-date date)) ""))})
-         {:href (when router (path-for @router ::post :post post))
+         {:href (when *router (path-for @*router ::post :post post))
           :body (->> (get doc false)
                   (interpose \newline)
-                  (apply str) mp to-clj (process-html router) html-string delay)})))))
+                  (apply str) mp to-clj (process-html *router) html-string delay)})))))
 
-(defn get-posts [router]
+(defn get-posts [*router]
   (sort-by (comp (fnil to-long 0) :date) >
            (for [f (.listFiles (io/file "posts"))
                  :let [post (second (re-matches #"(.*).md" (.getName f)))]]
-             (get-post post router))))
+             (get-post post *router))))
 
-(defn index [{:keys [title subtitle router] :as this} req]
+(defn index [{:keys [title subtitle *router] :as this} req]
   (page this "index.html.mustache"
         {:title title
          :subtitle subtitle
-         :posts (get-posts router)}
+         :posts (get-posts *router)}
         req))
 
-(defn post [{:keys [router] :as this} req]
-  (let [post (get-post (-> req :route-params :post) router)]
+(defn post [{:keys [*router] :as this} req]
+  (let [post (get-post (-> req :route-params :post) *router)]
     (page this "post.html.mustache"
           (-> post
             (update-in [:body] deref))
           req)))
 
-(defrecord Pages [title subtitle templater router cljs-builder]
+(defrecord Pages [title subtitle templater *router cljs-builder]
   RouteProvider
   (routes [component]
     ["/myblog"
      [["/index.html"
-       (handler ::index
-                (fn [req] (index component req)))]
+       (-> (fn [req] (index component req))
+           (tag ::index))]
 
       [["/posts/" :post ".html"]
-       (handler ::post
-                (fn [req] (post component req)))]
+       (-> (fn [req] (post component req))
+           (tag ::post))]
 
       ["/about.html"
-       (handler ::about
-                (fn [req] (page component "about.html.mustache" {} req)))]
+       (-> (fn [req] (page component "about.html.mustache" {} req))
+           (tag ::about))]
 
       [(bidi/alts "" "/")
        (redirect ::index)]]]))

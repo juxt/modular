@@ -1,18 +1,18 @@
 (ns {{name}}.website
   (:require
-   [bidi.bidi :refer (path-for handler RouteProvider)]
-   [bidi.ring :refer (redirect)]
    [clojure.pprint :refer (pprint)]
    [clojure.tools.logging :refer :all]
+   [bidi.bidi :refer (tag RouteProvider)]
+   [bidi.ring :refer (redirect)]
    [com.stuartsierra.component :refer (using)]
    [hiccup.core :as hiccup]
-   [modular.bidi :refer (as-request-handler)]
+   [modular.bidi :refer (as-request-handler path-for)]
+   [modular.component.co-dependency :refer (co-using)]
    [modular.ring :refer (WebRequestHandler)]
    [modular.template :refer (render-template template-model)]
-   [ring.util.response :refer (response)]
-   [tangrammer.component.co-dependency :refer (co-using)]))
+   [ring.util.response :refer (response)]))
 
-(defn menu [router uri]
+(defn menu [*router uri]
   (hiccup/html
    [:ul.nav.masthead-nav
     (for [[k label] [[::index "Home"]
@@ -26,22 +26,22 @@
           ;; def-map-type in future releases, so a deref will be
           ;; unnecessary (and deprecated)
 
-          :let [href (path-for (:routes @router) k)]]
+          :let [href (path-for @*router k)]]
       [:li (when (= href uri) {:class "active"})
        [:a (merge {:href href}) label]]
       )]))
 
-(defn page [templater router req content]
+(defn page [templater *router req content]
   (response
    (render-template
     templater
     "templates/page.html.mustache" ; our Mustache template
-    {:menu (menu router (:uri req))
+    {:menu (menu *router (:uri req))
      :content content})))
 
-(defn index [templater router]
+(defn index [templater *router]
   (fn [req]
-    (page templater router req
+    (page templater *router req
           (hiccup/html
            [:div
             [:h1.cover-heading "Welcome"]
@@ -53,9 +53,9 @@
             from modular's bootstrap-cover template. This text can be
             found in " [:code "{{name}}/website.clj"]] ]))))
 
-(defn features [templater router]
+(defn features [templater *router]
   (fn [req]
-    (page templater router req
+    (page templater *router req
           (hiccup/html
            [:div
             [:h1.cover-heading "Features"]
@@ -69,9 +69,9 @@
              ]
             [:p "This list can be found in " [:code "{{name}}/website.clj"]]]))))
 
-(defn about [templater router]
+(defn about [templater *router]
   (fn [req]
-    (page templater router req
+    (page templater *router req
           (hiccup/html
            [:div
             [:h1.cover-heading "About"]
@@ -83,21 +83,21 @@
 
 ;; Components are defined using defrecord.
 
-(defrecord Website [templater router]
+(defrecord Website [templater *router]
 
   ;; modular.bidi provides a router which dispatches to routes provided
   ;; by components that satisfy bidi's RouteProvider protocol
   RouteProvider
 
-  ;; Return a bidi route structure, using bidi's handler wrapper to
+  ;; Return a bidi route structure, using bidi's tag wrapper to
   ;; assign keywords to Ring handlers, keywords that can be used in
   ;; calls to bidi's path-for function.
   (routes [_]
     ["/"
-     {"index.html" (handler ::index (index templater router))
+     {"index.html" (-> (index templater *router) (tag ::index))
       "" (redirect ::index)
-      "features.html" (handler ::features (features templater router))
-      "about.html" (handler ::about (about templater router))}]))
+      "features.html" (-> (features templater *router) (tag ::features))
+      "about.html" (-> (about templater *router) (tag ::about))}]))
 
 ;; While not mandatory, it is common to use a function to construct an
 ;; instance of the component. This affords the opportunity to control

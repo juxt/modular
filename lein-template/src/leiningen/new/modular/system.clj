@@ -8,7 +8,7 @@
    [clojure.tools.reader.reader-types :refer (indexing-push-back-reader)]
    [com.stuartsierra.component :refer (system-map system-using using)]
    {{#module?.co-dependency}}
-   [tangrammer.component.co-dependency :refer (co-using system-co-using)]
+   [modular.component.co-dependency :refer (co-using system-co-using)]
    {{/module?.co-dependency}}
    [modular.maker :refer (make)]
    {{#refers}}

@@ -7,7 +7,7 @@
    [clojure.java.io :as io]
    [com.stuartsierra.component :as component]
    {{#module?.co-dependency}}
-   [tangrammer.component.co-dependency :as co-dependency]
+   [modular.component.co-dependency :as co-dependency]
    {{/module?.co-dependency}}
    [{{name}}.system :refer (config new-system-map new-dependency-map new-co-dependency-map)]
    [modular.maker :refer (make)]
