@@ -22,9 +22,9 @@
                       {:this this}))))
 
   (stop [this]
-    (when-let [server (:server this)]
-      (server)
-      (dissoc this :server))))
+    (if-let [server (:server this)]
+      (server))
+    (dissoc this :server)))
 
 (defn new-webserver [& {:as opts}]
   (let [{:keys [port]} (->> (merge {:port default-port} opts)
