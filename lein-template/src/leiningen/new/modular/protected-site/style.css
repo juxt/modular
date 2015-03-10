@@ -1,3 +1,56 @@
 body {
     padding-top: 50px;
 }
+
+p {
+    font-size: 16pt;
+}
+
+h1 {
+    font-size: 24pt;
+}
+
+h2 {
+    font-size: 20pt;
+}
+
+label {
+    min-width: 6em;
+}
+
+form {
+    font-size: 15pt;
+    margin: 30px 0;
+}
+
+form div {
+    margin: 10px 0;
+}
+
+form label {
+    padding: 4px;
+}
+
+form input {
+    width: 16.5em;
+    margin: 0 1em;
+    padding: 2px 4px;
+}
+
+form input#password {
+    width: 8em;
+}
+
+form input.submit {
+    width: 8em;
+    /* margin-left is label min-width + input margin */
+    margin-left: 7em;
+}
+
+.footer {
+    margin-top: 50px;
+}
+
+.footer p {
+    font-size: 12pt;
+}

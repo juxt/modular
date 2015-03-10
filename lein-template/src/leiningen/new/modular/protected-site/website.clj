@@ -46,11 +46,17 @@
                (merge (template/template-model @*template-model req)
                       {:login-form
                        (html
-                        (list
-                         [:h2 "(insert form here)"]
-                         [:form
-                          [:label "User"]
-                          [:input {:type :text}]]))})))
+                        [:form
+                         [:div
+                          [:label {:for "email"} "Email"]
+                          [:input#email {:type :text}]]
+                         [:div
+                          [:label {:for "password"} "Password"]
+                          [:input#password {:type :password}]
+                          [:a {:href "#"} "Forgot password"]]
+                         [:div
+                          [:input.submit {:type "submit" :value "Sign in"}]
+                          [:a {:href "#"} "Sign up"]]])})))
 
   TemplateModel
   (template-model [component req]
