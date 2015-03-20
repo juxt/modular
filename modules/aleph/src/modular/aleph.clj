@@ -7,7 +7,7 @@
    [modular.ring :refer (request-handler WebRequestHandler)]
    [aleph.http :as http]))
 
-(defrecord HttpServer [port]
+(defrecord Webserver [port]
   Lifecycle
   (start [component]
     (if-let [provider (first (filter #(satisfies? WebRequestHandler %) (vals component)))]
@@ -24,10 +24,10 @@
       (.close server)
       (dissoc component :server))))
 
-(def new-http-server-schema {:port s/Int})
+(def new-webserver-schema {:port s/Int})
 
-(defn new-http-server [& {:as opts}]
+(defn new-webserver [& {:as opts}]
   (->> opts
     (merge {:port 8080})
-    (s/validate new-http-server-schema)
+    (s/validate new-webserver-schema)
     map->HttpServer))
