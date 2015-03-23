@@ -4,7 +4,7 @@
  :components
  [
   {:component :modular.http-kit/webserver
-   :library-dependencies [[juxt.modular/http-kit "0.5.3"]]
+   :library-dependencies [[juxt.modular/http-kit "0.5.4"]]
    :constructor modular.http-kit/new-webserver
    :options [:port]
    :using [:request-handler]}
