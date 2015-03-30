@@ -572,6 +572,29 @@
            {:file "protected-site/style.css" :target "resources/public/style.css"}
            ]}
 
+  {:module :intro-website
+   :components {:website
+                {:constructor {{name}}.website/new-website}
+                :static
+                {:component :modular.bidi/web-resources
+                 :args [:uri-context "\"/static\""
+                        :resource-prefix "\"public/\""]}}
+   :dependencies {[:modular-bidi-router :webrouter] [:website :static]
+                  :website {:templater [:clostache-templater :templater]}
+                  [:aggregate-template-model :template-model] [:website]}
+   :library-dependencies [[hiccup "1.0.5"]
+                          [org.clojure/data.csv "0.1.2"]
+                          [cheshire "5.4.0"]]
+   :co-dependencies {:website {:router [:modular-bidi-router :webrouter]
+                               :template-model [:aggregate-template-model :template-model]}}
+   :files [{:template "intro/website.clj" :target "src/{{sanitized}}/website.clj"}
+           {:template "intro/page.html.mustache" :target "resources/page.html.mustache"}
+           {:template "intro/index.html.mustache" :target "resources/index.html.mustache"}
+           {:file "intro/style.css" :target "resources/public/style.css"}
+           {:file "intro/weather.csv" :target "resources/weather.csv"}
+           {:file "intro/animals.json" :target "resources/animals.json"}
+           ]}
+
   #_{:module :dev-browser
      :components #{}
      :dependency-map {}}]
@@ -690,6 +713,22 @@
               :protected-site-website
               }
    :files [{:template "protected-site/README.md" :target "README.md"}
+           ]}
+
+  "intro"
+  {:description "An introduction to Clojure (training course content)"
+   :modules #{:component
+              :co-dependency
+              :logback-logging
+              :http-listener
+              :modular-bidi-router
+              :twitter-bootstrap
+              :jquery
+              :clostache-templater
+              :aggregate-template-model
+              :intro-website
+              }
+   :files [{:template "intro/README.md" :target "README.md"}
            ]}
 
   ;; TODO Let's add some example pages

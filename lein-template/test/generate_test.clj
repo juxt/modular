@@ -119,3 +119,9 @@
     (generate-checkout name "/home/malcolm/Dropbox/src/cylon" "cylon")
     (testing "project file should exist"
       (is (.exists (io/file (get-tmp-dir) (str name "/project.clj")))))))
+
+(deftest intro-tests
+  (let [name "intro-example"]
+    (generate-project name "intro")
+    (testing "project file should exist"
+      (is (.exists (io/file (get-tmp-dir) (str name "/project.clj")))))))
