@@ -22,15 +22,15 @@
    :constructor modular.bidi/new-redirect}
 
   {:component :modular.template/static-template-model
-   :library-dependencies [[juxt.modular/template "0.6.2"]]
+   :library-dependencies [[juxt.modular/template "0.6.3"]]
    :constructor modular.template/new-static-template-model}
 
   {:component :modular.template/aggregate-template-model
-   :library-dependencies [[juxt.modular/template "0.6.2"]]
+   :library-dependencies [[juxt.modular/template "0.6.3"]]
    :constructor modular.template/new-aggregate-template-model}
 
   {:component :modular.clostache/templater
-   :library-dependencies [[juxt.modular/clostache "0.6.1"]]
+   :library-dependencies [[juxt.modular/clostache "0.6.3"]]
    :constructor modular.clostache/new-clostache-templater}
 
   {:component :modular.less/compiler
