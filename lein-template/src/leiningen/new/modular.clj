@@ -244,8 +244,8 @@
                                       :refers (apply str (interpose " " (distinct (map (comp clojure.core/name) v))))}))
                  []))
 
-               :dev-refers
-               (->>
+               #_:dev-refers
+               #_(->>
                 (for [module modules
                       refer (:dev-refers module)]
                   refer)
@@ -258,7 +258,7 @@
 
                :dev-snippets
                (apply str
-                      (interpose "\newline\newline"
+                      (interpose "\n\n"
                                  (for [snippet (mapcat :dev-snippets modules)]
                                    (slurp (render (:template snippet))))))
 

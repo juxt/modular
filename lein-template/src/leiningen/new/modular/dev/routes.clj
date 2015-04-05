@@ -1,3 +1,6 @@
+(require 'bidi.bidi
+         'modular.bidi)
+
 (defn routes []
   (-> system :modular-bidi-router-webrouter :routes))
 

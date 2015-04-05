@@ -253,7 +253,6 @@
    :components {:webrouter
                 {:component :modular.bidi/router}}
    :dependencies {[:http-listener :listener] {:request-handler :webrouter}}
-   :dev-refers []
    :dev-snippets [{:template "dev/routes.clj"}]}
 
   {:module :simple-bidi-website
@@ -524,7 +523,6 @@
                       :menu-index [:login-form-menu-items]}
      :doc {:main #markdown "cylon-login.md"}}
 
-
   {:module :cylon
    :components {:user-store
                 {:component :cylon/file-backed-user-store
@@ -549,7 +547,8 @@
                                       :password-hash-algo :password-algo}
                   :login {:user-store :user-store
                           :session-store :session-store
-                          :password-verifier :password-verifier}}}
+                          :password-verifier :password-verifier}}
+   :dev-snippets [{:template "dev/cylon/user.clj"}]}
 
   {:module :protected-site-website
    :components {:website
@@ -558,8 +557,11 @@
                 {:component :modular.bidi/web-resources
                  :args [:uri-context "\"/static\""
                         :resource-prefix "\"public/\""]}}
-   :dependencies {[:modular-bidi-router :webrouter] [:website :static [:cylon :login]]
-                  :website {:templater [:clostache-templater :templater]}
+   :dependencies {[:modular-bidi-router :webrouter] {:website :website
+                                                     :static :static
+                                                     :cylon-login [:cylon :login]}
+                  :website {:templater [:clostache-templater :templater]
+                            :session-store [:cylon :session-store]}
                   [:aggregate-template-model :template-model] [:website]
                   [:cylon :login] {:renderer :website}}
    :co-dependencies {:website {:router [:modular-bidi-router :webrouter]
@@ -569,6 +571,7 @@
            {:template "protected-site/html/page.html.mustache" :target "resources/templates/page.html.mustache"}
            {:template "protected-site/html/index.html.mustache" :target "resources/templates/index.html.mustache"}
            {:template "protected-site/html/login.html.mustache" :target "resources/templates/login.html.mustache"}
+           {:template "protected-site/html/protected.html.mustache" :target "resources/templates/protected.html.mustache"}
            {:file "protected-site/style.css" :target "resources/public/style.css"}
            ]}
 
