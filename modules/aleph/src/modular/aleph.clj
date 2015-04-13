@@ -30,4 +30,4 @@
   (->> opts
     (merge {:port 8080})
     (s/validate new-webserver-schema)
-    map->WebServer))
+    map->Webserver))
