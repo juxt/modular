@@ -1,6 +1,6 @@
 ;; Copyright © 2014 JUXT LTD.
 
-(defproject juxt.modular/aleph "0.0.8-SNAPSHOT"
+(defproject juxt.modular/aleph "0.0.8"
   :description "A modular extension that provides support for aleph"
   :url "https://github.com/juxt/modular/tree/master/modules/aleph"
   :license {:name "The MIT License"
