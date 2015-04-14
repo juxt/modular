@@ -5,27 +5,36 @@
    [com.stuartsierra.component :refer (Lifecycle)]
    [schema.core :as s]
    [modular.ring :refer (request-handler WebRequestHandler)]
-   [aleph.http :as http]))
+   [aleph.http :as http]
+   ))
 
-(defrecord Webserver []
+(defn get-handler
+  "Extract the Ring handler from the component"
+  [component]
+  (or
+   ;; Handlers can be specified as a constructor arg
+   (:handler component)
+
+   ;; Or as a dependency (which satisfies WebRequestHandler)
+   (when-let [provider (first (filter #(satisfies? WebRequestHandler %) (vals component)))]
+     (request-handler provider))
+
+   ;; Or an exception is thrown
+   (throw (ex-info (format "aleph http server requires a handler, or a dependency that satisfies %s" WebRequestHandler)))))
+
+(defrecord Webserver [handler]
   Lifecycle
   (start [component]
-    (if-let [provider (first (filter #(satisfies? WebRequestHandler %) (vals component)))]
-      (let [h (request-handler provider)]
-        (assert h)
-        (let [server (http/start-server h component)]
-          (assoc component :server server)))
-      (throw (ex-info (format "aleph http server requires the existence of a component that satisfies %s" WebRequestHandler)
-                      {:component component})))
-
-    )
+    (let [server (http/start-server (get-handler component) component)]
+      (assoc component :server server)))
   (stop [component]
     (when-let [server (:server component)]
       (.close server)
       (dissoc component :server))))
 
-(def new-webserver-schema {:port s/Int
-                           s/Keyword s/Any})
+(def new-webserver-schema
+  {:port s/Int
+   s/Keyword s/Any})
 
 (defn new-webserver [& {:as opts}]
   (->> opts
