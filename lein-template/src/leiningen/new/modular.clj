@@ -59,7 +59,7 @@
 (defn make-key [ns n]
   (case KEY-TYPE
     :vector [ns n]
-    :keyword (keyword (apply str (interpose "-" (map #(if % (clojure.core/name %) nil) [ns n]))))))
+    :keyword (keyword (apply str (interpose "#" (map #(if % (clojure.core/name %) nil) [ns n]))))))
 
 (defn gbf
   "Group by first and apply function to values"
