@@ -68,24 +68,23 @@
   [config]
   (apply system-map
     (apply concat
-      (-> {}
-          {{#modules}}{{#fname}}
+      (-> {}{{#modules}}{{#fname}}
           ({{fname}} config){{/fname}}{{/modules}}
           ))))
 
 (defn new-dependency-map
   []
-  {{#dependencies}}
-  {{.}}
+{{#dependencies}}
+{{.}}
 
-  {{/dependencies}})
+{{/dependencies}})
 
 (defn new-co-dependency-map
   []
-  {{#co-dependencies}}
-  {{.}}
+{{#co-dependencies}}
+{{.}}
 
-  {{/co-dependencies}})
+{{/co-dependencies}})
 
 (defn new-production-system
   "Create the production system"
