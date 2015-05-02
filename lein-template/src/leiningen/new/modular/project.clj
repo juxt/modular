@@ -14,8 +14,6 @@
   :repl-options {:init-ns user
                  :welcome (println "Type (dev) to start")}
 
-  :aliases {"gen" ["run" "-m" "{{name}}.generate"]}
-
   :profiles {:dev {:dependencies [[org.clojure/tools.namespace "0.2.10"]]
                    :source-paths ["dev"
                                   ]}})
