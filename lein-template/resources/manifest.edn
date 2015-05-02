@@ -57,6 +57,10 @@
    :library-dependencies [[juxt.modular/http-kit-events "0.6.0"]]
    :constructor modular.http-kit.events/new-event-service}
 
+  {:component :modular.email/log-emailer
+   :library-dependencies [[juxt.modular/email "0.0.1"]]
+   :constructor modular.email.log-emailer/new-log-emailer}
+
   ;; Menus
   #_{:component :modular.menu/menu-index
      :library-dependencies [[juxt.modular/menu "0.5.3"]]
@@ -67,111 +71,56 @@
      :constructor modular.bootstrap.menu/new-bootstrap-menu}
 
   ;; Security components
-  {:component :cylon/file-backed-user-store
+  {:component :cylon/email-user-store
    :library-dependencies [[cylon "0.6.0-SNAPSHOT"]
                           ;; temp while in checkouts
-                          [cheshire "5.3.1"]
+                          #_[cheshire "5.4.0"]
                           ]
-   :constructor cylon.user.file-backed-store/new-file-backed-user-store
+   :constructor cylon.user.email-user-store/new-email-user-store
    }
+
+  {:component :cylon/buddy-user-authenticator
+   :library-dependencies [[cylon "0.6.0-SNAPSHOT"]
+                          ;; temp while in checkouts
+                          #_[buddy "0.5.1"]
+                          ]
+   :constructor cylon.user.buddy-user-authenticator/new-buddy-user-authenticator
+   }
+
+  {:component :cylon/file-storage
+   :library-dependencies [[cylon "0.6.0-SNAPSHOT"]]
+   :constructor cylon.storage.file-storage/new-file-storage}
 
   {:component :cylon/cookie-session-store
    :library-dependencies [[cylon "0.6.0-SNAPSHOT"]
                           ;; temp while in checkouts
-                          [cheshire "5.3.1"]
+                          #_[cheshire "5.4.0"]
                           ]
    :constructor cylon.session.cookie-session-store/new-cookie-session-store}
 
   {:component :cylon/atom-backed-token-store
    :library-dependencies [[cylon "0.6.0-SNAPSHOT"]
                           ;; temp while in checkouts
-                          [cheshire "5.3.1"]
+                          #_[cheshire "5.4.0"]
                           ]
    :constructor cylon.token-store.atom-backed-store/new-atom-backed-token-store}
-
-  {:component :cylon/pbkdf2-password-algo
-   :library-dependencies [[cylon "0.6.0-SNAPSHOT"]
-                          ;; temp while in checkouts
-                          [cheshire "5.3.1"]
-                          ]
-   :constructor cylon.password.pbkdf2/new-pbkdf2-hash}
-
-  {:component :cylon/user-store-password-verifier
-   :library-dependencies [[cylon "0.6.0-SNAPSHOT"]
-                          ;; temp while in checkouts
-                          [cheshire "5.3.1"]
-                          ]
-   :constructor cylon.password/new-user-store-password-verifier}
 
   {:component :cylon/login
    :library-dependencies [[cylon "0.6.0-SNAPSHOT"]
                           ;; temp while in checkouts
-                          [cheshire "5.3.1"]]
+                          #_[cheshire "5.4.0"]]
    :constructor cylon.user.login/new-login
    }
 
-  #_{:component :login-form-menu-items
-     :library-dependencies [[cylon "0.5.0-20141014.130020-17"]
-                            [juxt.modular/menu "0.5.3"]]
-     :constructor modular.menu.cylon/new-login-form-menu-items
-     }
-
-  #_{:component :cylon/login-form-bootstrap-renderer
-     :library-dependencies [[cylon "0.5.0-20141014.130020-17"]
-                            [juxt.modular/bootstrap "0.2.0"]]
-     :constructor modular.bootstrap.cylon.login-form/new-bootstrap-login-form-renderer
-     }
-
-  #_{:component :boilerplate
-     :library-dependencies [[juxt.modular/bootstrap "0.2.0"]]
-     :constructor {{name}}.boilerplate/new-boilerplate
-     }
-
-  #_{:component :cylon/atom-backed-session-store
-     :library-dependencies [[cylon "0.5.0-20141014.130020-17"]]
-     :constructor cylon.impl.session/new-atom-backed-session-store
-     :args [:expiry-seconds 3600 :id :login]
-     }
-
-  #_{:component :cylon/default-user-domain
-     :library-dependencies [[cylon "0.5.0-20141014.130020-17"]]
-     :constructor cylon.impl.user/new-default-user-domain
-     }
-
-  #_{:component :cylon/pbkdf2-password-hash
-     :library-dependencies [[cylon "0.5.0-20141014.130020-17"]]
-     :constructor cylon.impl.pbkdf2/new-pbkdf2-password-hash
-     }
-
-  #_{:component :cylon/user-file
-     :library-dependencies [[cylon "0.5.0-20141014.130020-17"]]
-     :constructor cylon.impl.user/new-user-file
-     ;; TODO The args should belong to the instance
-     :args [:file (io/file (System/getProperty "user.home") ".{{name}}-users.edn")]
-     }
-
-  #_{:component :authorizer
-     :library-dependencies [[cylon "0.5.0-20141014.130020-17"]]
-     :constructor cylon.impl.authorization/new-logged-in-authorizer
-     }
-
-  #_{:component :user-domain-seeder
-     :library-dependencies [[cylon "0.5.0-20141014.130020-17"]]
-     :constructor cylon.impl.user/new-user-domain-seeder
-     :args [:users [{:id "dev" :password {{{dev-password}}} }]]
-     :dev? true
-     }
-
-  #_{:component :modular.web-template/dependency-dynamic-template-model
-     :library-dependencies [[juxt.modular/template "0.6.0"]
-                            [de.ubercode.clostache/clostache "1.3.1"]]
-     :constructor modular.web-template/new-dependency-dynamic-template-model
-     }
+  {:component :cylon/signup
+   :library-dependencies [[cylon "0.6.0-SNAPSHOT"]]
+   :constructor cylon.user.signup/new-signup
+   }
 
   ;; Project-local components
   {:component :website
    :library-dependencies [[hiccup "1.0.5"]
-                          [juxt.modular/bidi "0.9.1"]]
+                          [juxt.modular/bidi "0.9.2"]]
    :constructor {{name}}.website/new-website
    :using [:template-model]}
 
@@ -495,60 +444,55 @@
      :components #{:webmeta}
      :dependency-map {:template-model [:webmeta]}}
 
-  #_{:module :cylon/login
-     :components #{:cylon/login-form
-                   :login-form-menu-items
-                   :cylon/login-form-bootstrap-renderer
-                   :boilerplate
-                   :cylon/atom-backed-session-store
-                   :cylon/default-user-domain
-                   :cylon/pbkdf2-password-hash
-                   :cylon/user-file
-                   :template-model
-                   :user-domain-seeder}
-
-     :dependency-map {:webrouter [:cylon/login-form]
-                      :cylon/login-form
-                      {:session-store :cylon/session-store
-                       :user-domain :cylon/user-domain
-                       :renderer :cylon/login-form-bootstrap-renderer
-                       }
-                      :cylon/login-form-bootstrap-renderer
-                      {:boilerplate :boilerplate}
-                      :boilerplate
-                      {:template-model :template-model}
-                      :cylon/user-domain
-                      {:password-hash-algo :cylon/password-hash-algo
-                       :user-store :cylon/user-store}
-                      :menu-index [:login-form-menu-items]}
-     :doc {:main #markdown "cylon-login.md"}}
-
   {:module :cylon
-   :components {:user-store
-                {:component :cylon/file-backed-user-store
-                 :args [:file "(io/file (System/getProperty \"user.home\") \".{{name}}-userstore.edn\")"]}
+   :components {
+                :user-store
+                {:component :cylon/email-user-store}
+
+                :buddy-user-authenticator
+                {:component :cylon/buddy-user-authenticator}
+
                 :session-store
                 {:component :cylon/cookie-session-store}
 
-                :token-store
+                :login-session-token-store
                 {:component :cylon/atom-backed-token-store}
-
-                :password-algo
-                {:component :cylon/pbkdf2-password-algo}
-
-                :password-verifier
-                {:component :cylon/user-store-password-verifier}
 
                 :login
                 {:component :cylon/login}
                 }
-   :dependencies {:session-store {:token-store :token-store}
-                  :password-verifier {:user-store :user-store
-                                      :password-hash-algo :password-algo}
+   :dependencies {:session-store {:token-store :login-session-token-store}
                   :login {:user-store :user-store
-                          :session-store :session-store
-                          :password-verifier :password-verifier}}
+                          :user-authenticator :buddy-user-authenticator
+                          :session-store :session-store}
+                  }
+
    :dev-snippets [{:template "dev/cylon/user.clj"}]}
+
+  {:module :cylon/file-storage
+   :components {:file-storage
+                {:component :cylon/file-storage
+                 :args [:file "(io/file (System/getProperty \"user.home\") \".{{name}}-userstore.edn\")"]}}
+   :dependencies {[:cylon :user-store] {:storage :file-storage}}}
+
+  {:module :cylon/signup
+   :components {:signup
+                {:component :cylon/signup}
+                :verification-code-store
+                {:component :cylon/atom-backed-token-store}
+                }
+   :dependencies {:signup {:user-store [:cylon :user-store]
+                           :user-password-hasher [:cylon :buddy-user-authenticator]
+                           :session-store [:cylon :session-store]
+                           :verification-code-store :verification-code-store}}}
+
+  ;; A log emailer which can be diminished in favour of a real emailer (e.g. sendgrid)
+  {:module :cylon/log-emailer
+   :components {:emailer
+                {:component :modular.email/log-emailer}}
+   :library-dependencies [;; temp while cylon in checkouts, because cylon already depends on juxt.modular/email
+                          [juxt.modular/email "0.0.1"]]
+   :dependencies {[:cylon/signup :signup] {:emailer :emailer}}}
 
   {:module :protected-site-website
    :components {:website
@@ -557,20 +501,29 @@
                 {:component :modular.bidi/web-resources
                  :args [:uri-context "\"/static\""
                         :resource-prefix "\"public/\""]}}
+
+   ;; cylon temps
+   :library-dependencies [[camel-snake-kebab "0.1.4"]
+                          [yada "0.3.3"]
+                          ]
+
    :dependencies {[:modular-bidi-router :webrouter] {:website :website
                                                      :static :static
-                                                     :cylon-login [:cylon :login]}
+                                                     :cylon-login [:cylon :login]
+                                                     :cylon-signup [:cylon/signup :signup]}
                   :website {:templater [:clostache-templater :templater]
                             :session-store [:cylon :session-store]}
                   [:aggregate-template-model :template-model] [:website]
-                  [:cylon :login] {:renderer :website}}
+                  [:cylon :login] {:renderer :website}
+                  [:cylon/signup :signup] {:renderer :website}}
    :co-dependencies {:website {:router [:modular-bidi-router :webrouter]
                                :template-model [:aggregate-template-model :template-model]}
-                     [:cylon :login] {:router [:modular-bidi-router :webrouter]}}
+                     [:cylon :login] {:router [:modular-bidi-router :webrouter]}
+                     [:cylon/signup :signup] {:router [:modular-bidi-router :webrouter]}}
    :files [{:template "protected-site/website.clj" :target "src/{{sanitized}}/website.clj"}
            {:template "protected-site/html/page.html.mustache" :target "resources/templates/page.html.mustache"}
            {:template "protected-site/html/index.html.mustache" :target "resources/templates/index.html.mustache"}
-           {:template "protected-site/html/login.html.mustache" :target "resources/templates/login.html.mustache"}
+           {:template "protected-site/html/dialog.html.mustache" :target "resources/templates/dialog.html.mustache"}
            {:template "protected-site/html/protected.html.mustache" :target "resources/templates/protected.html.mustache"}
            {:file "protected-site/style.css" :target "resources/public/style.css"}
            ]}
@@ -712,11 +665,16 @@
               :jquery
               :clostache-templater
               :cylon
+              :cylon/signup             ; enable on with +signup switch
+              :cylon/log-emailer        ; enable on with +signup switch
+              :cylon/file-storage       ; TODO should be configurable
               :aggregate-template-model
               :protected-site-website
               }
    :files [{:template "protected-site/README.md" :target "README.md"}
            ]}
+
+  ;; TODO: It would be better for modules to have dependencies. Therefore, :cylon/signup would depend on :cylon/log-emailer. +sendgrid would augment with :sendgrid-emailer and diminish :cylon/log-emailer
 
   "intro"
   {:description "An introduction to Clojure (training course content)"
