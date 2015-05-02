@@ -110,12 +110,10 @@
        (s/validate new-router-schema)
        map->Router))
 
-(s/defn path-for :- s/Str
+(defn path-for
   "Convenience function wrapping bidi's path-for"
-  [router :- (s/pred (partial instance? Router))
-   target :- s/Keyword
-   & args]
-  (assert (satisfies? Router router) "Router argument must satisfy")
+  [router target & args]
+  #_(assert (satisfies? Router router) "Router argument must satisfy")
   (apply bidi/path-for (:routes router) target args))
 
 ;; ------  TODO Router needs to display all possible routes available,
