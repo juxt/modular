@@ -10,15 +10,15 @@
    :using [:request-handler]}
 
   {:component :modular.bidi/router
-   :library-dependencies [[juxt.modular/bidi "0.9.1"]]
+   :library-dependencies [[juxt.modular/bidi "0.9.2"]]
    :constructor modular.bidi/new-router}
 
   {:component :modular.bidi/web-resources
-   :library-dependencies [[juxt.modular/bidi "0.9.1"]]
+   :library-dependencies [[juxt.modular/bidi "0.9.2"]]
    :constructor modular.bidi/new-web-resources}
 
   {:component :modular.bidi/redirect
-   :library-dependencies [[juxt.modular/bidi "0.9.1"]]
+   :library-dependencies [[juxt.modular/bidi "0.9.2"]]
    :constructor modular.bidi/new-redirect}
 
   {:component :modular.template/static-template-model
@@ -168,8 +168,8 @@
    ;; temporary, while bidi is in checkouts, to allow for (reset)
    :library-dependencies [[org.clojure/clojure "1.7.0-alpha4"]
                           [org.clojure/tools.reader "0.8.13"]
-                          [prismatic/schema "0.3.5"]
-                          [prismatic/plumbing "0.3.5"]
+                          [prismatic/schema "0.4.2"]
+                          [prismatic/plumbing "0.4.2"]
                           [juxt.modular/maker "0.5.0"]
                           [juxt.modular/wire-up "0.5.0"]]
 
@@ -181,7 +181,7 @@
            {:file "gitignore" :target ".gitignore"}]}
 
   {:module :component
-   :library-dependencies [[com.stuartsierra/component "0.2.2"]]}
+   :library-dependencies [[com.stuartsierra/component "0.2.3"]]}
 
   {:module :co-dependency
    :library-dependencies [[juxt.modular/co-dependency "0.2.0"]]}
@@ -216,7 +216,7 @@
                 {:component :modular.template/aggregate-template-model}}}
 
   {:module :logback-logging
-   :library-dependencies [[org.clojure/tools.logging "0.2.6"]
+   :library-dependencies [[org.clojure/tools.logging "0.3.1"]
                           [ch.qos.logback/logback-classic "1.0.7" :exclusions [org.slf4j/slf4j-api]]
                           [org.slf4j/jul-to-slf4j "1.7.2"]
                           [org.slf4j/jcl-over-slf4j "1.7.2"]

@@ -2,8 +2,6 @@
   :description "A modular project created with lein new modular {{template}}"
   :url "http://github.com/{{user}}/{{name}}"
 
-  :exclusions [com.stuartsierra/component]
-
   :dependencies
   [
    {{#library-dependencies}}
@@ -18,6 +16,6 @@
 
   :aliases {"gen" ["run" "-m" "{{name}}.generate"]}
 
-  :profiles {:dev {:dependencies [[org.clojure/tools.namespace "0.2.5"]]
+  :profiles {:dev {:dependencies [[org.clojure/tools.namespace "0.2.10"]]
                    :source-paths ["dev"
                                   ]}})
