@@ -281,6 +281,7 @@
                 ;; we have a conflict - more than one dependency is trying to bind
                 (gbf #(into {} (gbf first %)))
                 (into {})
+                pprint with-out-str
                 )
 
                :co-dependencies
@@ -297,7 +298,8 @@
                 ;; there aren't multiple entries, if there are it means
                 ;; we have a conflict - more than one dependency is trying to bind
                 (gbf #(into {} (gbf first %)))
-                (into {}))
+                (into {})
+                pprint with-out-str)
 
                :files (concat (get-in manifest [:application-templates app-template :files] [])
                               (mapcat :files modules))}]
