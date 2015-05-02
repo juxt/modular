@@ -5,7 +5,7 @@
    [bidi.bidi :refer (RouteProvider tag)]
    [bidi.ring :refer (redirect)]
    [com.stuartsierra.component :refer (using)]
-   [cylon.user.protocols :refer (LoginFormRenderer)]
+   [cylon.user.protocols :refer (LoginFormRenderer UserFormRenderer)]
    [cylon.session :refer (session)]
    [hiccup.core :refer (html)]
    [modular.bidi :refer (as-request-handler path-for)]
@@ -35,8 +35,9 @@
      :body (page-body templater template
                       (merge
                        (template/template-model @*template-model req)
-                       (when-let [s (session session-store req)]
-                         {:user {:email (-> s :cylon/user :email)}})))}))
+
+                       (when-let [email (some-> (session session-store req) :cylon/user :email)]
+                         {:user {:email email}})))}))
 
 (defrecord Website [templater *template-model *router session-store]
   RouteProvider
@@ -51,28 +52,67 @@
 
   LoginFormRenderer
   (render-login-form [component req model]
-    (page-body templater "templates/login.html.mustache"
-               (merge (template/template-model @*template-model req)
-                      #_(model->template-model model)
-                      {:login-form
-                       (html
-                        [:form {:action (-> model :form :action)
-                                :method (-> model :form :method)}
-                         ;; Hidden fields
-                         (for [{:keys [name value type]} (-> model :form :fields)
-                               :when (= type "hidden")]
-                           [:input {:type type :name name :value value}])
-                         [:div
-                          [:label {:for "email"} "Email"]
-                          ;; We must have
-                          [:input#email {:type :text :name "user"}]]
-                         [:div
-                          [:label {:for "password"} "Password"]
-                          [:input#password {:type :password :name "password"}]
-                          [:a {:href "#"} "Forgot password"]]
-                         [:div
-                          [:input.submit {:type "submit" :value "Sign in"}]
-                          [:a {:href "#"} "Sign up"]]])})))
+    (page-body
+     templater "templates/dialog.html.mustache"
+     (merge (template/template-model @*template-model req)
+            {:title (:title model)
+             :form
+             (html
+              (when (:login-failed? model)
+                [:div.alert.alert-danger.alert-dismissible
+                 {:role "alert"}
+                 [:button.close {:type "button" :data-dismiss "alert" :aria-label "Close"}
+                  [:span {:aria-hidden "true"} "&times;"]
+                  ]
+                 "You have entered an unrecognised email address or incorrect password."]
+                )
+              [:form {:action (-> model :form :action)
+                      :method (-> model :form :method)}
+               (when-let [redirect (:post-login-redirect model)]
+                 [:input {:type :hidden :name "post_login_redirect" :value redirect}]
+                 )
+               [:div
+                [:label {:for "email"} "Email"]
+                ;; We must have
+                [:input#email {:type :text :name "user"}]]
+               [:div
+                [:label {:for "password"} "Password"]
+                [:input#password {:type :password :name "password"}]
+                (when-let [href nil]
+                  [:a {:href href} "Forgot password"])]
+               [:div
+                [:input.submit {:type "submit" :value "Sign in"}]
+                ;; If we can't find a path to the signup form, we deduce
+                ;; that no signup functionality exists. This is the
+                ;; feature toggle.
+                (when-let [signup (path-for @*router :cylon.user.signup/GET-signup-form)]
+                  [:a {:href signup } "Sign up"])]
+
+               ])})))
+
+  UserFormRenderer
+  (render-signup-form [component req model]
+    (page-body
+     templater "templates/dialog.html.mustache"
+     (merge (template/template-model @*template-model req)
+            {:title (:title model)
+             :form
+             (html
+              [:form {:action (-> model :form :action)
+                      :method (-> model :form :method)}
+               ;; Hidden fields
+               (for [{:keys [name value type]} (-> model :form :fields)
+                     :when (= type "hidden")]
+                 [:input {:type type :name name :value value}])
+               [:div
+                [:label {:for "email"} "Email"]
+                [:input#email {:type :text :name "user"}]]
+               [:div
+                [:label {:for "password"} "Password"]
+                [:input#password {:type :password :name "password"}]]
+               [:div
+                [:input.submit {:type "submit" :value "Sign up"}]
+                ]])})))
 
   TemplateModel
   (template-model [component req]

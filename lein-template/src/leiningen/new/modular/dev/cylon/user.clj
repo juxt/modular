@@ -1,11 +1,8 @@
 (require
- '[cylon.user :refer (create-user!)]
- '[cylon.password :refer (make-password-hash)])
+ '[cylon.user :refer (create-user! hash-password)])
 
 (defn add-user []
   (create-user!
    (-> system :cylon-user-store)
-   "malcolm"
-   (make-password-hash (-> system :cylon-password-verifier) "foobar")
-   "malcolm@congreve.com"
-   {}))
+   {:email "malcolm@congreve.com"
+    :password (hash-password (-> system :cylon-buddy-user-authenticator) "foobar")}))
