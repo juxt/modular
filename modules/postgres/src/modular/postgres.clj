@@ -1,6 +1,7 @@
 (ns modular.postgres
   (:require [clojure.tools.logging :as log]
-            [com.stuartsierra.component :as component])
+            [com.stuartsierra.component :as component]
+            [schema.core :as s])
   (:import com.mchange.v2.c3p0.ComboPooledDataSource))
 
 (defn- pool
@@ -30,9 +31,7 @@
   component/Lifecycle
   (start [this]
     (log/debug "Starting postgres")
-    (let [app-key (:application settings)
-          settings (-> settings :infrastructure :pg)]
-      (assoc this :pool {:url url :user user :password password})))
+    (assoc this :pool (pool this)))
 
   (stop [{:keys [pool] :as this}]
     (when pool
@@ -40,3 +39,11 @@
       (.close pool)
       (log/debug "Pool closed"))
     (dissoc this :pool)))
+
+(defn new-postgres-connection-pool [& {:as opts}]
+  (->> opts
+       (merge {})
+       (s/validate {:url s/Str
+                    :user s/Str
+                    :password s/Str})
+       map->Postgres))
