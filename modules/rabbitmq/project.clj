@@ -5,4 +5,4 @@
   :url "https://github.com/juxt/modular/tree/master/modules/rabbitmq"
   :license {:name "The MIT License"
             :url "http://opensource.org/licenses/MIT"}
-  :dependencies [[com.novemberain/langohr "3.0.1"]])
+  :dependencies [[com.novemberain/langohr "3.2.0"]])
