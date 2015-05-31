@@ -20,7 +20,7 @@
      (request-handler provider))
 
    ;; Or an exception is thrown
-   (throw (ex-info (format "aleph http server requires a handler, or a dependency that satisfies %s" WebRequestHandler)))))
+   (throw (ex-info (format "aleph http server requires a handler, or a dependency that satisfies %s" WebRequestHandler) {}))))
 
 (defrecord Webserver [handler]
   Lifecycle
