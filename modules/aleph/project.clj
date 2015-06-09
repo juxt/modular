@@ -1,14 +1,13 @@
 ;; Copyright © 2014 JUXT LTD.
 
-(defproject juxt.modular/aleph "0.0.8"
+(defproject juxt.modular/aleph "0.1.0"
   :description "A modular extension that provides support for aleph"
   :url "https://github.com/juxt/modular/tree/master/modules/aleph"
   :license {:name "The MIT License"
             :url "http://opensource.org/licenses/MIT"}
-  :dependencies [[aleph "0.4.0-beta3" :exclusions [org.clojure/clojure]]
-                 [prismatic/schema "0.3.5"]
-                 [juxt.modular/ring "0.5.2"]
-                 ]
+  :dependencies [[aleph "0.4.0" :exclusions [org.clojure/clojure]]
+                 [prismatic/schema "0.4.3"]
+                 [juxt.modular/ring "0.5.2" :exclusions [prismatic/schema ]]]
   :profiles {:dev {:dependencies
-                   [[org.clojure/clojure "1.7.0-alpha4"]
-                    [com.stuartsierra/component "0.2.2"]]}} )
+                   [[org.clojure/clojure "1.7.0-RC1"]
+                    [com.stuartsierra/component "0.2.3"]]}})
