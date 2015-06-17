@@ -3,7 +3,6 @@
 (ns modular.ring
   (:require
    [com.stuartsierra.component :as component]
-   [clojure.tools.logging :refer (debugf infof)]
    [schema.core :as s]
    [clojure.pprint :refer (pprint)]))
 
