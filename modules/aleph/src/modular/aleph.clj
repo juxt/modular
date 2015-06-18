@@ -29,8 +29,8 @@
       (assoc component :server server)))
   (stop [component]
     (when-let [server (:server component)]
-      (.close server)
-      (dissoc component :server))))
+      (.close server))
+    (dissoc component :server)))
 
 (def new-webserver-schema
   {:port s/Int
