@@ -7,7 +7,6 @@
    [com.stuartsierra.component :as component :refer (Lifecycle)]
    [bidi.bidi :as bidi :refer (match-route resolve-handler RouteProvider tag)]
    [bidi.ring :refer (resources-maybe make-handler redirect archive)]
-   [clojure.tools.logging :refer :all]
    [clojure.java.io :as io]))
 
 (defrecord WebResources [uri-context resource-prefix key maybe?]
