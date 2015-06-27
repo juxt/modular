@@ -125,3 +125,9 @@
     (generate-project name "intro")
     (testing "project file should exist"
       (is (.exists (io/file (get-tmp-dir) (str name "/project.clj")))))))
+
+(deftest yada-tests
+  (let [name "yada-example"]
+    (generate-project name "yada")
+    (testing "project file should exist"
+      (is (.exists (io/file (get-tmp-dir) (str name "/project.clj")))))))

@@ -6,15 +6,14 @@
    [clojure.tools.namespace.repl :refer (refresh refresh-all)]
    [clojure.java.io :as io]
    [com.stuartsierra.component :as component]
+   [schema.core :as s]
    {{#module?.co-dependency}}
    [modular.component.co-dependency :as co-dependency]
    {{/module?.co-dependency}}
    [{{name}}.system :refer (config new-system-map new-dependency-map new-co-dependency-map)]
-   [modular.maker :refer (make)]
    {{#dev-refers}}
    [{{namespace}} :refer ({{{refers}}})]
-   {{/dev-refers}}
-   [modular.wire-up :refer (normalize-dependency-map)]))
+   {{/dev-refers}}))
 
 (def system nil)
 
@@ -23,12 +22,7 @@
   []
   (let [config (config)
         s-map (->
-               (new-system-map config)
-               #_(assoc
-                 {{#dev-components}}
-                 {{component}} (make {{constructor}} config{{{args}}})
-                 {{/dev-components}}
-                 ))]
+               (new-system-map config))]
     (-> s-map
         (component/system-using (new-dependency-map))
         {{#module?.co-dependency}}
@@ -42,6 +36,19 @@
   (alter-var-root #'system
     (constantly (new-dev-system))))
 
+(defn check
+  "Check for component validation errors"
+  []
+  (let [errors
+        (->> system
+             (reduce-kv
+              (fn [acc k v]
+                (assoc acc k (s/check (type v) v)))
+              {})
+             (filter (comp some? second)))]
+
+    (when (seq errors) (into {} errors))))
+
 (defn start
   "Starts the current development system."
   []
@@ -52,8 +59,8 @@
    {{/module?.co-dependency}}
    {{^module?.co-dependency}}
    component/start
-   {{/module?.co-dependency}}
-))
+   {{/module?.co-dependency}})
+  (when-let [errors (check)] (println "System integrity errors:" errors)))
 
 (defn stop
   "Shuts down and destroys the current development system."

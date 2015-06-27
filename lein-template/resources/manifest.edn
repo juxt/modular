@@ -166,12 +166,9 @@
   {:module :core                ; :core is special, it's always selected
 
    ;; temporary, while bidi is in checkouts, to allow for (reset)
-   :library-dependencies [[org.clojure/clojure "1.7.0-alpha4"]
-                          [org.clojure/tools.reader "0.8.13"]
-                          [prismatic/schema "0.4.2"]
-                          [prismatic/plumbing "0.4.2"]
-                          [juxt.modular/maker "0.5.0"]
-                          [juxt.modular/wire-up "0.5.0"]]
+   :library-dependencies [[org.clojure/clojure "1.7.0-RC2"]
+                          [prismatic/schema "0.4.3"]
+                          [aero "0.1.0"]]
 
    :files [{:template "project.clj" :target "project.clj"}
            {:template "system.clj" :target "src/{{sanitized}}/system.clj" :close-parens? true}
@@ -420,10 +417,10 @@
            {:template "clean-blog/html/about.html.mustache" :target "resources/templates/about.html.mustache"}
            {:template "clean-blog/html/post.html.mustache" :target "resources/templates/post.html.mustache"}]}
 
-
-
   {:module :endophile
    :library-dependencies [[endophile "0.1.2"]]}
+
+
 
   ;; TODO Add support for general webjars.org support in modular
   ;; How to?
@@ -490,7 +487,7 @@
   {:module :cylon/log-emailer
    :components {:emailer
                 {:component :modular.email/log-emailer}}
-   :library-dependencies [;; temp while cylon in checkouts, because cylon already depends on juxt.modular/email
+   :library-dependencies [ ;; temp while cylon in checkouts, because cylon already depends on juxt.modular/email
                           [juxt.modular/email "0.0.1"]]
    :dependencies {[:cylon/signup :signup] {:emailer :emailer}}}
 
@@ -549,6 +546,22 @@
            {:file "intro/style.css" :target "resources/public/style.css"}
            {:file "intro/weather.csv" :target "resources/weather.csv"}
            {:file "intro/animals.json" :target "resources/animals.json"}
+           ]}
+
+  {:module :aleph
+   :library-dependencies [[juxt.modular/aleph "0.1.2"]]}
+
+  {:module :yada-simple
+   :docstring "yada simple service"
+   :components {:website
+                {:constructor {{name}}.hello/new-hello-world
+                 :config-key [:hello-world]
+                 :args []}}
+   :dependencies {}
+   :co-dependencies {}
+   :library-dependencies [[yada "0.5.0-SNAPSHOT"]]
+   :files [
+           {:template "yada/hello.clj" :target "src/{{sanitized}}/hello.clj"}
            ]}
 
   #_{:module :dev-browser
@@ -690,6 +703,16 @@
               :intro-website
               }
    :files [{:template "intro/README.md" :target "README.md"}
+           ]}
+
+  "yada"
+  {:description "Yada examples"
+   :modules #{:component
+              :aleph
+              :yada-simple
+              }
+   :files [{:template "yada/README.md" :target "README.md"}
+           {:template "yada/config.edn" :target "config.edn"}
            ]}
 
   ;; TODO Let's add some example pages

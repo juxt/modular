@@ -59,7 +59,8 @@
 (defn make-key [ns n]
   (case KEY-TYPE
     :vector [ns n]
-    :keyword (keyword (apply str (interpose "#" (map #(if % (clojure.core/name %) nil) [ns n]))))))
+    :keyword (keyword (apply keyword (map #(if % (clojure.core/name %) nil) [ns n])))
+    :keyword-no-ns (keyword (apply str (interpose "#" (map #(if % (clojure.core/name %) nil) [ns n]))))))
 
 (defn gbf
   "Group by first and apply function to values"
@@ -162,6 +163,7 @@
                                        co-using :co-using
                                        library-dependencies :library-dependencies
                                        args :args
+                                       config-key :config-key
                                        :as instance}]
                                    (:components a)
                                    :let [component (when component-ref
@@ -183,6 +185,7 @@
                                 {:key (make-key (:module a) n)
                                  :refers (conj (:refers instance) constructor)
                                  :constructor (symbol (clojure.core/name constructor))
+                                 :config-key config-key
                                  :args (map #(cond (string? %) % #_(str "\"" % "\"") :else %) args)
 
                                  ;; Construct 'using' here, not in template
