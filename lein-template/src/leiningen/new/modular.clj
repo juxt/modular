@@ -100,6 +100,12 @@
     ;; remove the space
     (#(subs % 0 (dec (count %))))))
 
+(defn mount
+  "Mount a map at a path. So (mount [:a :b :c] m) would return {:a {:b {:c m}}}"
+  [[h & t] m]
+   (if (nil? t) {h m}
+       {h (mount t m)}))
+
 (defn modular
   "Create a new modular project - TODO documentation show go here which
   will be shown on 'lein new :show modular' , but will only appear when
@@ -163,7 +169,8 @@
                                        co-using :co-using
                                        library-dependencies :library-dependencies
                                        args :args
-                                       config-key :config-key
+                                       config-path :config-path
+                                       config-schema :config-schema
                                        :as instance}]
                                    (:components a)
                                    :let [component (when component-ref
@@ -185,7 +192,8 @@
                                 {:key (make-key (:module a) n)
                                  :refers (conj (:refers instance) constructor)
                                  :constructor (symbol (clojure.core/name constructor))
-                                 :config-key config-key
+                                 :config-path config-path
+                                 :config-schema config-schema
                                  :args (map #(cond (string? %) % #_(str "\"" % "\"") :else %) args)
 
                                  ;; Construct 'using' here, not in template
@@ -258,6 +266,9 @@
                  (fn [a k v] (conj a {:namespace k
                                       :refers (apply str (interpose " " (distinct (map (comp clojure.core/name) v))))}))
                  []))
+
+               :config-schema (with-out-str (pprint (apply merge (for [m modules c (:components m)]
+                                                                   (mount (:config-path c) (:config-schema c))))))
 
                :dev-snippets
                (apply str

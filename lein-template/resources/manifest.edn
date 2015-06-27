@@ -551,11 +551,12 @@
   {:module :aleph
    :library-dependencies [[juxt.modular/aleph "0.1.2"]]}
 
-  {:module :yada-simple
-   :docstring "yada simple service"
-   :components {:website
+  {:module :yada-examples
+   :docstring "Simple examples demonstrating how to use yada in various ways"
+   :components {:hello-world
                 {:constructor {{name}}.hello/new-hello-world
-                 :config-key [:hello-world]
+                 :config-path [:hello-world]
+                 :config-schema {:port s/Int}
                  :args []}}
    :dependencies {}
    :co-dependencies {}
@@ -709,7 +710,7 @@
   {:description "Yada examples"
    :modules #{:component
               :aleph
-              :yada-simple
+              :yada-examples
               }
    :files [{:template "yada/README.md" :target "README.md"}
            {:template "yada/config.edn" :target "config.edn"}

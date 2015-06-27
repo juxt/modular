@@ -6,6 +6,7 @@
    [clojure.string :as str]
    [com.stuartsierra.component :refer (system-map system-using using)]
    [aero.core :as aero]
+   [schema.core :as s]
    {{#module?.co-dependency}}
    [modular.component.co-dependency :refer (co-using system-co-using)]
    {{/module?.co-dependency}}
@@ -14,10 +15,12 @@
    {{/refers}}
    ))
 
-(defn config [] (aero/read-config "config.edn"))
+(def config-schema {{config-schema}})
 
-(defn make [c config config-key & {:as args}]
-  (apply c (apply concat (merge args (get-in config config-key)))))
+(defn config [] (s/validate config-schema (aero/read-config "config.edn")))
+
+(defn make [c config config-path & {:as args}]
+  (apply c (apply concat (merge args (get-in config config-path)))))
 
 {{#modules}}
 {{#fname}}
@@ -27,7 +30,7 @@
     {{#components}}
     {{key}}
     (->
-      (make {{constructor}} config {{config-key}} {{#args}} {{{.}}}{{/args}})
+      (make {{constructor}} config {{config-path}} {{#args}} {{{.}}}{{/args}})
       (using {{using}})
       {{#module?.co-dependency}}
       (co-using {{co-using}})
