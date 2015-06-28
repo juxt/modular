@@ -6,7 +6,7 @@
   :url "http://modularity.org/"
   :license {:name "The MIT License"
             :url "http://opensource.org/licenses/MIT"}
-  :dependencies [[org.clojure/clojure "1.7.0-alpha4"]
+  :dependencies [[org.clojure/clojure "1.7.0-RC2"]
                  ;; EDN reader with location metadata
                  [org.clojure/tools.reader "0.8.3"]
                  [org.clojure/tools.logging "0.2.6"]]
