@@ -11,3 +11,4 @@ extract-native.dependencies
 /todo.org
 /lein-template/todo.org
 .lein-failures
+/lein-template/.lein-repl-history
