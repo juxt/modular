@@ -20,7 +20,7 @@
 (defn config [] (s/validate config-schema (aero/read-config "config.edn")))
 
 (defn make [c config config-path & {:as args}]
-  (apply c (apply concat (merge args (get-in config config-path)))))
+  (apply c (apply concat (merge args (when config-path (get-in config config-path))))))
 
 {{#modules}}
 {{#fname}}
@@ -30,7 +30,7 @@
     {{#components}}
     {{key}}
     (->
-      (make {{constructor}} config {{config-path}} {{#args}} {{{.}}}{{/args}})
+      (make {{constructor}} config {{#config-path}}{{config-path}}{{/config-path}}{{^config-path}}nil{{/config-path}} {{#args}} {{{.}}}{{/args}})
       (using {{using}})
       {{#module?.co-dependency}}
       (co-using {{co-using}})

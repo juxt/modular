@@ -1,1 +1,3 @@
-{:hello-world {:port 3001}}
+{:standalone-examples {:port 3001}
+ :http-listener {:port 3000}
+ :swagger-ui {}}

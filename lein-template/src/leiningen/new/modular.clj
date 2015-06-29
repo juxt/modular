@@ -268,7 +268,8 @@
                  []))
 
                :config-schema (with-out-str (pprint (apply merge (for [m modules c (:components m)]
-                                                                   (mount (:config-path c) (:config-schema c))))))
+                                                                   (when-let [path (:config-path c)]
+                                                                     (mount path (:config-schema c)))))))
 
                :dev-snippets
                (apply str

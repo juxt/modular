@@ -181,12 +181,13 @@
    :library-dependencies [[com.stuartsierra/component "0.2.3"]]}
 
   {:module :co-dependency
-   :library-dependencies [[juxt.modular/co-dependency "0.2.0"]]}
+   :library-dependencies [[juxt.modular/co-dependency "0.2.1"]]}
 
   {:module :http-listener
    :components
    {:listener {:component :modular.http-kit/webserver
-               :args [{:port [:http-server :port]} nil]}}}
+               :config-path [:http-listener]
+               :config-schema {:port s/Int}}}}
 
   {:module :hello-world-website
    :components {:handler
@@ -553,16 +554,24 @@
 
   {:module :yada-examples
    :docstring "Simple examples demonstrating how to use yada in various ways"
-   :components {:hello-world
-                {:constructor {{name}}.hello/new-hello-world
-                 :config-path [:hello-world]
+   :components {:examples
+                {:constructor {{name}}.examples/new-examples
+                 :config-path [:standalone-examples]
                  :config-schema {:port s/Int}
+                 :args []}
+
+                :swagger-ui
+                {:constructor {{name}}.swagger-ui/new-swagger-ui
+                 :config-path [:swagger-ui]
+                 :config-schema {}
                  :args []}}
-   :dependencies {}
-   :co-dependencies {}
+
+   :dependencies {[:modular-bidi-router :webrouter] [:swagger-ui]}
+   :co-dependencies {:swagger-ui {:router [:modular-bidi-router :webrouter]}}
    :library-dependencies [[yada "0.5.0-SNAPSHOT"]]
    :files [
-           {:template "yada/hello.clj" :target "src/{{sanitized}}/hello.clj"}
+           {:template "yada/examples.clj" :target "src/{{sanitized}}/examples.clj"}
+           {:template "yada/swagger_ui.clj" :target "src/{{sanitized}}/swagger_ui.clj"}
            ]}
 
   #_{:module :dev-browser
@@ -709,8 +718,12 @@
   "yada"
   {:description "Yada examples"
    :modules #{:component
+              :co-dependency
               :aleph
               :yada-examples
+              :modular-bidi-router
+              :http-listener
+              :logback-logging
               }
    :files [{:template "yada/README.md" :target "README.md"}
            {:template "yada/config.edn" :target "config.edn"}
