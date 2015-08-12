@@ -49,8 +49,8 @@
 
            (assoc this
              :channel (.bind b port)
-             :boss-group (NioEventLoopGroup.)
-             :worker-group (NioEventLoopGroup.))))))
+             :boss-group boss-group
+             :worker-group worker-group)))))
 
    (stop [this]
      (let [fut (:channel this)]
