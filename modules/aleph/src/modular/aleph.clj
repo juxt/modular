@@ -13,7 +13,7 @@
   [component]
   (or
    ;; Handlers can be specified as a constructor arg
-   (request-handler (:handler component))
+   (when (:handler component) (request-handler (:handler component)))
 
    ;; Or as a dependency (which satisfies WebRequestHandler)
    (when-let [provider (first (filter #(satisfies? WebRequestHandler %) (vals component)))]
